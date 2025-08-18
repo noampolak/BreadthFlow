@@ -1,0 +1,53 @@
+FROM bitnami/spark:latest
+
+# Switch to root for installations
+USER root
+
+# Install Python packages for UDFs and CLI
+# Install PySpark 4.0.0 first to prevent pip from installing 3.5.6
+RUN pip3 install pyspark==4.0.0
+RUN pip3 install yfinance pandas numpy click requests python-dotenv kafka-python delta-spark boto3 pyarrow
+
+# Set Python environment
+ENV PYSPARK_PYTHON=python3
+ENV PYSPARK_DRIVER_PYTHON=python3
+
+# Set Spark environment variables to fix Ivy cache issue
+ENV HOME=/opt/bitnami/spark
+ENV USER=spark
+ENV SPARK_HOME=/opt/bitnami/spark
+ENV SPARK_CONF_DIR=/opt/bitnami/spark/conf
+ENV SPARK_LOCAL_DIRS=/tmp/spark-local
+ENV IVY_HOME=/opt/bitnami/spark/.ivy2
+# Additional environment variables for Hadoop and Ivy
+ENV HADOOP_USER_NAME=spark
+ENV HADOOP_CONF_DIR=/opt/bitnami/spark/conf
+ENV HADOOP_HOME=/opt/bitnami/spark
+ENV HDFS_NAMENODE_USER=spark
+ENV HDFS_DATANODE_USER=spark
+ENV HDFS_SECONDARYNAMENODE_USER=spark
+ENV YARN_RESOURCEMANAGER_USER=spark
+ENV YARN_NODEMANAGER_USER=spark
+# Java options to completely disable authentication and fix all issues
+ENV SPARK_OPTS="--conf spark.jars.ivy=/opt/bitnami/spark/.ivy2"
+ENV SPARK_DRIVER_OPTS="-Duser.home=/opt/bitnami/spark -Duser.name=spark -Divy.home=/opt/bitnami/spark/.ivy2 -Dhadoop.security.authentication=simple -Dhadoop.security.authorization=false -Djava.security.auth.login.config="
+ENV SPARK_EXECUTOR_OPTS="-Duser.home=/opt/bitnami/spark -Duser.name=spark -Divy.home=/opt/bitnami/spark/.ivy2 -Dhadoop.security.authentication=simple -Dhadoop.security.authorization=false -Djava.security.auth.login.config="
+# Additional Java options to completely bypass authentication AND fix HOME variable
+ENV _JAVA_OPTIONS="-Duser.name=spark -Duser.home=/opt/bitnami/spark -Divy.home=/opt/bitnami/spark/.ivy2 -Dhadoop.security.authentication=simple -Dhadoop.security.authorization=false -Djava.security.krb5.realm= -Djava.security.krb5.kdc= -Djava.security.auth.login.config="
+# Additional system property to bypass all authentication
+ENV JAVA_TOOL_OPTIONS="-Dhadoop.security.authentication=simple -Djava.security.auth.login.config="
+
+# Create jobs directory and Ivy cache directories (both .ivy2 and .ivy2.5.2 for Spark 4.0.0)
+RUN mkdir -p /opt/bitnami/spark/jobs
+RUN mkdir -p /opt/bitnami/spark/.ivy2
+RUN mkdir -p /opt/bitnami/spark/.ivy2.5.2
+RUN mkdir -p /tmp/spark-local
+
+# Set permissions
+RUN chown -R 1001:1001 /opt/bitnami/spark/jobs/
+RUN chown -R 1001:1001 /opt/bitnami/spark/.ivy2/
+RUN chown -R 1001:1001 /opt/bitnami/spark/.ivy2.5.2/
+RUN chown -R 1001:1001 /tmp/spark-local/
+
+# Switch back to non-root user
+USER 1001
