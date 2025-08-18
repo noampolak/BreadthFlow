@@ -1,0 +1,21 @@
+#!/bin/bash
+# BreadthFlow Container CLI Wrapper
+#
+# This script runs the BreadthFlow CLI inside the Spark master container.
+# Usage: ./bf-container [command] [options]
+
+# Check if docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Docker is not running. Please start Docker first."
+    exit 1
+fi
+
+# Check if spark-master container is running
+if ! docker ps | grep -q spark-master; then
+    echo "❌ Spark master container is not running."
+    echo "💡 Start the infrastructure first: cd infra && docker-compose up -d"
+    exit 1
+fi
+
+# Run the CLI inside the spark-master container
+docker exec -it spark-master python3 /opt/bitnami/spark/jobs/cli/simple_container_cli.py "$@"

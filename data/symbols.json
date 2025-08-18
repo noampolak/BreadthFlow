@@ -1,0 +1,117 @@
+{
+  "description": "Symbol lists for Breadth/Thrust Signals POC market breadth analysis",
+  "last_updated": "2024-12-19",
+  "symbols": {
+    "sp500": {
+      "name": "S&P 500 Constituents",
+      "description": "Major S&P 500 stocks for market breadth analysis",
+      "symbols": [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK-B", "UNH", "JNJ",
+        "JPM", "V", "PG", "HD", "MA", "BAC", "ABBV", "PFE", "KO", "AVGO",
+        "PEP", "TMO", "COST", "DHR", "MRK", "ABT", "VZ", "ACN", "WMT", "LLY",
+        "TXN", "QCOM", "NKE", "HON", "PM", "UNP", "IBM", "RTX", "CAT", "GS",
+        "AMGN", "SPGI", "LOW", "ISRG", "GILD", "T", "AXP", "PLD", "ADI", "BKNG",
+        "SYK", "MDLZ", "TJX", "CME", "REGN", "VRTX", "KLAC", "ADP", "PANW", "ORCL",
+        "INTU", "AMAT", "SNPS", "CDNS", "MU", "MELI", "FTNT", "KLAC", "CTAS", "PAYX",
+        "ROST", "BIIB", "WDAY", "CPRT", "IDXX", "FAST", "ODFL", "DXCM", "XEL", "CTSH",
+        "MCHP", "ADSK", "WBD", "CSGP", "BRO", "EXC", "AEP", "PCAR", "DLTR", "EBAY",
+        "VRSK", "WBA", "ILMN", "ALGN", "ZS", "CRWD", "TEAM", "OKTA", "ZM", "DOCU"
+      ]
+    },
+    "nasdaq100": {
+      "name": "NASDAQ 100 Constituents",
+      "description": "Major NASDAQ stocks for technology-focused breadth analysis",
+      "symbols": [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO", "PEP", "COST",
+        "ADBE", "NFLX", "CMCSA", "TMUS", "INTC", "AMD", "QCOM", "HON", "ADP", "GILD",
+        "REGN", "VRTX", "MDLZ", "KLAC", "PANW", "ORCL", "INTU", "AMAT", "SNPS", "CDNS",
+        "MU", "MELI", "FTNT", "PAYX", "ROST", "WDAY", "CPRT", "IDXX", "FAST", "ODFL",
+        "DXCM", "CTSH", "MCHP", "ADSK", "WBD", "CSGP", "BRO", "DLTR", "EBAY", "VRSK",
+        "ILMN", "ALGN", "ZS", "CRWD", "TEAM", "OKTA", "ZM", "DOCU", "LCID", "RIVN",
+        "JD", "PDD", "BIDU", "NTES", "TCOM", "VIPS", "XPEV", "NIO", "LI", "BABA",
+        "JD", "PDD", "BIDU", "NTES", "TCOM", "VIPS", "XPEV", "NIO", "LI", "BABA",
+        "JD", "PDD", "BIDU", "NTES", "TCOM", "VIPS", "XPEV", "NIO", "LI", "BABA"
+      ]
+    },
+    "dow30": {
+      "name": "Dow Jones Industrial Average",
+      "description": "30 major blue-chip stocks",
+      "symbols": [
+        "AAPL", "MSFT", "UNH", "JNJ", "JPM", "V", "PG", "HD", "MA", "BAC",
+        "ABBV", "PFE", "KO", "AVGO", "PEP", "TMO", "COST", "DHR", "MRK", "ABT",
+        "VZ", "ACN", "WMT", "LLY", "TXN", "HON", "PM", "UNP", "IBM", "RTX"
+      ]
+    },
+    "sectors": {
+      "name": "Sector ETFs",
+      "description": "Major sector ETFs for sector rotation analysis",
+      "symbols": [
+        "XLK", "XLF", "XLE", "XLV", "XLI", "XLP", "XLY", "XLU", "XLB", "XLRE",
+        "QQQ", "SPY", "IWM", "DIA", "VTI", "VEA", "VWO", "AGG", "TLT", "GLD"
+      ]
+    },
+    "tech_leaders": {
+      "name": "Technology Leaders",
+      "description": "Major technology companies for tech sector breadth",
+      "symbols": [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO", "ADBE", "NFLX",
+        "INTC", "AMD", "QCOM", "ORCL", "INTU", "AMAT", "SNPS", "CDNS", "MU", "PANW",
+        "WDAY", "ZS", "CRWD", "TEAM", "OKTA", "ZM", "DOCU", "LCID", "RIVN", "PLTR"
+      ]
+    },
+    "financials": {
+      "name": "Financial Sector",
+      "description": "Major financial institutions",
+      "symbols": [
+        "JPM", "BAC", "WFC", "GS", "MS", "C", "AXP", "BLK", "SCHW", "USB",
+        "PNC", "TFC", "COF", "AIG", "MET", "PRU", "ALL", "TRV", "PGR", "CB"
+      ]
+    },
+    "healthcare": {
+      "name": "Healthcare Sector",
+      "description": "Major healthcare and biotech companies",
+      "symbols": [
+        "UNH", "JNJ", "PFE", "ABBV", "MRK", "ABT", "LLY", "TMO", "DHR", "GILD",
+        "REGN", "VRTX", "AMGN", "BIIB", "ILMN", "ALGN", "DXCM", "IDXX", "ISRG", "SYK"
+      ]
+    },
+    "demo_small": {
+      "name": "Demo Small Set",
+      "description": "Small set for quick demos and testing",
+      "symbols": [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX"
+      ]
+    },
+    "demo_medium": {
+      "name": "Demo Medium Set",
+      "description": "Medium set for standard demos",
+      "symbols": [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX", "ADBE", "ORCL",
+        "INTC", "AMD", "QCOM", "AVGO", "MU", "PANW", "WDAY", "ZS", "CRWD", "TEAM"
+      ]
+    },
+    "demo_large": {
+      "name": "Demo Large Set",
+      "description": "Large set for comprehensive demos",
+      "symbols": [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX", "ADBE", "ORCL",
+        "INTC", "AMD", "QCOM", "AVGO", "MU", "PANW", "WDAY", "ZS", "CRWD", "TEAM",
+        "JPM", "BAC", "WFC", "GS", "UNH", "JNJ", "PFE", "ABBV", "MRK", "LLY",
+        "V", "MA", "HD", "COST", "WMT", "PG", "KO", "PEP", "TMO", "DHR"
+      ]
+    }
+  },
+  "recommendations": {
+    "quick_testing": "demo_small",
+    "standard_demo": "demo_medium", 
+    "comprehensive_analysis": "demo_large",
+    "production_sp500": "sp500",
+    "tech_focus": "tech_leaders",
+    "sector_analysis": "sectors"
+  },
+  "notes": {
+    "data_availability": "All symbols should have data available on Yahoo Finance",
+    "update_frequency": "Symbol lists should be updated quarterly for index changes",
+    "usage": "Use appropriate symbol list based on analysis scope and performance requirements"
+  }
+}
