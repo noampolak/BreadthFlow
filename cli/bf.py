@@ -21,8 +21,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Import the new Spark job submitter
-from cli.spark_job_submitter import SparkJobSubmitter
+# Note: Spark job submitter removed in cleanup
 
 
 def create_spark_session(app_name: str):
@@ -359,7 +358,7 @@ def fetch(symbols, symbol_list, start_date, end_date, parallel, table_path):
     try:
         # Use the new Spark job submitter for proper infrastructure
         click.echo("🔄 Initializing Spark job submitter...")
-        submitter = SparkJobSubmitter()
+        # submitter = SparkJobSubmitter()  # Removed in cleanup
         
         # Check cluster status
         click.echo("🔍 Checking Spark cluster status...")

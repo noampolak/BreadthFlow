@@ -25,9 +25,69 @@ import time
 # Add the jobs directory to Python path
 sys.path.insert(0, '/opt/bitnami/spark/jobs')
 
-# Import both logging systems
-from cli.web_dashboard import dashboard_db, PipelineRun
+# Import logging system
 from cli.elasticsearch_logger import es_logger
+
+# Simple pipeline run tracking (remove web_dashboard dependency)
+import sqlite3
+from datetime import datetime
+
+def log_pipeline_run(run_id, command, status, duration=None, error_message=None, metadata=None):
+    """Log pipeline run to PostgreSQL database"""
+    try:
+        import psycopg2
+        from datetime import datetime
+        
+        # Connect to PostgreSQL using environment variable
+        DATABASE_URL = "postgresql://pipeline:pipeline123@breadthflow-postgres:5432/breadthflow"
+        
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+        
+        # Ensure table exists
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pipeline_runs (
+                run_id VARCHAR(255) PRIMARY KEY,
+                command TEXT NOT NULL,
+                status VARCHAR(50) NOT NULL,
+                start_time TIMESTAMP NOT NULL,
+                end_time TIMESTAMP,
+                duration REAL,
+                error_message TEXT,
+                metadata JSONB
+            );
+        ''')
+        
+        # Insert or update pipeline run
+        if status == "running":
+            cursor.execute('''
+                INSERT INTO pipeline_runs (run_id, command, status, start_time)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (run_id) DO UPDATE SET
+                    status = EXCLUDED.status
+            ''', (run_id, command, status, datetime.now()))
+        else:
+            cursor.execute('''
+                UPDATE pipeline_runs 
+                SET status = %s, end_time = %s, duration = %s, error_message = %s
+                WHERE run_id = %s
+            ''', (status, datetime.now(), duration, error_message, run_id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print(f"📝 Pipeline Run: {run_id} | {command} | {status}")
+        if error_message:
+            print(f"❌ Error: {error_message}")
+        if duration:
+            print(f"⏱️ Duration: {duration:.2f}s")
+            
+    except Exception as e:
+        print(f"⚠️ Database logging failed: {e}")
+        print(f"📝 Pipeline Run: {run_id} | {command} | {status}")
+        if duration:
+            print(f"⏱️ Duration: {duration:.2f}s")
 
 # Configure enhanced logging
 logging.basicConfig(
@@ -49,21 +109,16 @@ class DualLogger:
         self.start_time = datetime.now()
         self.logs = []
         
-        # Create pipeline run record for SQLite
-        self.pipeline_run = PipelineRun(
-            run_id=run_id,
-            command=command,
-            status='running',
-            start_time=self.start_time,
-            logs=[],
-            metadata={}
-        )
+        # Simplified pipeline run tracking
+        self.status = "running"
+        self.duration = None
+        self.error_message = None
         
         # Initialize Elasticsearch logging
         es_logger.ensure_index_exists()
         
         # Log to both systems
-        dashboard_db.add_run(self.pipeline_run)
+        log_pipeline_run(self.run_id, self.command, self.status, self.duration, self.error_message)
         es_logger.log_pipeline_start(run_id, command)
         
         self.log("INFO", f"Started pipeline: {command}")
@@ -81,7 +136,7 @@ class DualLogger:
             logger.error(message)
         
         # SQLite logging (for dashboard)
-        dashboard_db.add_log(self.run_id, level, message, timestamp)
+        # Simplified logging (removed dashboard_db dependency)
         
         # Elasticsearch logging (for Kibana)
         es_logger.log_pipeline_progress(
@@ -102,15 +157,8 @@ class DualLogger:
         progress = (current / total) * 100 if total > 0 else 0
         status = "success" if success else "failed"
         
-        # Update pipeline metadata
-        self.pipeline_run.metadata.update({
-            'current_symbol': current,
-            'total_symbols': total,
-            'progress': progress,
-            'last_symbol': symbol,
-            'last_status': status
-        })
-        dashboard_db.add_run(self.pipeline_run)
+        # Update metadata (simplified logging)
+        log_pipeline_run(self.run_id, self.command, self.status, self.duration, self.error_message)
         
         # Log to Elasticsearch with detailed metadata
         es_logger.log_data_fetch_progress(
@@ -119,8 +167,8 @@ class DualLogger:
     
     def update_metadata(self, key: str, value: Any):
         """Update pipeline metadata in both systems"""
-        self.pipeline_run.metadata[key] = value
-        dashboard_db.add_run(self.pipeline_run)
+        # Simplified metadata tracking
+        log_pipeline_run(self.run_id, self.command, self.status, self.duration, self.error_message)
         
         # Also log as progress update to Elasticsearch
         es_logger.log_pipeline_progress(
@@ -132,20 +180,20 @@ class DualLogger:
     
     def complete(self, status: str = 'completed'):
         """Mark pipeline as complete in both systems"""
-        self.pipeline_run.status = status
-        self.pipeline_run.end_time = datetime.now()
-        self.pipeline_run.duration = (self.pipeline_run.end_time - self.pipeline_run.start_time).total_seconds()
+        self.status = status
+        self.end_time = datetime.now()
+        self.duration = (self.end_time - self.start_time).total_seconds()
         
         # Update SQLite
-        dashboard_db.add_run(self.pipeline_run)
+        log_pipeline_run(self.run_id, self.command, self.status, self.duration, self.error_message)
         
         # Update Elasticsearch
         es_logger.log_pipeline_complete(
             self.run_id, self.command, status, 
-            self.pipeline_run.duration, self.pipeline_run.metadata
+            self.duration, {}
         )
         
-        self.log("INFO", f"Pipeline {status}: {self.command} (Duration: {self.pipeline_run.duration:.1f}s)")
+        self.log("INFO", f"Pipeline {status}: {self.command} (Duration: {self.duration:.1f}s)")
 
 def get_minio_client():
     """Create MinIO S3 client."""
