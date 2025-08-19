@@ -210,6 +210,55 @@ services:
       timeout: 10s
       retries: 5
 
+  # PostgreSQL Database for Pipeline Metadata
+  postgres:
+    image: postgres:15-alpine
+    container_name: breadthflow-postgres
+    environment:
+      POSTGRES_DB: breadthflow
+      POSTGRES_USER: pipeline
+      POSTGRES_PASSWORD: pipeline123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pipeline -d breadthflow"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # BreadthFlow Web Dashboard
+  dashboard:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.dashboard
+    container_name: breadthflow-dashboard
+    environment:
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DATABASE_URL=postgresql://pipeline:pipeline123@postgres:5432/breadthflow
+    ports:
+      - "8083:8080"  # Dashboard on port 8083
+    volumes:
+      - ../cli:/app/cli:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
   # Zookeeper (for Kafka)
   zookeeper:
     image: bitnami/zookeeper:3.9
@@ -233,6 +282,8 @@ volumes:
   minio-data:
   elasticsearch-data:
   zookeeper-data:
+  dashboard-data:
+  postgres-data:
 
 networks:
   default:
