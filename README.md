@@ -1,6 +1,6 @@
 # 🚀 BreadthFlow - Advanced Financial Pipeline
 
-> A production-ready quantitative trading signal system with real-time monitoring, built on PySpark, PostgreSQL, MinIO, and Elasticsearch. Complete end-to-end financial data processing with modern web dashboard and analytics.
+> A production-ready quantitative trading signal system with real-time monitoring, built on PySpark, Kafka, PostgreSQL, MinIO, and Elasticsearch. Complete end-to-end financial data processing with modern web dashboard, streaming capabilities, and analytics.
 
 ## 🎯 **What This System Does**
 
@@ -18,33 +18,35 @@ BreadthFlow analyzes market breadth signals across 100+ stocks to generate tradi
 ### **1. Clone & Start**
 ```bash
 git clone <repository-url>
-cd BreadthFlow/infra
-docker-compose up -d
+cd BreadthFlow
+./scripts/start_infrastructure.sh
 ```
 
 ### **2. Verify Infrastructure**
 ```bash
 # Check all services are running
-docker-compose ps
+./scripts/check_status.sh
 
-# Should show: spark-master, spark-worker-1, spark-worker-2, postgres, minio, elasticsearch, kibana, dashboard
+# Should show: spark-master, spark-worker-1, spark-worker-2, postgres, kafka, kafdrop, minio, elasticsearch, kibana, dashboard
 ```
 
 ### **3. Run Your First Pipeline**
 ```bash
+# Run complete demo (recommended for first time)
+./scripts/run_demo.sh
+
+# Or run individual commands:
 # Get data summary
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data summary
 
 # Fetch real market data
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data fetch --symbols AAPL,MSFT --start-date 2024-08-15 --end-date 2024-08-16
-
-# Run complete demo
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
 ```
 
 ### **4. Access Monitoring & UIs**
 - **🎯 Real-time Dashboard**: http://localhost:8083 (Pipeline monitoring & Infrastructure overview)
 - **📊 Kibana Analytics**: http://localhost:5601 (Advanced log analysis)
+- **🎨 Kafka UI (Kafdrop)**: http://localhost:9002 (Streaming data & message monitoring)
 - **🗄️ MinIO Data Storage**: http://localhost:9001 (minioadmin/minioadmin)
 - **⚡ Spark Cluster**: http://localhost:8080 (Processing status)
 
@@ -52,13 +54,15 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
 
 ## 🏗️ **Infrastructure Overview**
 
-### **🐳 Docker Services (8 Containers)**
+### **🐳 Docker Services (10 Containers)**
 | Service | Port | Purpose | UI Access |
 |---------|------|---------|-----------|
 | **Spark Master** | 8080 | Distributed processing coordinator | http://localhost:8080 |
 | **Spark Worker 1** | 8081 | Processing node | http://localhost:8081 |
 | **Spark Worker 2** | 8082 | Processing node | http://localhost:8082 |
 | **PostgreSQL** | 5432 | Pipeline metadata & run tracking | Database only |
+| **Kafka** | 9092/9094 | Streaming platform & message broker | http://localhost:9002 |
+| **Kafdrop** | 9002 | Kafka management & monitoring UI | http://localhost:9002 |
 | **MinIO** | 9000/9001 | S3-compatible data storage | http://localhost:9001 |
 | **Elasticsearch** | 9200 | Search and analytics engine | http://localhost:9200 |
 | **Kibana** | 5601 | Data visualization & dashboards | http://localhost:5601 |
@@ -68,9 +72,70 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
 ```
 Yahoo Finance API → Spark Processing → MinIO Storage (Parquet)
                                    ↓
+                     Kafka ← Streaming Data & Real-time Events
+                                   ↓
                      PostgreSQL ← Pipeline Metadata → Web Dashboard
                                    ↓
                     Elasticsearch Logs → Kibana Analytics
+```
+
+---
+
+## 🚀 **Startup Scripts**
+
+### **📋 Available Scripts**
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| **`start_infrastructure.sh`** | Complete startup with Kafka topics & Kibana setup | `./scripts/start_infrastructure.sh` |
+| **`run_demo.sh`** | Full pipeline demonstration | `./scripts/run_demo.sh` |
+| **`kafka_demo.sh`** | Kafka streaming demonstration | `./scripts/kafka_demo.sh` |
+| **`check_status.sh`** | Health check for all services | `./scripts/check_status.sh` |
+| **`stop_infrastructure.sh`** | Safely stop all services | `./scripts/stop_infrastructure.sh` |
+| **`restart_infrastructure.sh`** | Restart all services | `./scripts/restart_infrastructure.sh` |
+
+### **🎯 What Each Script Does**
+
+**`start_infrastructure.sh`** - Complete Setup:
+- ✅ Starts all 10 Docker containers
+- ✅ Creates Kafka topics (market-data, trading-signals, pipeline-events, backtest-results)
+- ✅ Initializes Kibana dashboards
+- ✅ Generates initial data and logs
+- ✅ Verifies all services are healthy
+
+**`run_demo.sh`** - Full Pipeline Demo:
+- ✅ Data fetching from Yahoo Finance
+- ✅ Signal generation with technical analysis
+- ✅ Backtesting simulation
+- ✅ Results summary and monitoring
+
+**`kafka_demo.sh`** - Kafka Streaming Demo:
+- ✅ Demonstrates Kafka topics and message flow
+- ✅ Sends sample market data, trading signals, and pipeline events
+- ✅ Shows real-time streaming capabilities
+- ✅ Explains Kafka use cases in financial pipeline
+
+**`check_status.sh`** - Health Monitoring:
+- ✅ Container status verification
+- ✅ Service health checks (PostgreSQL, Elasticsearch, Kibana, MinIO, Kafka, Kafdrop)
+- ✅ Kafka topics listing
+- ✅ Pipeline data summary
+
+### **💡 Quick Commands**
+```bash
+# First time setup
+./scripts/start_infrastructure.sh
+
+# Run complete demo
+./scripts/run_demo.sh
+
+# Try Kafka streaming demo
+./scripts/kafka_demo.sh
+
+# Check everything is working
+./scripts/check_status.sh
+
+# Stop when done
+./scripts/stop_infrastructure.sh
 ```
 
 ---
@@ -185,6 +250,20 @@ duration:>10
 - **Contains**: All pipeline execution logs with metadata
 - **Query API**: http://localhost:9200/breadthflow-logs/_search
 
+### **🚀 Kafka (Streaming Platform)**
+- **Access**: http://localhost:9002 (Kafdrop UI)
+- **Purpose**: Real-time data streaming and message processing
+- **Features**:
+  - **Topic Management**: Create, delete, and monitor topics
+  - **Message Browsing**: View and search through messages
+  - **Consumer Monitoring**: Track consumer groups and lag
+  - **Real-time Streaming**: Live data pipeline capabilities
+- **Use Cases**:
+  - Historical data replay for backtesting
+  - Real-time market data streaming
+  - Event-driven pipeline processing
+  - Message queuing for distributed processing
+
 ---
 
 ## 🎮 **Usage Examples**
@@ -203,24 +282,26 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 
 # 4. Check data storage
 # MinIO: http://localhost:9001 → Browse ohlcv folder
-```
+
+# 5. Monitor streaming data
+# Kafka UI: http://localhost:9002 → View topics and messages
 
 ### **🔧 Development Workflow**
 ```bash
 # 1. Start infrastructure
-cd BreadthFlow/infra
-docker-compose up -d
+./scripts/start_infrastructure.sh
 
 # 2. Develop and test
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
+./scripts/run_demo.sh
 
 # 3. Monitor in real-time
 # Dashboard: http://localhost:8083
 # Kibana: http://localhost:5601
+# Kafka UI: http://localhost:9002
 # Spark UI: http://localhost:8080
 
 # 4. Stop when done
-docker-compose down
+./scripts/stop_infrastructure.sh
 ```
 
 ---
@@ -374,7 +455,7 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 - **Pipeline Runs**: 5+ runs tracked with 80% success rate
 - **Processing Speed**: 1.3s (summary) to 28.9s (data fetch) per operation
 - **Dashboard Updates**: Real-time metrics with PostgreSQL backend
-- **Infrastructure**: 8 Docker containers running simultaneously
+- **Infrastructure**: 10 Docker containers running simultaneously (including Kafka & Kafdrop)
 - **Success Rate**: >95% success rate with proper error handling
 
 ### **⚡ Scaling Guidelines**
@@ -394,12 +475,14 @@ git clone <repository-url>
 cd BreadthFlow
 
 # 2. Start development environment
-cd infra && docker-compose up -d
+./scripts/start_infrastructure.sh
 
 # 3. Make changes to CLI files
 # Files are mounted as volumes, changes reflect immediately
 
 # 4. Test changes
+./scripts/run_demo.sh
+# Or test individual commands:
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/your_script.py
 
 # 5. Submit pull request

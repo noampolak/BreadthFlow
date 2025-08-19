@@ -57,10 +57,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_dashboard()
         elif self.path == '/infrastructure':
             self.serve_infrastructure()
+        elif self.path == '/trading':
+            self.serve_trading()
         elif self.path == '/api/summary':
             self.serve_summary()
         elif self.path == '/api/runs':
             self.serve_runs()
+        elif self.path.startswith('/api/run/'):
+            run_id = self.path.split('/')[-1]
+            self.serve_run_details(run_id)
+        elif self.path == '/api/signals/latest':
+            self.serve_latest_signals()
+        elif self.path == '/api/signals/export':
+            self.serve_signals_export()
         else:
             self.send_error(404)
     
@@ -156,7 +165,65 @@ class DashboardHandler(BaseHTTPRequestHandler):
             font-weight: bold;
             transition: transform 0.3s ease;
         }
-        .refresh-btn:hover { transform: scale(1.05); }
+                            .refresh-btn:hover { transform: scale(1.05); }
+                    
+                    .details-btn {
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        border: none;
+                        padding: 5px 12px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 0.8em;
+                        transition: all 0.3s ease;
+                    }
+                    .details-btn:hover { transform: scale(1.05); background: linear-gradient(135deg, #764ba2, #667eea); }
+                    
+                    .export-btn {
+                        background: linear-gradient(135deg, #28a745, #20c997);
+                        color: white;
+                        border: none;
+                        padding: 5px 12px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 0.8em;
+                        margin-left: 5px;
+                        transition: all 0.3s ease;
+                    }
+                    .export-btn:hover { transform: scale(1.05); }
+                    
+                    .modal {
+                        display: none;
+                        position: fixed;
+                        z-index: 1000;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0,0,0,0.5);
+                    }
+                    
+                    .modal-content {
+                        background: rgba(255, 255, 255, 0.95);
+                        backdrop-filter: blur(10px);
+                        margin: 5% auto;
+                        padding: 20px;
+                        border-radius: 15px;
+                        width: 90%;
+                        max-width: 800px;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                    }
+                    
+                    .close {
+                        color: #aaa;
+                        float: right;
+                        font-size: 28px;
+                        font-weight: bold;
+                        cursor: pointer;
+                    }
+                    .close:hover { color: #000; }
         .runs-section {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -189,11 +256,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         <div class="header">
             <h1>BreadthFlow Pipeline Dashboard</h1>
             <p>Real-time pipeline monitoring with PostgreSQL backend</p>
-            <div class="nav-buttons">
-                <button class="nav-btn active" onclick="window.location.href='/'">Dashboard</button>
-                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
-            </div>
+                                    <div class="nav-buttons">
+                            <button class="nav-btn active" onclick="window.location.href='/'">Dashboard</button>
+                            <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                            <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                            <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
+                        </div>
         </div>
         
         <div class="stats">
@@ -222,9 +290,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <tr>
                         <th>Command</th>
                         <th>Status</th>
-                        <th>Start Time</th>
                         <th>Duration</th>
-                        <th>Run ID</th>
+                        <th>Start Time</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="runs-tbody">
@@ -232,6 +300,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 </tbody>
             </table>
             <div class="last-updated" id="last-updated">Last updated: Never</div>
+        </div>
+    </div>
+    
+    <!-- Run Details Modal -->
+    <div id="runModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalContent">Loading...</div>
         </div>
     </div>
     
@@ -279,9 +355,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     row.innerHTML = `
                         <td>${command}</td>
                         <td><span class="status-${run.status}">${run.status}</span></td>
-                        <td>${startTime}</td>
                         <td>${(run.duration || 0).toFixed(1)}s</td>
-                        <td>${runId}</td>
+                        <td>${startTime}</td>
+                        <td>
+                            <button class="details-btn" onclick="showRunDetails('${run.run_id}')">Details</button>
+                            ${run.command.includes('signals') || run.command.includes('backtest') ? 
+                              `<button class="export-btn" onclick="exportRunData('${run.run_id}')">Export</button>` : ''}
+                        </td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -299,6 +379,126 @@ class DashboardHandler(BaseHTTPRequestHandler):
         
         // Auto-refresh every 30 seconds
         setInterval(loadData, 30000);
+        
+        // Modal functions
+        function showRunDetails(runId) {
+            document.getElementById('runModal').style.display = 'block';
+            document.getElementById('modalContent').innerHTML = 'Loading run details...';
+            
+            fetch(`/api/run/${runId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('modalContent').innerHTML = formatRunDetails(data);
+                })
+                .catch(error => {
+                    document.getElementById('modalContent').innerHTML = `<p>Error loading details: ${error}</p>`;
+                });
+        }
+        
+        function closeModal() {
+            document.getElementById('runModal').style.display = 'none';
+        }
+        
+        function formatRunDetails(data) {
+            if (data.error) {
+                return `<p>Error: ${data.error}</p>`;
+            }
+            
+            let html = `
+                <h2>Run Details</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <h3>Basic Information</h3>
+                        <p><strong>Run ID:</strong> ${data.run_id}</p>
+                        <p><strong>Command:</strong> ${data.command}</p>
+                        <p><strong>Status:</strong> <span class="status-${data.status}">${data.status}</span></p>
+                        <p><strong>Duration:</strong> ${data.duration ? data.duration.toFixed(2) + 's' : 'N/A'}</p>
+                    </div>
+                    <div>
+                        <h3>Timing</h3>
+                        <p><strong>Started:</strong> ${new Date(data.start_time).toLocaleString()}</p>
+                        <p><strong>Ended:</strong> ${data.end_time ? new Date(data.end_time).toLocaleString() : 'N/A'}</p>
+                        ${data.error_message ? `<p><strong>Error:</strong> ${data.error_message}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // Add signal-specific information if available
+            if (data.command.includes('signals') && data.signals_data) {
+                html += formatSignalsData(data.signals_data);
+            }
+            
+            // Add backtest-specific information if available
+            if (data.command.includes('backtest') && data.backtest_data) {
+                html += formatBacktestData(data.backtest_data);
+            }
+            
+            return html;
+        }
+        
+        function formatSignalsData(signals) {
+            return `
+                <div style="margin-top: 20px;">
+                    <h3>Signal Summary</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${signals.total_signals || 0}</div>
+                            <div class="stat-label">Total Signals</div>
+                        </div>
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${signals.buy_signals || 0}</div>
+                            <div class="stat-label">Buy Signals</div>
+                        </div>
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${signals.sell_signals || 0}</div>
+                            <div class="stat-label">Sell Signals</div>
+                        </div>
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${signals.avg_confidence || 0}%</div>
+                            <div class="stat-label">Avg Confidence</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function formatBacktestData(backtest) {
+            return `
+                <div style="margin-top: 20px;">
+                    <h3>Backtest Results</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${(backtest.total_return * 100).toFixed(1)}%</div>
+                            <div class="stat-label">Total Return</div>
+                        </div>
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${backtest.sharpe_ratio || 0}</div>
+                            <div class="stat-label">Sharpe Ratio</div>
+                        </div>
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${(backtest.max_drawdown * 100).toFixed(1)}%</div>
+                            <div class="stat-label">Max Drawdown</div>
+                        </div>
+                        <div class="stat-card" style="margin: 0;">
+                            <div class="stat-value">${backtest.total_trades || 0}</div>
+                            <div class="stat-label">Total Trades</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function exportRunData(runId) {
+            window.open(`/api/signals/export?run_id=${runId}`, '_blank');
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('runModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
@@ -451,10 +651,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
         <div class="header">
             <h1>BreadthFlow Infrastructure</h1>
             <p>System Architecture &amp; Component Overview</p>
-            <div class="nav-buttons">
-                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
-                <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-            </div>
+                                    <div class="nav-buttons">
+                            <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                            <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                            <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                        </div>
         </div>
         
         <div class="content-grid">
@@ -749,6 +950,329 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(json.dumps(data, indent=2, default=str).encode())
+    
+    def serve_run_details(self, run_id):
+        try:
+            data = self.get_run_details(run_id)
+            self.send_json(data)
+        except Exception as e:
+            self.send_json({"error": str(e)})
+    
+    def serve_latest_signals(self):
+        try:
+            data = self.get_latest_signals()
+            self.send_json(data)
+        except Exception as e:
+            self.send_json({"error": str(e)})
+    
+    def serve_signals_export(self):
+        try:
+            run_id = self.get_query_param('run_id')
+            if run_id:
+                data = self.export_run_signals(run_id)
+                self.send_csv_response(data, f"signals_{run_id[:8]}.csv")
+            else:
+                data = self.export_latest_signals()
+                self.send_csv_response(data, "latest_signals.csv")
+        except Exception as e:
+            self.send_json({"error": str(e)})
+    
+    def serve_trading(self):
+        html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BreadthFlow Trading Signals</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .nav-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .signal-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .signal-card.buy { border-left: 5px solid #28a745; }
+        .signal-card.sell { border-left: 5px solid #dc3545; }
+        .signal-card.hold { border-left: 5px solid #ffc107; }
+        .export-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .export-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        .export-btn:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Trading Signals Dashboard</h1>
+            <p>Real-time trading signals and market analysis</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Latest Trading Signals</h2>
+            <div id="signals-container">Loading signals...</div>
+        </div>
+        
+        <div class="panel">
+            <h2>Signal Export</h2>
+            <div class="export-section">
+                <button class="export-btn" onclick="exportSignals('csv')">Export as CSV</button>
+                <button class="export-btn" onclick="exportSignals('json')">Export as JSON</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadSignals() {
+            try {
+                const response = await fetch('/api/signals/latest');
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('signals-container').innerHTML = `<p>Error: ${data.error}</p>`;
+                    return;
+                }
+                
+                const container = document.getElementById('signals-container');
+                if (data.signals && data.signals.length > 0) {
+                    container.innerHTML = data.signals.map(signal => formatSignalCard(signal)).join('');
+                } else {
+                    container.innerHTML = '<p>No trading signals available. Run signal generation first.</p>';
+                }
+            } catch (error) {
+                document.getElementById('signals-container').innerHTML = `<p>Error loading signals: ${error}</p>`;
+            }
+        }
+        
+        function formatSignalCard(signal) {
+            const signalClass = signal.signal_type || 'hold';
+            const confidence = signal.confidence || 0;
+            const strength = signal.strength || 'medium';
+            
+            return `
+                <div class="signal-card ${signalClass}">
+                    <h3>${signal.symbol || 'UNKNOWN'}</h3>
+                    <p><strong>Signal:</strong> ${signal.signal_type?.toUpperCase() || 'HOLD'}</p>
+                    <p><strong>Confidence:</strong> ${confidence}%</p>
+                    <p><strong>Strength:</strong> ${strength}</p>
+                    <p><strong>Date:</strong> ${signal.date || 'N/A'}</p>
+                </div>
+            `;
+        }
+        
+        function exportSignals(format) {
+            window.open(`/api/signals/export?format=${format}`, '_blank');
+        }
+        
+        // Load signals on page load
+        loadSignals();
+        
+        // Auto-refresh every 60 seconds
+        setInterval(loadSignals, 60000);
+    </script>
+</body>
+</html>
+        """
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+        self.wfile.write(html.encode('utf-8'))
+    
+    def get_run_details(self, run_id):
+        conn = get_db_connection()
+        if not conn:
+            return {"error": "Database connection failed"}
+        
+        try:
+            # Get basic run information
+            result = conn.execute(text('''
+                SELECT run_id, command, status, start_time, end_time, duration, error_message, metadata
+                FROM pipeline_runs 
+                WHERE run_id = :run_id
+            '''), {'run_id': run_id})
+            
+            row = result.fetchone()
+            if not row:
+                return {"error": "Run not found"}
+            
+            run_data = {
+                'run_id': row[0],
+                'command': row[1],
+                'status': row[2],
+                'start_time': row[3],
+                'end_time': row[4],
+                'duration': row[5],
+                'error_message': row[6],
+                'metadata': row[7]
+            }
+            
+            # Add mock signal/backtest data based on command type
+            if 'signals' in run_data['command']:
+                run_data['signals_data'] = {
+                    'total_signals': 45,
+                    'buy_signals': 18,
+                    'sell_signals': 12,
+                    'hold_signals': 15,
+                    'avg_confidence': 73.5
+                }
+            
+            if 'backtest' in run_data['command']:
+                run_data['backtest_data'] = {
+                    'total_return': 0.15,
+                    'sharpe_ratio': 1.2,
+                    'max_drawdown': 0.08,
+                    'total_trades': 45,
+                    'win_rate': 0.65
+                }
+            
+            return run_data
+            
+        except Exception as e:
+            return {"error": f"Database query failed: {str(e)}"}
+        finally:
+            conn.close()
+    
+    def get_latest_signals(self):
+        # Mock data for now - would integrate with MinIO signal storage
+        return {
+            "signals": [
+                {
+                    "symbol": "AAPL",
+                    "signal_type": "buy",
+                    "confidence": 85,
+                    "strength": "strong",
+                    "date": "2025-08-19"
+                },
+                {
+                    "symbol": "MSFT", 
+                    "signal_type": "buy",
+                    "confidence": 78,
+                    "strength": "medium",
+                    "date": "2025-08-19"
+                },
+                {
+                    "symbol": "GOOGL",
+                    "signal_type": "hold",
+                    "confidence": 65,
+                    "strength": "weak",
+                    "date": "2025-08-19"
+                }
+            ]
+        }
+    
+    def export_run_signals(self, run_id):
+        # Mock CSV data for signals export
+        return [
+            ["Symbol", "Signal", "Confidence", "Strength", "Date"],
+            ["AAPL", "BUY", "85%", "Strong", "2025-08-19"],
+            ["MSFT", "BUY", "78%", "Medium", "2025-08-19"],
+            ["GOOGL", "HOLD", "65%", "Weak", "2025-08-19"]
+        ]
+    
+    def export_latest_signals(self):
+        # Mock CSV data for latest signals export
+        return [
+            ["Symbol", "Signal", "Confidence", "Strength", "Date"],
+            ["AAPL", "BUY", "85%", "Strong", "2025-08-19"],
+            ["MSFT", "BUY", "78%", "Medium", "2025-08-19"],
+            ["GOOGL", "HOLD", "65%", "Weak", "2025-08-19"]
+        ]
+    
+    def get_query_param(self, param_name):
+        from urllib.parse import urlparse, parse_qs
+        parsed_url = urlparse(self.path)
+        params = parse_qs(parsed_url.query)
+        return params.get(param_name, [None])[0]
+    
+    def send_csv_response(self, data, filename):
+        import csv
+        import io
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerows(data)
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'text/csv')
+        self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
+        self.end_headers()
+        self.wfile.write(output.getvalue().encode('utf-8'))
 
 @click.command()
 @click.option('--port', default=8080, help='Port to run dashboard on')
