@@ -1,6 +1,6 @@
 # 🚀 BreadthFlow - Advanced Financial Pipeline
 
-> A production-ready quantitative trading signal system with real-time monitoring, built on PySpark, Kafka, MinIO, and Elasticsearch.
+> A production-ready quantitative trading signal system with real-time monitoring, built on PySpark, PostgreSQL, MinIO, and Elasticsearch. Complete end-to-end financial data processing with modern web dashboard and analytics.
 
 ## 🎯 **What This System Does**
 
@@ -27,7 +27,7 @@ docker-compose up -d
 # Check all services are running
 docker-compose ps
 
-# Should show: spark-master, spark-worker-1, spark-worker-2, minio, elasticsearch, kibana
+# Should show: spark-master, spark-worker-1, spark-worker-2, postgres, minio, elasticsearch, kibana, dashboard
 ```
 
 ### **3. Run Your First Pipeline**
@@ -39,33 +39,38 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data fetch --symbols AAPL,MSFT --start-date 2024-08-15 --end-date 2024-08-16
 
 # Run complete demo
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py demo --quick
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
 ```
 
-### **4. Access Monitoring**
-- **📊 Kibana Analytics**: http://localhost:5601
+### **4. Access Monitoring & UIs**
+- **🎯 Real-time Dashboard**: http://localhost:8083 (Pipeline monitoring & Infrastructure overview)
+- **📊 Kibana Analytics**: http://localhost:5601 (Advanced log analysis)
 - **🗄️ MinIO Data Storage**: http://localhost:9001 (minioadmin/minioadmin)
-- **⚡ Spark Cluster**: http://localhost:8080
+- **⚡ Spark Cluster**: http://localhost:8080 (Processing status)
 
 ---
 
 ## 🏗️ **Infrastructure Overview**
 
-### **🐳 Docker Services**
+### **🐳 Docker Services (8 Containers)**
 | Service | Port | Purpose | UI Access |
 |---------|------|---------|-----------|
 | **Spark Master** | 8080 | Distributed processing coordinator | http://localhost:8080 |
 | **Spark Worker 1** | 8081 | Processing node | http://localhost:8081 |
 | **Spark Worker 2** | 8082 | Processing node | http://localhost:8082 |
+| **PostgreSQL** | 5432 | Pipeline metadata & run tracking | Database only |
 | **MinIO** | 9000/9001 | S3-compatible data storage | http://localhost:9001 |
 | **Elasticsearch** | 9200 | Search and analytics engine | http://localhost:9200 |
 | **Kibana** | 5601 | Data visualization & dashboards | http://localhost:5601 |
+| **Web Dashboard** | 8083 | Real-time pipeline monitoring | http://localhost:8083 |
 
 ### **📁 Data Flow Architecture**
 ```
-Yahoo Finance API → Spark Processing → MinIO Storage → Elasticsearch Logs → Kibana Dashboards
+Yahoo Finance API → Spark Processing → MinIO Storage (Parquet)
                                    ↓
-                            Real-time Progress Tracking
+                     PostgreSQL ← Pipeline Metadata → Web Dashboard
+                                   ↓
+                    Elasticsearch Logs → Kibana Analytics
 ```
 
 ---
@@ -74,7 +79,7 @@ Yahoo Finance API → Spark Processing → MinIO Storage → Elasticsearch Logs 
 
 ### **🎯 Primary CLI (Recommended)**
 ```bash
-# Kibana-Enhanced CLI with dual logging (SQLite + Elasticsearch)
+# Kibana-Enhanced CLI with dual logging (PostgreSQL + Elasticsearch)
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py COMMAND
 ```
 
@@ -93,21 +98,31 @@ setup-kibana                   # Initialize Kibana integration
 
 ### **⚡ Alternative CLIs**
 ```bash
-# Enhanced CLI with progress tracking
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/enhanced_bf_minio.py COMMAND
-
-# Basic CLI 
+# Feature-Rich CLI with complete pipeline
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py COMMAND
 
-# Original CLI (legacy)
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf.py COMMAND
+# Available commands: data, analytics, symbols, signals, backtest, replay, demo
 ```
+
+> **Note**: Legacy and redundant CLI files have been removed for cleaner codebase. The above two CLIs provide complete functionality.
 
 ---
 
 ## 📊 **Monitoring & Analytics**
 
-### **🔍 Kibana Dashboards**
+### **🎯 Real-time Web Dashboard** (Primary)
+1. **Open Dashboard**: http://localhost:8083
+2. **Main Features**:
+   - **Pipeline Metrics**: Total runs, success rate, average duration
+   - **Live Updates**: Auto-refreshing statistics every 30 seconds
+   - **Recent Runs**: Detailed view of latest pipeline executions
+   - **Infrastructure Overview**: Interactive D3.js architecture diagram
+
+**Dashboard Pages:**
+- **📊 Main Dashboard**: Live pipeline metrics and run history
+- **🏗️ Infrastructure**: System architecture visualization with 8 services
+
+### **🔍 Kibana Analytics** (Advanced)
 1. **Open Kibana**: http://localhost:5601
 2. **Go to Discover**: Click "Discover" in left menu
 3. **Select Index**: Choose "breadthflow-logs*"
@@ -119,10 +134,11 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf.py COMMAND
 
 ### **📈 What You Can Monitor**
 - **Pipeline Success Rates**: Track successful vs failed runs
-- **Performance Trends**: Monitor execution durations
+- **Performance Trends**: Monitor execution durations over time
 - **Symbol Processing**: Success/failure by individual stocks
 - **Error Analysis**: Detailed error logs and patterns
 - **Real-time Activity**: Live updates as pipelines execute
+- **PostgreSQL Metrics**: Pipeline run history with metadata
 
 ### **🔍 Useful Kibana Searches**
 ```bash
@@ -157,7 +173,14 @@ duration:>10
       └── processed_results.parquet
   ```
 
-### **🗃️ Elasticsearch (Logs & Analytics)**
+### **🗃️ Database Storage**
+
+**PostgreSQL (Primary Pipeline Metadata)**
+- **Purpose**: Stores pipeline run history for web dashboard
+- **Connection**: postgresql://pipeline:pipeline123@postgres:5432/breadthflow
+- **Contains**: Run status, durations, timestamps, error messages
+
+**Elasticsearch (Advanced Logs & Analytics)**
 - **Index**: `breadthflow-logs`
 - **Contains**: All pipeline execution logs with metadata
 - **Query API**: http://localhost:9200/breadthflow-logs/_search
@@ -174,11 +197,12 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 # 2. Fetch recent data for key symbols
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data fetch --symbols AAPL,MSFT,GOOGL,NVDA --start-date 2024-08-15 --end-date 2024-08-16
 
-# 3. View results in Kibana
-# Open http://localhost:5601 → Discover → breadthflow-logs*
+# 3. Monitor in real-time
+# Web Dashboard: http://localhost:8083
+# Kibana: http://localhost:5601 → Discover → breadthflow-logs*
 
-# 4. Check data in MinIO
-# Open http://localhost:9001 → Browse ohlcv folder
+# 4. Check data storage
+# MinIO: http://localhost:9001 → Browse ohlcv folder
 ```
 
 ### **🔧 Development Workflow**
@@ -188,9 +212,10 @@ cd BreadthFlow/infra
 docker-compose up -d
 
 # 2. Develop and test
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py demo --quick
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
 
 # 3. Monitor in real-time
+# Dashboard: http://localhost:8083
 # Kibana: http://localhost:5601
 # Spark UI: http://localhost:8080
 
@@ -209,7 +234,7 @@ docker-compose down
 
 ### **📦 Package Management**
 - **File**: `infra/Dockerfile.spark`
-- **Installed**: yfinance, pandas, numpy, spark, delta-lake, boto3, pyarrow
+- **Installed**: yfinance, pandas, numpy, spark, delta-lake, boto3, pyarrow, psycopg2-binary
 - **Rebuild**: `docker-compose build --no-cache`
 
 ### **⚙️ Spark Configuration**
@@ -224,15 +249,14 @@ docker-compose down
 ```
 BreadthFlow/
 ├── cli/                        # 🎮 Command-line interfaces
-│   ├── kibana_enhanced_bf.py   # Primary CLI with dual logging
-│   ├── enhanced_bf_minio.py    # Enhanced CLI with progress tracking
-│   ├── bf_minio.py            # Basic MinIO integration
-│   ├── web_dashboard.py       # Real-time web dashboard
+│   ├── kibana_enhanced_bf.py   # Primary CLI with PostgreSQL + Elasticsearch logging
+│   ├── bf_minio.py            # Feature-rich CLI with complete pipeline
+│   ├── postgres_dashboard.py  # Web dashboard backend (PostgreSQL)
 │   └── elasticsearch_logger.py # Elasticsearch integration
 ├── infra/                      # 🐳 Infrastructure setup
-│   ├── docker-compose.yml     # Service orchestration
+│   ├── docker-compose.yml     # Service orchestration (8 services)
 │   ├── Dockerfile.spark       # Spark container with all dependencies
-│   └── requirements.txt       # Python packages
+│   └── Dockerfile.dashboard   # Web dashboard container
 ├── ingestion/                  # 📥 Data fetching and processing
 │   ├── data_fetcher.py        # PySpark-based data fetching
 │   └── replay.py              # Historical data replay
@@ -272,6 +296,18 @@ lsof -i :8080,9000,9200,5601
 cd infra && docker-compose restart
 ```
 
+#### **Dashboard Not Updating**
+```bash
+# Check web dashboard
+curl http://localhost:8083/api/summary
+
+# Run test pipeline with monitoring
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data summary
+
+# Check PostgreSQL connection
+docker exec breadthflow-postgres psql -U pipeline -d breadthflow -c "SELECT COUNT(*) FROM pipeline_runs;"
+```
+
 #### **No Data in Kibana**
 ```bash
 # Check Elasticsearch health
@@ -281,7 +317,7 @@ curl http://localhost:9200/_cluster/health
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py setup-kibana
 
 # Generate test data
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py demo --quick
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py demo
 ```
 
 #### **Data Fetch Failures**
@@ -289,8 +325,8 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 # Test with single symbol
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data fetch --symbols AAPL --start-date 2024-08-15 --end-date 2024-08-15
 
-# Check MinIO connectivity
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/test_minio_direct.py
+# Check data summary
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data summary
 ```
 
 ### **📊 Performance Optimization**
@@ -316,26 +352,29 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/test_minio_direct.p
 - **Error Handling**: Detailed error logging and recovery mechanisms
 
 ### **🔍 Advanced Monitoring**
-- **Dual Logging**: SQLite for real-time + Elasticsearch for analytics
-- **Live Dashboards**: Pre-built Kibana dashboards and custom visualizations
+- **Dual Logging**: PostgreSQL for pipeline metadata + Elasticsearch for detailed analytics
+- **Real-time Dashboard**: Live web interface with auto-refreshing metrics
+- **Interactive Architecture**: D3.js visualization of system components
 - **Performance Metrics**: Duration tracking, success rates, error analysis
 - **Search & Filter**: Powerful query capabilities across all pipeline data
 
 ### **⚡ Developer Experience**
-- **Multiple CLIs**: From basic to advanced with different feature sets
+- **Streamlined CLIs**: Two primary CLIs with complete functionality (legacy files removed)
 - **Immediate Feedback**: Real-time progress and status updates
 - **Easy Debugging**: Detailed logs with unique run IDs for tracking
 - **Extensible**: Modular architecture for easy feature additions
+- **Clean Codebase**: 25+ redundant files removed for maintainability
 
 ---
 
 ## 📈 **Performance Characteristics**
 
-### **🎯 Tested Capabilities**
-- **Symbols**: Successfully processes 25+ symbols simultaneously
-- **Data Volume**: Handles 1MB+ of market data efficiently  
-- **Processing Speed**: ~6-7 seconds per symbol fetch operation
-- **Monitoring**: 170+ log entries generated for comprehensive tracking
+### **🎯 Tested Capabilities** (Updated 2025-08-19)
+- **Symbols**: Successfully processes 25+ symbols with 1.16MB data storage
+- **Pipeline Runs**: 5+ runs tracked with 80% success rate
+- **Processing Speed**: 1.3s (summary) to 28.9s (data fetch) per operation
+- **Dashboard Updates**: Real-time metrics with PostgreSQL backend
+- **Infrastructure**: 8 Docker containers running simultaneously
 - **Success Rate**: >95% success rate with proper error handling
 
 ### **⚡ Scaling Guidelines**
