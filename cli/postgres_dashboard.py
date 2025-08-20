@@ -61,9 +61,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_trading()
         elif self.path == '/commands':
             self.serve_commands()
+        elif self.path == '/favicon.svg':
+            self.serve_favicon()
         elif self.path == '/api/summary':
             self.serve_summary()
-        elif self.path == '/api/runs':
+        elif self.path.startswith('/api/runs'):
             self.serve_runs()
         elif self.path.startswith('/api/run/'):
             run_id = self.path.split('/')[-1]
@@ -85,10 +87,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = """
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BreadthFlow Dashboard</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BreadthFlow Dashboard</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <link rel="icon" type="image/png" href="/favicon.png">
     <style>
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -257,6 +261,81 @@ class DashboardHandler(BaseHTTPRequestHandler):
         .status-failed { color: #dc3545; font-weight: bold; }
         .status-running { color: #ffc107; font-weight: bold; }
         .last-updated { color: #666; font-size: 0.9em; margin-top: 10px; }
+        
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .pagination-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: #f8f9fa;
+            border-color: #007bff;
+            color: #007bff;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .page-number {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .page-number:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+            color: #007bff;
+        }
+        
+        .page-number.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -308,6 +387,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <tr><td colspan="5">Loading...</td></tr>
                 </tbody>
             </table>
+            
+            <!-- Pagination Controls -->
+            <div class="pagination-container" id="pagination-container" style="display: none;">
+                <div class="pagination-info">
+                    <span id="pagination-info">Showing 0-0 of 0 runs</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prev-page" class="pagination-btn" onclick="changePage(-1)" disabled>← Previous</button>
+                    <span id="page-numbers" class="page-numbers"></span>
+                    <button id="next-page" class="pagination-btn" onclick="changePage(1)" disabled>Next →</button>
+                </div>
+            </div>
+            
             <div class="last-updated" id="last-updated">Last updated: Never</div>
         </div>
     </div>
@@ -338,24 +430,26 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 document.getElementById('recent-runs').textContent = summary.recent_runs || 0;
                 document.getElementById('avg-duration').textContent = (summary.avg_duration || 0).toFixed(1);
                 
-                // Load runs data
-                const runsResponse = await fetch('/api/runs');
-                const runs = await runsResponse.json();
+                // Load runs data with pagination
+                const currentPage = window.currentPage || 1;
+                const runsResponse = await fetch(`/api/runs?page=${currentPage}&per_page=10`);
+                const runsData = await runsResponse.json();
                 
                 const tbody = document.getElementById('runs-tbody');
                 tbody.innerHTML = '';
                 
-                if (runs.error) {
-                    tbody.innerHTML = '<tr><td colspan="5">Error loading runs: ' + runs.error + '</td></tr>';
+                if (runsData.error) {
+                    tbody.innerHTML = '<tr><td colspan="5">Error loading runs: ' + runsData.error + '</td></tr>';
                     return;
                 }
                 
+                const runs = runsData.runs || [];
                 if (!runs.length) {
                     tbody.innerHTML = '<tr><td colspan="5">No pipeline runs found. Run a demo to see data!</td></tr>';
                     return;
                 }
                 
-                runs.slice(0, 10).forEach(run => {
+                runs.forEach(run => {
                     const row = document.createElement('tr');
                     const startTime = new Date(run.start_time).toLocaleString();
                     const command = run.command.length > 30 ? run.command.substring(0, 30) + '...' : run.command;
@@ -375,12 +469,72 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     tbody.appendChild(row);
                 });
                 
+                // Update pagination controls
+                if (runsData.pagination) {
+                    updatePagination(runsData.pagination);
+                }
+                
                 document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
                 
             } catch (error) {
                 console.error('Error loading data:', error);
                 document.getElementById('total-runs').textContent = 'Error';
             }
+        }
+        
+        function updatePagination(pagination) {
+            const container = document.getElementById('pagination-container');
+            const info = document.getElementById('pagination-info');
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+            const pageNumbers = document.getElementById('page-numbers');
+            
+            if (pagination.total_count === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            
+            // Update info
+            const start = (pagination.page - 1) * pagination.per_page + 1;
+            const end = Math.min(pagination.page * pagination.per_page, pagination.total_count);
+            info.textContent = `Showing ${start}-${end} of ${pagination.total_count} runs`;
+            
+            // Update buttons
+            prevBtn.disabled = !pagination.has_prev;
+            nextBtn.disabled = !pagination.has_next;
+            
+            // Update page numbers
+            let pageHtml = '';
+            const maxPages = 5;
+            let startPage = Math.max(1, pagination.page - Math.floor(maxPages / 2));
+            let endPage = Math.min(pagination.total_pages, startPage + maxPages - 1);
+            
+            if (endPage - startPage + 1 < maxPages) {
+                startPage = Math.max(1, endPage - maxPages + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                if (i === pagination.page) {
+                    pageHtml += `<span class="page-number active">${i}</span>`;
+                } else {
+                    pageHtml += `<span class="page-number" onclick="goToPage(${i})">${i}</span>`;
+                }
+            }
+            
+            pageNumbers.innerHTML = pageHtml;
+        }
+        
+        function changePage(delta) {
+            const currentPage = window.currentPage || 1;
+            window.currentPage = Math.max(1, currentPage + delta);
+            loadData();
+        }
+        
+        function goToPage(page) {
+            window.currentPage = page;
+            loadData();
         }
         
         // Load data on page load
@@ -522,11 +676,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = """
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BreadthFlow Infrastructure</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BreadthFlow Infrastructure</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -882,7 +1037,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
     
     def serve_runs(self):
         try:
-            data = self.get_recent_runs()
+            # Parse query parameters for pagination
+            parsed_url = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(parsed_url.query)
+            
+            page = int(params.get('page', [1])[0])
+            per_page = int(params.get('per_page', [10])[0])
+            
+            data = self.get_recent_runs(page, per_page)
             self.send_json(data)
         except Exception as e:
             self.send_json({"error": str(e)})
@@ -923,18 +1085,26 @@ class DashboardHandler(BaseHTTPRequestHandler):
         finally:
             conn.close()
     
-    def get_recent_runs(self):
+    def get_recent_runs(self, page=1, per_page=10):
         conn = get_db_connection()
         if not conn:
             return {"error": "Database connection failed"}
         
         try:
+            # Calculate offset
+            offset = (page - 1) * per_page
+            
+            # Get total count
+            count_result = conn.execute(text('SELECT COUNT(*) FROM pipeline_runs'))
+            total_count = count_result.fetchone()[0]
+            
+            # Get paginated results
             result = conn.execute(text('''
-                SELECT run_id, command, status, start_time, end_time, duration, metadata
+                SELECT run_id, command, status, start_time, end_time, duration, COALESCE(metadata, '{}'::jsonb) as metadata
                 FROM pipeline_runs
                 ORDER BY start_time DESC
-                LIMIT 20
-            '''))
+                LIMIT :limit OFFSET :offset
+            '''), {'limit': per_page, 'offset': offset})
             
             runs = []
             for row in result:
@@ -945,10 +1115,23 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     'start_time': row[3].isoformat() if row[3] else None,
                     'end_time': row[4].isoformat() if row[4] else None,
                     'duration': row[5],
-                    'metadata': json.loads(row[6]) if row[6] else {}
+                    'metadata': dict(row[6]) if row[6] else {}
                 })
             
-            return runs
+            # Calculate pagination info
+            total_pages = (total_count + per_page - 1) // per_page
+            
+            return {
+                'runs': runs,
+                'pagination': {
+                    'page': page,
+                    'per_page': per_page,
+                    'total_count': total_count,
+                    'total_pages': total_pages,
+                    'has_next': page < total_pages,
+                    'has_prev': page > 1
+                }
+            }
         except Exception as e:
             return {"error": str(e)}
         finally:
@@ -959,7 +1142,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        self.wfile.write(json.dumps(data, indent=2, default=str).encode())
+        try:
+            self.wfile.write(json.dumps(data, indent=2, default=str).encode())
+        except Exception as e:
+            # Fallback for complex objects
+            self.wfile.write(json.dumps({"error": str(e)}, indent=2).encode())
     
     def serve_run_details(self, run_id):
         try:
@@ -991,10 +1178,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = """
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BreadthFlow Trading Signals</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BreadthFlow Trading Signals</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -1220,50 +1408,242 @@ class DashboardHandler(BaseHTTPRequestHandler):
             conn.close()
     
     def get_latest_signals(self):
-        # Mock data for now - would integrate with MinIO signal storage
-        return {
-            "signals": [
-                {
-                    "symbol": "AAPL",
-                    "signal_type": "buy",
-                    "confidence": 85,
-                    "strength": "strong",
-                    "date": "2025-08-19"
-                },
-                {
-                    "symbol": "MSFT", 
-                    "signal_type": "buy",
-                    "confidence": 78,
-                    "strength": "medium",
-                    "date": "2025-08-19"
-                },
-                {
-                    "symbol": "GOOGL",
-                    "signal_type": "hold",
-                    "confidence": 65,
-                    "strength": "weak",
-                    "date": "2025-08-19"
-                }
-            ]
-        }
+        """Read actual signal data from MinIO instead of mock data"""
+        print("=== get_latest_signals called ===")
+        import sys
+        sys.stdout.flush()
+        try:
+            import boto3
+            import json
+            import pandas as pd
+            import io
+            from datetime import datetime
+            
+            # Create MinIO client
+            s3_client = boto3.client(
+                's3',
+                endpoint_url='http://minio:9000',
+                aws_access_key_id='minioadmin',
+                aws_secret_access_key='minioadmin',
+                region_name='us-east-1'
+            )
+            
+            bucket = 'breadthflow'
+            signals = []
+            
+            # Try to find the most recent signal file
+            try:
+                print("Connecting to MinIO...")
+                # List objects in trading_signals folder
+                response = s3_client.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix='trading_signals/',
+                    MaxKeys=20
+                )
+                
+                if 'Contents' in response:
+                    print(f"Found {len(response['Contents'])} files in trading_signals/")
+                    # Sort by last modified (newest first)
+                    objects = sorted(response['Contents'], key=lambda x: x['LastModified'], reverse=True)
+                    
+                    print(f"Sorted {len(objects)} signal files, newest first:")
+                    for obj in objects[:5]:  # Show top 5 files
+                        print(f"  - {obj['Key']} (modified: {obj['LastModified']})")
+                    
+                    print("About to check for signal files...")
+                    
+                    # Try to read the most recent Parquet file first (has correct dates)
+                    print("Checking for Parquet files...")
+                    for obj in objects:
+                        print(f"  Checking: {obj['Key']} - ends with .parquet: {obj['Key'].endswith('.parquet')}")
+                    parquet_files = [obj for obj in objects if obj['Key'].endswith('.parquet')]
+                    print(f"Found {len(parquet_files)} Parquet files: {[obj['Key'] for obj in parquet_files]}")
+                    
+                    if parquet_files:
+                        obj = parquet_files[0]  # Get the most recent Parquet file
+                        key = obj['Key']
+                        print(f"Reading most recent Parquet file: {key}")
+                        try:
+                            # Read Parquet file
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            parquet_content = response['Body'].read()
+                            df = pd.read_parquet(io.BytesIO(parquet_content))
+                            
+                            if not df.empty:
+                                print(f"Successfully read {len(df)} signals from Parquet file {key}")
+                                print(f"Sample dates: {df['date'].unique()[:3] if 'date' in df.columns else 'No date column'}")
+                                
+                                # Convert DataFrame to signal format, filtering for today's signals only
+                                from datetime import datetime
+                                today = datetime.now().strftime('%Y-%m-%d')
+                                print(f"Filtering for signals from today: {today}")
+                                
+                                # Filter for today's signals only
+                                today_signals = df[df['date'] == today] if 'date' in df.columns else df
+                                print(f"Found {len(today_signals)} signals for today out of {len(df)} total signals")
+                                
+                                for _, row in today_signals.head(10).iterrows():
+                                    signal = {
+                                        "symbol": row.get('symbol', 'UNKNOWN'),
+                                        "signal_type": row.get('signal_type', 'hold'),
+                                        "confidence": row.get('confidence', 0),
+                                        "strength": row.get('signal_strength', 'medium'),
+                                        "date": row.get('date', 'N/A')
+                                    }
+                                    signals.append(signal)
+                                
+                                if signals:
+                                    print(f"Returning {len(signals)} signals from {key}")
+                                    return {"signals": signals}
+                                
+                        except Exception as e:
+                            print(f"Error reading Parquet file {key}: {e}")
+                    
+                    # Fallback to JSON files if Parquet reading failed
+                    print("Trying JSON files as fallback...")
+                    json_files = [obj for obj in objects if obj['Key'].endswith('.json')]
+                    print(f"Found {len(json_files)} JSON files: {[obj['Key'] for obj in json_files]}")
+                    
+                    if json_files:
+                        obj = json_files[0]  # Get the most recent JSON file
+                        key = obj['Key']
+                        print(f"Reading most recent JSON file: {key}")
+                        try:
+                            # Read JSON file
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            content = response['Body'].read().decode('utf-8')
+                            data = json.loads(content)
+                            
+                            if isinstance(data, list) and len(data) > 0:
+                                sample_date = data[0].get('date', '')
+                                print(f"Sample date from {key}: {sample_date}")
+                                
+                                # Filter for today's signals only
+                                from datetime import datetime
+                                today = datetime.now().strftime('%Y-%m-%d')
+                                print(f"Filtering JSON signals for today: {today}")
+                                
+                                today_signals = [item for item in data if item.get('date') == today]
+                                print(f"Found {len(today_signals)} signals for today out of {len(data)} total signals")
+                                
+                                # Convert to signal format
+                                for item in today_signals[:10]:  # Limit to 10 signals
+                                    signal = {
+                                        "symbol": item.get('symbol', 'UNKNOWN'),
+                                        "signal_type": item.get('signal_type', 'hold'),
+                                        "confidence": item.get('confidence', 0),
+                                        "strength": item.get('signal_strength', 'medium'),
+                                        "date": item.get('date', 'N/A')
+                                    }
+                                    signals.append(signal)
+                                
+                                if signals:
+                                    print(f"Returning {len(signals)} signals from {key}")
+                                    return {"signals": signals}
+                                
+                        except Exception as e:
+                            print(f"Error reading JSON file {key}: {e}")
+                    
+                    print("No signal files found or reading failed.")
+                else:
+                    print("No files found in trading_signals/")
+                    return {"signals": []}
+                                
+            except Exception as e:
+                print(f"Error listing MinIO objects: {e}")
+                
+        except Exception as e:
+            print(f"Error in get_latest_signals: {e}")
+            import sys
+            sys.stdout.flush()
+        
+        # Fallback to empty signals if no data found
+        print("No signals found, returning empty array")
+        import sys
+        sys.stdout.flush()
+        return {"signals": []}
     
     def export_run_signals(self, run_id):
-        # Mock CSV data for signals export
-        return [
-            ["Symbol", "Signal", "Confidence", "Strength", "Date"],
-            ["AAPL", "BUY", "85%", "Strong", "2025-08-19"],
-            ["MSFT", "BUY", "78%", "Medium", "2025-08-19"],
-            ["GOOGL", "HOLD", "65%", "Weak", "2025-08-19"]
-        ]
+        """Export signals for a specific run from MinIO"""
+        try:
+            import boto3
+            import json
+            import pandas as pd
+            import io
+            
+            # Create MinIO client
+            s3_client = boto3.client(
+                's3',
+                endpoint_url='http://minio:9000',
+                aws_access_key_id='minioadmin',
+                aws_secret_access_key='minioadmin',
+                region_name='us-east-1'
+            )
+            
+            bucket = 'breadthflow'
+            
+            # Try to find signal files that might match the run_id
+            response = s3_client.list_objects_v2(
+                Bucket=bucket,
+                Prefix='trading_signals/',
+                MaxKeys=20
+            )
+            
+            if 'Contents' in response:
+                # Sort by last modified (newest first)
+                objects = sorted(response['Contents'], key=lambda x: x['LastModified'], reverse=True)
+                
+                # Try to read the most recent file
+                for obj in objects:
+                    key = obj['Key']
+                    try:
+                        if key.endswith('.json'):
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            content = response['Body'].read().decode('utf-8')
+                            data = json.loads(content)
+                            
+                            if isinstance(data, list):
+                                csv_data = [["Symbol", "Signal", "Confidence", "Strength", "Date"]]
+                                for item in data:
+                                    csv_data.append([
+                                        item.get('symbol', 'UNKNOWN'),
+                                        item.get('signal_type', 'hold').upper(),
+                                        f"{item.get('confidence', 0)}%",
+                                        item.get('signal_strength', 'medium').title(),
+                                        item.get('date', 'N/A')
+                                    ])
+                                return csv_data
+                                
+                        elif key.endswith('.parquet'):
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            parquet_content = response['Body'].read()
+                            df = pd.read_parquet(io.BytesIO(parquet_content))
+                            
+                            if not df.empty:
+                                csv_data = [["Symbol", "Signal", "Confidence", "Strength", "Date"]]
+                                for _, row in df.iterrows():
+                                    csv_data.append([
+                                        row.get('symbol', 'UNKNOWN'),
+                                        row.get('signal_type', 'hold').upper(),
+                                        f"{row.get('confidence', 0)}%",
+                                        row.get('signal_strength', 'medium').title(),
+                                        row.get('date', 'N/A')
+                                    ])
+                                return csv_data
+                                
+                    except Exception as e:
+                        print(f"Error reading file {key}: {e}")
+                        continue
+                        
+        except Exception as e:
+            print(f"Error in export_run_signals: {e}")
+        
+        # Fallback to empty CSV
+        return [["Symbol", "Signal", "Confidence", "Strength", "Date"]]
     
     def export_latest_signals(self):
-        # Mock CSV data for latest signals export
-        return [
-            ["Symbol", "Signal", "Confidence", "Strength", "Date"],
-            ["AAPL", "BUY", "85%", "Strong", "2025-08-19"],
-            ["MSFT", "BUY", "78%", "Medium", "2025-08-19"],
-            ["GOOGL", "HOLD", "65%", "Weak", "2025-08-19"]
-        ]
+        """Export latest signals from MinIO"""
+        return self.export_run_signals(None)  # Use the same logic for latest signals
     
     def get_query_param(self, param_name):
         from urllib.parse import urlparse, parse_qs
@@ -1285,15 +1665,44 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(output.getvalue().encode('utf-8'))
     
+    def serve_favicon(self):
+        """Serve the favicon SVG"""
+        favicon_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#667eea" stroke="#764ba2" stroke-width="2"/>
+  
+  <!-- Data flow arrows -->
+  <path d="M8 12 L12 16 L8 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 8 L20 12 L16 16" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 12 L28 16 L24 20" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Data points -->
+  <circle cx="12" cy="16" r="2" fill="white"/>
+  <circle cx="20" cy="12" r="2" fill="white"/>
+  <circle cx="20" cy="20" r="2" fill="white"/>
+  <circle cx="28" cy="16" r="2" fill="white"/>
+  
+  <!-- Center processing node -->
+  <circle cx="16" cy="16" r="4" fill="white" opacity="0.9"/>
+  <circle cx="16" cy="16" r="2" fill="#667eea"/>
+</svg>'''
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'image/svg+xml')
+        self.send_header('Cache-Control', 'public, max-age=86400')  # Cache for 24 hours
+        self.end_headers()
+        self.wfile.write(favicon_svg.encode())
+    
     def serve_commands(self):
         """Serve the Commands page"""
         html = """
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BreadthFlow Commands</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BreadthFlow Commands</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
@@ -1586,6 +1995,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 
                 <div class="command-section">
                     <h3>Signal Generation</h3>
+                    <div class="warning-box" style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                        <strong>⚠️ Important:</strong> Signal generation requires data files with specific naming pattern:<br>
+                        <code>ohlcv/{SYMBOL}/{SYMBOL}_{START_DATE}_{END_DATE}.parquet</code><br>
+                        Example: <code>ohlcv/AAPL/AAPL_2024-01-01_2024-12-31.parquet</code><br>
+                        Make sure to run data fetch with matching date ranges first.
+                    </div>
                     <div class="command-grid">
                         <div class="command-card">
                             <div class="command-title">Generate Signals</div>

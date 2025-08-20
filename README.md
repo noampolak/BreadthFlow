@@ -95,6 +95,22 @@ Yahoo Finance API → Spark Processing → MinIO Storage (Parquet)
                     HTTP API ← Command Server → Spark Container
 ```
 
+### **⚠️ Important: File Naming Requirements**
+
+**Signal Generation requires specific file naming patterns in MinIO:**
+
+- **Required Pattern**: `ohlcv/{SYMBOL}/{SYMBOL}_{START_DATE}_{END_DATE}.parquet`
+- **Example**: `ohlcv/AAPL/AAPL_2024-01-01_2024-12-31.parquet`
+- **Critical**: Date ranges in signal generation must exactly match the date ranges used during data fetching
+- **Location**: Files must be in symbol-specific folders within the `ohlcv/` directory
+
+**Common Issues:**
+- ❌ Files without symbol prefix: `2024-01-01_2024-12-31.parquet`
+- ❌ Mismatched date ranges: Signal generation looking for `2024-01-01_2024-12-31` but data fetched for `2024-08-15_2024-08-16`
+- ❌ Wrong folder structure: Files not in `ohlcv/{SYMBOL}/` folders
+
+**Solution**: Always run data fetch with the same date range you plan to use for signal generation.
+
 ---
 
 ## 🔧 **Command Execution Architecture**

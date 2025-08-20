@@ -570,36 +570,33 @@ def generate(symbols, symbol_list, start_date, end_date):
             # Generate mock signals for demo
             click.echo("🔄 Generating mock signals for demo...")
             
-            # Create mock signal data
+            # Create mock signal data - only for the end date (today)
             import json
             from datetime import datetime, timedelta
             
             signal_data = []
-            current_date = pd.to_datetime(start_date)
-            end_dt = pd.to_datetime(end_date)
+            # Only generate signals for the end date (today), not the entire range
+            target_date = pd.to_datetime(end_date)
             
             np.random.seed(42)  # For reproducible results
             
-            while current_date <= end_dt:
-                # Skip weekends
-                if current_date.weekday() < 5:
-                    # Generate signal for each symbol
-                    for symbol in symbols_to_process:
-                        signal_strength = np.random.choice(['weak', 'medium', 'strong'], p=[0.3, 0.5, 0.2])
-                        confidence = np.random.uniform(60, 95)
-                        signal_type = np.random.choice(['buy', 'sell', 'hold'], p=[0.3, 0.2, 0.5])
-                        
-                        signal_data.append({
-                            'symbol': symbol,
-                            'date': current_date.strftime('%Y-%m-%d'),
-                            'signal_type': signal_type,
-                            'signal_strength': signal_strength,
-                            'confidence': round(confidence, 1),
-                            'composite_score': round(np.random.uniform(30, 80), 1),
-                            'generated_at': datetime.now().isoformat()
-                        })
-                
-                current_date += timedelta(days=1)
+            # Skip weekends
+            if target_date.weekday() < 5:
+                # Generate signal for each symbol for today only
+                for symbol in symbols_to_process:
+                    signal_strength = np.random.choice(['weak', 'medium', 'strong'], p=[0.3, 0.5, 0.2])
+                    confidence = np.random.uniform(60, 95)
+                    signal_type = np.random.choice(['buy', 'sell', 'hold'], p=[0.3, 0.2, 0.5])
+                    
+                    signal_data.append({
+                        'symbol': symbol,
+                        'date': target_date.strftime('%Y-%m-%d'),
+                        'signal_type': signal_type,
+                        'signal_strength': signal_strength,
+                        'confidence': round(confidence, 1),
+                        'composite_score': round(np.random.uniform(30, 80), 1),
+                        'generated_at': datetime.now().isoformat()
+                    })
             
             # Save signals to MinIO
             signals_df = pd.DataFrame(signal_data)
@@ -637,13 +634,24 @@ def generate(symbols, symbol_list, start_date, end_date):
                 click.echo("   • Computing composite scores")
                 click.echo("   • Generating buy/sell/hold signals")
                 
-                # Run real signal generation
-                results = generator.generate_signals(
-                    symbols=available_symbols,
-                    start_date=start_date,
-                    end_date=end_date,
-                    save_results=True
-                )
+                # Always generate signals for today only (end_date) when we have a date range
+                if start_date != end_date:
+                    click.echo(f"📅 Generating signals for today only ({end_date})...")
+                    # Use the end date for both start and end to get only today's signals
+                    results = generator.generate_signals(
+                        symbols=available_symbols,
+                        start_date=end_date,  # Use end_date for both to get only today
+                        end_date=end_date,
+                        save_signals=True
+                    )
+                else:
+                    # Run real signal generation for the entire period
+                    results = generator.generate_signals(
+                        symbols=available_symbols,
+                        start_date=start_date,
+                        end_date=end_date,
+                        save_signals=True
+                    )
                 
                 click.echo("✅ Real signals generated using SignalGenerator!")
                 click.echo(f"📊 Generated signals for period {start_date} to {end_date}")
@@ -655,25 +663,16 @@ def generate(symbols, symbol_list, start_date, end_date):
                 # Fallback to simplified signal generation
                 from datetime import datetime
                 
-                # Create realistic signals based on available data
+                # Create realistic signals based on available data - only for end date (today)
                 signals_data = []
                 for symbol in available_symbols:
-                    signals_data.extend([
-                        {
-                            'symbol': symbol,
-                            'date': start_date,
-                            'signal_type': 'buy',
-                            'confidence': 75.0 + np.random.uniform(-10, 15),
-                            'strength': 'medium'
-                        },
-                        {
-                            'symbol': symbol,
-                            'date': end_date,
-                            'signal_type': 'hold',
-                            'confidence': 65.0 + np.random.uniform(-5, 20),
-                            'strength': 'weak'
-                        }
-                    ])
+                    signals_data.append({
+                        'symbol': symbol,
+                        'date': end_date,  # Only generate signals for today
+                        'signal_type': np.random.choice(['buy', 'sell', 'hold'], p=[0.3, 0.2, 0.5]),
+                        'confidence': 65.0 + np.random.uniform(-5, 20),
+                        'strength': np.random.choice(['weak', 'medium', 'strong'], p=[0.3, 0.5, 0.2])
+                    })
                 
                 # Save simplified signals
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
