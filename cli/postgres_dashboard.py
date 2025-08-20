@@ -195,11 +195,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         background: linear-gradient(135deg, #28a745, #20c997);
                         color: white;
                         border: none;
-                        padding: 5px 12px;
-                        border-radius: 4px;
+                        padding: 12px 25px;
+                        border-radius: 8px;
                         cursor: pointer;
-                        font-size: 0.8em;
-                        margin-left: 5px;
+                        font-size: 1em;
+                        margin: 0 10px;
                         transition: all 0.3s ease;
                     }
                     .export-btn:hover { transform: scale(1.05); }
@@ -732,6 +732,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
+        .refresh-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        .refresh-btn:hover { 
+            transform: scale(1.05); 
+        }
         .content-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -820,6 +833,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                             <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
                             <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                            <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
                         </div>
         </div>
         
@@ -1197,10 +1211,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
             margin: 0 auto; 
             padding: 20px; 
         }
-        .header {
-            text-align: center;
+        .header { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
             margin-bottom: 30px;
-            color: white;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
         }
         .nav-buttons {
             margin-top: 20px;
@@ -1227,6 +1252,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
         .nav-btn.active {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
+        }
+        .refresh-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        .refresh-btn:hover { 
+            transform: scale(1.05); 
         }
         .panel {
             background: rgba(255, 255, 255, 0.95);
@@ -1279,6 +1317,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                     <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
                     <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="refresh-btn" onclick="loadSignals()">Refresh Signals</button>
                 </div>
         </div>
         
@@ -1723,24 +1762,42 @@ class DashboardHandler(BaseHTTPRequestHandler):
         .nav-buttons {
             margin-top: 20px;
             display: flex;
-            gap: 10px;
+            gap: 15px;
             justify-content: center;
+            align-items: center;
             flex-wrap: wrap;
         }
         .nav-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .refresh-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
+            padding: 10px 20px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
+            font-weight: bold;
+            transition: transform 0.3s ease;
         }
-        .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .nav-btn.active { background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
+        .refresh-btn:hover { 
+            transform: scale(1.05); 
+        }
         .content-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1830,7 +1887,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
             width: 100%;
@@ -1928,6 +1985,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                 <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
                 <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
+                <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
             </div>
         </div>
         
