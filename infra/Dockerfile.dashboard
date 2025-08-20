@@ -4,6 +4,7 @@ FROM python:3.11-slim
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -17,7 +18,11 @@ RUN pip3 install \
     pandas \
     click \
     psycopg2-binary \
-    sqlalchemy
+    sqlalchemy \
+    yfinance \
+    numpy \
+    kafka-python \
+    python-dotenv
 
 # Create directories
 RUN mkdir -p /app/data

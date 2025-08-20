@@ -15,9 +15,11 @@ services:
       - SPARK_SSL_ENABLED=no
       - PYSPARK_PYTHON=python3
       - PYSPARK_DRIVER_PYTHON=python3
+      - COMMAND_SERVER_PORT=8081
     ports:
       - "8080:8080"  # Spark UI
       - "7077:7077"  # Spark master port
+      - "8081:8081"  # Command server port
     volumes:
       - spark-data:/opt/bitnami/spark
       - ../ingestion:/opt/bitnami/spark/jobs/ingestion:ro
@@ -32,6 +34,11 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
+    command: >
+      sh -c "
+        python3 /opt/bitnami/spark/jobs/cli/spark_command_server.py &
+        /opt/bitnami/scripts/spark/entrypoint.sh /opt/bitnami/scripts/spark/run.sh
+      "
 
   # Spark Worker 1
   spark-worker-1:
