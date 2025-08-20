@@ -185,7 +185,7 @@ services:
     volumes:
       - minio-data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD-SHELL", "timeout 10 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/9000'"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -268,12 +268,9 @@ services:
     volumes:
       - ../cli:/app/cli:ro
     depends_on:
-      postgres:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+      - postgres
+      - elasticsearch
+      - minio
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
       interval: 30s
