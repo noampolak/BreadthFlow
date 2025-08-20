@@ -90,7 +90,7 @@ class CommandHandler(BaseHTTPRequestHandler):
                                '--start-date', parameters.get("start_date", "2024-08-15"),
                                '--end-date', parameters.get("end_date", "2024-08-16")],
             'signal_summary': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'signals', 'summary'],
-            'backtest_run': ['python3', '/opt/bitnami/spark/jobs/cli/bf_minio.py', 'backtest', 'run',
+            'backtest_run': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'backtest', 'run',
                             '--symbols', parameters.get("symbols", "AAPL,MSFT"),
                             '--from-date', parameters.get("from_date", "2024-08-15"),
                             '--to-date', parameters.get("to_date", "2024-08-16"),

@@ -810,7 +810,7 @@ def run(symbols, symbol_list, from_date, to_date, initial_capital, save_results)
     click.echo(f"💰 Initial Capital: ${initial_capital:,}")
     
     try:
-        # Initialize Spark session
+        # Initialize Spark session (same as data fetcher and signal generator)
         click.echo("🔄 Initializing Spark session...")
         from pyspark.sql import SparkSession
         spark = SparkSession.builder \

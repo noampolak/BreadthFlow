@@ -565,6 +565,42 @@ def create_performance_metrics(risk_free_rate: float = 0.02) -> PerformanceMetri
     return PerformanceMetrics(risk_free_rate)
 
 
+def calculate_metrics(
+    returns: List[float],
+    benchmark_returns: Optional[List[float]] = None,
+    trade_pnls: Optional[List[float]] = None,
+    portfolio_values: Optional[List[float]] = None,
+    risk_free_rate: float = 0.02
+) -> Dict[str, Any]:
+    """
+    Calculate performance metrics for backtesting results.
+    
+    Args:
+        returns: List of daily returns
+        benchmark_returns: List of benchmark daily returns
+        trade_pnls: List of individual trade P&Ls
+        portfolio_values: List of portfolio values over time
+        risk_free_rate: Annual risk-free rate
+        
+    Returns:
+        Dictionary with all performance metrics
+    """
+    logger.info("Calculating performance metrics for backtest results")
+    
+    # Create metrics calculator
+    metrics_calc = create_performance_metrics(risk_free_rate=risk_free_rate)
+    
+    # Calculate all metrics
+    metrics = metrics_calc.calculate_all_metrics(
+        returns=returns,
+        benchmark_returns=benchmark_returns,
+        trade_pnls=trade_pnls,
+        portfolio_values=portfolio_values
+    )
+    
+    return metrics
+
+
 # Example usage and testing
 if __name__ == "__main__":
     # Create performance metrics calculator

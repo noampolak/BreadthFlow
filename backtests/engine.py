@@ -235,7 +235,7 @@ class BacktestEngine:
         """
         logger.info("Loading market data")
         
-        # Load from Delta Lake
+        # Load from Delta Lake (same as data fetcher and signal generator)
         market_data = read_delta(self.spark, "data/ohlcv")
         
         # Apply date filters
