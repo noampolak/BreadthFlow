@@ -769,123 +769,141 @@ def generate(symbols, symbol_list, start_date, end_date):
                 continue
         
         if not data_available:
-            dual_logger.log("WARN", "⚠️  No market data found in MinIO for the specified period")
+            dual_logger.log("ERROR", "❌ No market data found in MinIO for the specified period")
             dual_logger.log("INFO", "💡 Run 'data fetch' first to get market data")
-            
-            # Generate mock signals for demo
-            dual_logger.log("INFO", "🔄 Generating mock signals for demo...")
-            
-            # Create mock signal data - only for the end date (today)
-            import json
-            from datetime import datetime, timedelta
-            
-            signal_data = []
-            # Only generate signals for the end date (today), not the entire range
-            target_date = pd.to_datetime(end_date)
-            
-            np.random.seed(42)  # For reproducible results
-            
-            # Skip weekends
-            if target_date.weekday() < 5:
-                # Generate signal for each symbol for today only
-                for symbol in symbols_to_process:
-                    signal_strength = np.random.choice(['weak', 'medium', 'strong'], p=[0.3, 0.5, 0.2])
-                    confidence = np.random.uniform(60, 95)
-                    signal_type = np.random.choice(['buy', 'sell', 'hold'], p=[0.3, 0.2, 0.5])
-                    
-                    signal_data.append({
-                        'symbol': symbol,
-                        'date': target_date.strftime('%Y-%m-%d'),
-                        'signal_type': signal_type,
-                        'signal_strength': signal_strength,
-                        'confidence': round(confidence, 1),
-                        'composite_score': round(np.random.uniform(30, 80), 1),
-                        'generated_at': datetime.now().isoformat()
-                    })
-            
-            # Save signals to MinIO
-            signals_df = pd.DataFrame(signal_data)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Save as JSON
-            json_key = f"trading_signals/signals_{timestamp}.json"
-            s3_client.put_object(
-                Bucket=bucket,
-                Key=json_key,
-                Body=json.dumps(signal_data, indent=2),
-                ContentType='application/json'
-            )
-            
-            # Save as Parquet
-            parquet_key = f"trading_signals/signals_{timestamp}.parquet"
-            save_parquet_to_minio(s3_client, signals_df, bucket, parquet_key)
-            
-            dual_logger.log("INFO", f"📁 Mock signals saved to trading_signals/signals_{timestamp}.parquet")
-            dual_logger.log("INFO", f"📊 Generated {len(signal_data)} signal records")
+            dual_logger.log("ERROR", "❌ Signal generation failed - no data available")
+            dual_logger.complete('failed')
+            return
             
         else:
             dual_logger.log("INFO", f"✅ Market data found for {len(available_symbols)} symbols!")
             dual_logger.log("INFO", f"📈 Available symbols: {', '.join(available_symbols)}")
             
+            # Generate signals directly using MinIO data (bypass SignalGenerator)
+            dual_logger.log("INFO", "🔄 Generating signals directly from MinIO data...")
+            dual_logger.log("INFO", "   • Loading OHLCV data from MinIO")
+            dual_logger.log("INFO", "   • Calculating price and volume changes")
+            dual_logger.log("INFO", "   • Generating buy/sell/hold signals")
+            
             try:
-                # Use the actual SignalGenerator
-                from model.signal_generator import SignalGenerator
+                # Load OHLCV data directly from MinIO
+                all_data = []
+                for symbol in available_symbols:
+                    try:
+                        # Try to load the specific date range file
+                        key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                        response = s3_client.get_object(Bucket=bucket, Key=key)
+                        parquet_content = response['Body'].read()
+                        df = pd.read_parquet(io.BytesIO(parquet_content))
+                        df['symbol'] = symbol
+                        all_data.append(df)
+                        dual_logger.log("INFO", f"📊 Loaded data for {symbol}: {len(df)} records")
+                    except Exception as e:
+                        dual_logger.log("WARN", f"⚠️  Could not load data for {symbol}: {e}")
+                        continue
                 
-                dual_logger.log("INFO", "🎯 Creating SignalGenerator...")
-                generator = SignalGenerator(spark)
+                if not all_data:
+                    dual_logger.log("ERROR", "❌ No OHLCV data found for any symbols")
+                    dual_logger.log("ERROR", "❌ Signal generation failed - no data available")
+                    dual_logger.complete('failed')
+                    return
                 
-                dual_logger.log("INFO", "🔄 Generating REAL trading signals...")
-                dual_logger.log("INFO", "   • Calculating technical indicators (A/D, McClellan, ZBT)")
-                dual_logger.log("INFO", "   • Computing composite scores")
-                dual_logger.log("INFO", "   • Generating buy/sell/hold signals")
+                # Combine all data
+                combined_df = pd.concat(all_data, ignore_index=True)
                 
-                # Always generate signals for today only (end_date) when we have a date range
-                if start_date != end_date:
-                    dual_logger.log("INFO", f"📅 Generating signals for today only ({end_date})...")
-                    # Use the end date for both start and end to get only today's signals
-                    results = generator.generate_signals(
-                        symbols=available_symbols,
-                        start_date=end_date,  # Use end_date for both to get only today
-                        end_date=end_date,
-                        save_signals=True
-                    )
-                else:
-                    # Run real signal generation for the entire period
-                    results = generator.generate_signals(
-                        symbols=available_symbols,
-                        start_date=start_date,
-                        end_date=end_date,
-                        save_signals=True
-                    )
+                # Generate signals based on price movement
+                signals_data = []
                 
-                dual_logger.log("INFO", "✅ Real signals generated using SignalGenerator!")
-                dual_logger.log("INFO", f"📊 Generated signals for period {start_date} to {end_date}")
+                for symbol in combined_df['symbol'].unique():
+                    symbol_data = combined_df[combined_df['symbol'] == symbol].copy()
+                    
+                    if len(symbol_data) == 0:
+                        continue
+                        
+                    # Sort by date
+                    symbol_data = symbol_data.sort_values('Date')
+                    
+                    # Calculate simple technical indicators
+                    symbol_data['price_change'] = symbol_data['Close'].pct_change()
+                    symbol_data['volume_change'] = symbol_data['Volume'].pct_change()
+                    
+                    # Generate signals for today's date (end_date) only
+                    # Find the data for today's date, or use the latest if today's data doesn't exist
+                    today_date = pd.to_datetime(end_date)
+                    today_data = symbol_data[symbol_data['Date'].dt.date == today_date.date()]
+                    
+                    if len(today_data) > 0:
+                        signal_data = today_data.iloc[-1]  # Use today's data
+                    else:
+                        signal_data = symbol_data.iloc[-1]  # Fallback to latest data
+                        dual_logger.log("WARN", f"No data for today ({end_date}), using latest available data")
+                    
+                    # Simple signal logic based on price and volume
+                    price_change = signal_data['price_change']
+                    volume_change = signal_data['volume_change']
+                    
+                    if price_change > 0.02 and volume_change > 0.1:  # Strong positive movement
+                        signal_type = 'buy'
+                        confidence = 85.0
+                        strength = 'strong'
+                    elif price_change > 0.01:  # Moderate positive movement
+                        signal_type = 'buy'
+                        confidence = 70.0
+                        strength = 'medium'
+                    elif price_change < -0.02 and volume_change > 0.1:  # Strong negative movement
+                        signal_type = 'sell'
+                        confidence = 85.0
+                        strength = 'strong'
+                    elif price_change < -0.01:  # Moderate negative movement
+                        signal_type = 'sell'
+                        confidence = 70.0
+                        strength = 'medium'
+                    else:  # No clear direction
+                        signal_type = 'hold'
+                        confidence = 60.0
+                        strength = 'weak'
+                    
+                    # Create signal record
+                    signal_record = {
+                        'symbol': symbol,
+                        'date': latest_data['Date'].strftime('%Y-%m-%d') if hasattr(latest_data['Date'], 'strftime') else str(latest_data['Date']),
+                        'signal_type': signal_type,
+                        'confidence': float(confidence),
+                        'strength': strength,
+                        'composite_score': float(confidence),  # Use confidence as composite score
+                        'price_change': float(price_change) if not pd.isna(price_change) else 0.0,
+                        'volume_change': float(volume_change) if not pd.isna(volume_change) else 0.0,
+                        'close': float(latest_data['Close']),
+                        'volume': int(latest_data['Volume']),
+                        'generated_at': datetime.now().isoformat()
+                    }
+                    
+                    signals_data.append(signal_record)
+                
+                # Save signals to MinIO (Parquet only)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                parquet_key = f"trading_signals/signals_{timestamp}.parquet"
+                
+                signals_df = pd.DataFrame(signals_data)
+                buffer = io.BytesIO()
+                signals_df.to_parquet(buffer, index=False)
+                buffer.seek(0)
+                
+                s3_client.put_object(
+                    Bucket=bucket,
+                    Key=parquet_key,
+                    Body=buffer.getvalue()
+                )
+                
+                dual_logger.log("INFO", f"📁 Signals saved to {parquet_key}")
+                dual_logger.log("INFO", f"📊 Generated {len(signals_data)} signal records")
+                dual_logger.log("INFO", "✅ Real signals generated successfully!")
                 
             except Exception as signal_error:
-                dual_logger.log("WARN", f"⚠️  SignalGenerator error: {signal_error}")
-                dual_logger.log("INFO", "🔄 Falling back to simplified signal generation...")
-                
-                # Fallback to simplified signal generation
-                from datetime import datetime
-                
-                # Create realistic signals based on available data - only for end date (today)
-                signals_data = []
-                for symbol in available_symbols:
-                    signals_data.append({
-                        'symbol': symbol,
-                        'date': end_date,  # Only generate signals for today
-                        'signal_type': np.random.choice(['buy', 'sell', 'hold'], p=[0.3, 0.2, 0.5]),
-                        'confidence': 65.0 + np.random.uniform(-5, 20),
-                        'strength': np.random.choice(['weak', 'medium', 'strong'], p=[0.3, 0.5, 0.2])
-                    })
-                
-                # Save simplified signals
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                signals_df = pd.DataFrame(signals_data)
-                parquet_key = f"trading_signals/simple_signals_{timestamp}.parquet"
-                save_parquet_to_minio(s3_client, signals_df, bucket, parquet_key)
-                
-                dual_logger.log("INFO", f"📁 Simplified signals saved to {parquet_key}")
+                dual_logger.log("ERROR", f"❌ Signal generation failed: {signal_error}")
+                dual_logger.log("ERROR", "❌ Signal generation failed - error in signal generation")
+                dual_logger.complete('failed')
+                return
         
         dual_logger.log("INFO", "💾 Saving signals to MinIO...")
         dual_logger.log("INFO", "✅ Signal generation completed!")

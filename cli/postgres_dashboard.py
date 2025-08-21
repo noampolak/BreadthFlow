@@ -1512,16 +1512,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                 print(f"Successfully read {len(df)} signals from Parquet file {key}")
                                 print(f"Sample dates: {df['date'].unique()[:3] if 'date' in df.columns else 'No date column'}")
                                 
-                                # Convert DataFrame to signal format, filtering for today's signals only
-                                from datetime import datetime
-                                today = datetime.now().strftime('%Y-%m-%d')
-                                print(f"Filtering for signals from today: {today}")
+                                # Convert DataFrame to signal format - show all latest signals (no date filtering)
+                                print(f"Showing all {len(df)} latest signals (no date filtering)")
                                 
-                                # Filter for today's signals only
-                                today_signals = df[df['date'] == today] if 'date' in df.columns else df
-                                print(f"Found {len(today_signals)} signals for today out of {len(df)} total signals")
-                                
-                                for _, row in today_signals.head(10).iterrows():
+                                for _, row in df.head(10).iterrows():
                                     signal = {
                                         "symbol": row.get('symbol', 'UNKNOWN'),
                                         "signal_type": row.get('signal_type', 'hold'),
@@ -1532,7 +1526,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                     signals.append(signal)
                                 
                                 if signals:
-                                    print(f"Returning {len(signals)} signals from {key}")
+                                    print(f"Returning {len(signals)} latest signals from {key}")
                                     return {"signals": signals}
                                 
                         except Exception as e:
@@ -1557,16 +1551,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                 sample_date = data[0].get('date', '')
                                 print(f"Sample date from {key}: {sample_date}")
                                 
-                                # Filter for today's signals only
-                                from datetime import datetime
-                                today = datetime.now().strftime('%Y-%m-%d')
-                                print(f"Filtering JSON signals for today: {today}")
-                                
-                                today_signals = [item for item in data if item.get('date') == today]
-                                print(f"Found {len(today_signals)} signals for today out of {len(data)} total signals")
+                                # Show all latest signals (no date filtering)
+                                print(f"Showing all {len(data)} latest signals (no date filtering)")
                                 
                                 # Convert to signal format
-                                for item in today_signals[:10]:  # Limit to 10 signals
+                                for item in data[:10]:  # Limit to 10 signals
                                     signal = {
                                         "symbol": item.get('symbol', 'UNKNOWN'),
                                         "signal_type": item.get('signal_type', 'hold'),
