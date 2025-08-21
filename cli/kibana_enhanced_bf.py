@@ -866,15 +866,15 @@ def generate(symbols, symbol_list, start_date, end_date):
                     # Create signal record
                     signal_record = {
                         'symbol': symbol,
-                        'date': latest_data['Date'].strftime('%Y-%m-%d') if hasattr(latest_data['Date'], 'strftime') else str(latest_data['Date']),
+                        'date': signal_data['Date'].strftime('%Y-%m-%d') if hasattr(signal_data['Date'], 'strftime') else str(signal_data['Date']),
                         'signal_type': signal_type,
                         'confidence': float(confidence),
                         'strength': strength,
                         'composite_score': float(confidence),  # Use confidence as composite score
                         'price_change': float(price_change) if not pd.isna(price_change) else 0.0,
                         'volume_change': float(volume_change) if not pd.isna(volume_change) else 0.0,
-                        'close': float(latest_data['Close']),
-                        'volume': int(latest_data['Volume']),
+                        'close': float(signal_data['Close']),
+                        'volume': int(signal_data['Volume']),
                         'generated_at': datetime.now().isoformat()
                     }
                     
