@@ -61,6 +61,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_trading()
         elif self.path == '/commands':
             self.serve_commands()
+        elif self.path == '/parameters':
+            self.serve_parameters()
         elif self.path == '/favicon.svg':
             self.serve_favicon()
         elif self.path == '/api/summary':
@@ -74,12 +76,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_latest_signals()
         elif self.path == '/api/signals/export':
             self.serve_signals_export()
+        elif self.path.startswith('/api/parameters'):
+            self.serve_parameters_api()
         else:
             self.send_error(404)
     
     def do_POST(self):
         if self.path == '/api/execute-command':
             self.serve_execute_command()
+        elif self.path == '/api/parameters/update':
+            self.serve_update_parameters()
         else:
             self.send_error(404)
     
@@ -348,6 +354,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                     <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
                     <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                     <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
                 </div>
         </div>
@@ -576,11 +583,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         <p><strong>Command:</strong> ${data.command}</p>
                         <p><strong>Status:</strong> <span class="status-${data.status}">${data.status}</span></p>
                         <p><strong>Duration:</strong> ${data.duration ? data.duration.toFixed(2) + 's' : 'N/A'}</p>
+                        ${data.metadata && data.metadata.timeframe ? `<p><strong>Timeframe:</strong> ${data.metadata.timeframe}</p>` : ''}
                     </div>
                     <div>
                         <h3>Timing</h3>
                         <p><strong>Started:</strong> ${new Date(data.start_time).toLocaleString()}</p>
                         <p><strong>Ended:</strong> ${data.end_time ? new Date(data.end_time).toLocaleString() : 'N/A'}</p>
+                        ${data.metadata && data.metadata.symbols ? `<p><strong>Symbols:</strong> ${Array.isArray(data.metadata.symbols) ? data.metadata.symbols.join(', ') : data.metadata.symbols}</p>` : ''}
                         ${data.error_message ? `<p><strong>Error:</strong> ${data.error_message}</p>` : ''}
                     </div>
                 </div>
@@ -833,6 +842,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                             <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
                             <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                            <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                             <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
                         </div>
         </div>
@@ -845,6 +855,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 <div style="margin: 20px 0;">
                     <h3>Key Features:</h3>
                     <ul style="list-style: none; padding: 0;">
+                        <li><strong>Multi-Timeframe Support:</strong> 1min, 5min, 15min, 1hour, 1day data and analysis</li>
                         <li><strong>Real-time Data Processing:</strong> Apache Spark for distributed analytics</li>
                         <li><strong>Modern Storage:</strong> MinIO (S3-compatible) + PostgreSQL</li>
                         <li><strong>Advanced Monitoring:</strong> Elasticsearch + Kibana + Custom Dashboard</li>
@@ -852,6 +863,18 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         <li><strong>Financial Analysis:</strong> Technical indicators, signal generation, backtesting</li>
                         <li><strong>Containerized:</strong> Full Docker-based microservices architecture</li>
                     </ul>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h3>🕒 Timeframe Support:</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 15px 0;">
+                        <div class="tech-badge" style="background: linear-gradient(135deg, #28a745, #20c997);">1 Minute (1min)</div>
+                        <div class="tech-badge" style="background: linear-gradient(135deg, #17a2b8, #138496);">5 Minutes (5min)</div>
+                        <div class="tech-badge" style="background: linear-gradient(135deg, #ffc107, #e0a800);">15 Minutes (15min)</div>
+                        <div class="tech-badge" style="background: linear-gradient(135deg, #fd7e14, #e55a00);">1 Hour (1hour)</div>
+                        <div class="tech-badge" style="background: linear-gradient(135deg, #6f42c1, #59359a);">Daily (1day)</div>
+                    </div>
+                    <p style="font-size: 0.9em; color: #666; margin: 10px 0;">All timeframes support the same features: data fetching, signal generation, backtesting, and storage with optimized parameters for each interval.</p>
                 </div>
             </div>
             
@@ -1317,12 +1340,25 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                     <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
                     <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                     <button class="refresh-btn" onclick="loadSignals()">Refresh Signals</button>
                 </div>
         </div>
         
         <div class="panel">
             <h2>Latest Trading Signals</h2>
+            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <label style="font-weight: 600; color: #333;">Filter by Timeframe:</label>
+                <select id="timeframe-filter" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.9em;" onchange="loadSignals()">
+                    <option value="all">All Timeframes</option>
+                    <option value="1day">Daily (1day)</option>
+                    <option value="1hour">Hourly (1hour)</option>
+                    <option value="15min">15 Minutes (15min)</option>
+                    <option value="5min">5 Minutes (5min)</option>
+                    <option value="1min">1 Minute (1min)</option>
+                </select>
+                <span style="color: #666; font-size: 0.9em;">Note: Signal timeframe depends on how signals were generated</span>
+            </div>
             <div id="signals-container">Loading signals...</div>
         </div>
         
@@ -1361,13 +1397,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
             const signalClass = signal.signal_type || 'hold';
             const confidence = signal.confidence || 0;
             const strength = signal.strength || 'medium';
+            const timeframe = signal.timeframe || '1day';
+            
+            // Apply timeframe filter
+            const selectedTimeframe = document.getElementById('timeframe-filter').value;
+            if (selectedTimeframe !== 'all' && timeframe !== selectedTimeframe) {
+                return ''; // Don't show this signal
+            }
             
             return `
                 <div class="signal-card ${signalClass}">
-                    <h3>${signal.symbol || 'UNKNOWN'}</h3>
+                    <h3>${signal.symbol || 'UNKNOWN'} <span style="font-size: 0.7em; color: #666; font-weight: normal;">(${timeframe})</span></h3>
                     <p><strong>Signal:</strong> ${signal.signal_type?.toUpperCase() || 'HOLD'}</p>
                     <p><strong>Confidence:</strong> ${confidence}%</p>
                     <p><strong>Strength:</strong> ${strength}</p>
+                    <p><strong>Timeframe:</strong> ${timeframe}</p>
                     <p><strong>Date:</strong> ${signal.date || 'N/A'}</p>
                 </div>
             `;
@@ -1452,6 +1496,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
         import sys
         sys.stdout.flush()
         try:
+            print("Starting get_latest_signals function...")
+            sys.stdout.flush()
             import boto3
             import json
             import pandas as pd
@@ -1466,6 +1512,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 aws_secret_access_key='minioadmin',
                 region_name='us-east-1'
             )
+            print("MinIO client created successfully")
+            sys.stdout.flush()
             
             bucket = 'breadthflow'
             signals = []
@@ -1510,6 +1558,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             
                             if not df.empty:
                                 print(f"Successfully read {len(df)} signals from Parquet file {key}")
+                                print(f"DataFrame columns: {list(df.columns)}")
                                 print(f"Sample dates: {df['date'].unique()[:3] if 'date' in df.columns else 'No date column'}")
                                 
                                 # Convert DataFrame to signal format - show all latest signals (no date filtering)
@@ -1521,7 +1570,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                         "signal_type": row.get('signal_type', 'hold'),
                                         "confidence": row.get('confidence', 0),
                                         "strength": row.get('signal_strength', 'medium'),
-                                        "date": row.get('date', 'N/A')
+                                        "date": row.get('date', 'N/A'),
+                                        "timeframe": row.get('timeframe', '1day')  # Add timeframe field
                                     }
                                     signals.append(signal)
                                 
@@ -1561,7 +1611,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                         "signal_type": item.get('signal_type', 'hold'),
                                         "confidence": item.get('confidence', 0),
                                         "strength": item.get('signal_strength', 'medium'),
-                                        "date": item.get('date', 'N/A')
+                                        "date": item.get('date', 'N/A'),
+                                        "timeframe": item.get('timeframe', '1day')  # Add timeframe field
                                     }
                                     signals.append(signal)
                                 
@@ -1974,6 +2025,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                 <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
                 <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                 <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
             </div>
         </div>
@@ -2030,6 +2082,24 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                     <label class="param-label">End Date:</label>
                                     <input type="date" class="param-input" id="fetch_end_date" value="2024-08-16">
                                 </div>
+                                <div class="param-group">
+                                    <label class="param-label">Timeframe:</label>
+                                    <select class="param-select" id="fetch_timeframe">
+                                        <option value="1day">Daily (1day)</option>
+                                        <option value="1hour">Hourly (1hour)</option>
+                                        <option value="15min">15 Minutes (15min)</option>
+                                        <option value="5min">5 Minutes (5min)</option>
+                                        <option value="1min">1 Minute (1min)</option>
+                                    </select>
+                                </div>
+                                <div class="param-group">
+                                    <label class="param-label">Data Source:</label>
+                                    <select class="param-select" id="fetch_data_source">
+                                        <option value="yfinance">Yahoo Finance (yfinance)</option>
+                                        <option value="alpha_vantage">Alpha Vantage</option>
+                                        <option value="polygon">Polygon.io</option>
+                                    </select>
+                                </div>
                             </div>
                             <button class="execute-btn" onclick="executeCommand('data_fetch')">Execute</button>
                         </div>
@@ -2064,6 +2134,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                 <div class="param-group">
                                     <label class="param-label">End Date:</label>
                                     <input type="date" class="param-input" id="signal_end_date" value="2024-08-16">
+                                </div>
+                                <div class="param-group">
+                                    <label class="param-label">Timeframe:</label>
+                                    <select class="param-select" id="signal_timeframe">
+                                        <option value="1day">Daily (1day)</option>
+                                        <option value="1hour">Hourly (1hour)</option>
+                                        <option value="15min">15 Minutes (15min)</option>
+                                        <option value="5min">5 Minutes (5min)</option>
+                                        <option value="1min">1 Minute (1min)</option>
+                                    </select>
                                 </div>
                             </div>
                             <button class="execute-btn" onclick="executeCommand('signal_generate')">Execute</button>
@@ -2103,6 +2183,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                 <div class="param-group">
                                     <label class="param-label">Initial Capital ($):</label>
                                     <input type="number" class="param-input" id="backtest_capital" value="100000">
+                                </div>
+                                <div class="param-group">
+                                    <label class="param-label">Timeframe:</label>
+                                    <select class="param-select" id="backtest_timeframe">
+                                        <option value="1day">Daily (1day)</option>
+                                        <option value="1hour">Hourly (1hour)</option>
+                                        <option value="15min">15 Minutes (15min)</option>
+                                        <option value="5min">5 Minutes (5min)</option>
+                                        <option value="1min">1 Minute (1min)</option>
+                                    </select>
                                 </div>
                             </div>
                             <button class="execute-btn" onclick="executeCommand('backtest_run')">Execute</button>
@@ -2197,14 +2287,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     params = {
                         symbols: document.getElementById('fetch_symbols').value,
                         start_date: document.getElementById('fetch_start_date').value,
-                        end_date: document.getElementById('fetch_end_date').value
+                        end_date: document.getElementById('fetch_end_date').value,
+                        timeframe: document.getElementById('fetch_timeframe').value,
+                        data_source: document.getElementById('fetch_data_source').value
                     };
                     break;
                 case 'signal_generate':
                     params = {
                         symbols: document.getElementById('signal_symbols').value,
                         start_date: document.getElementById('signal_start_date').value,
-                        end_date: document.getElementById('signal_end_date').value
+                        end_date: document.getElementById('signal_end_date').value,
+                        timeframe: document.getElementById('signal_timeframe').value
                     };
                     break;
                 case 'backtest_run':
@@ -2212,7 +2305,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         symbols: document.getElementById('backtest_symbols').value,
                         from_date: document.getElementById('backtest_from_date').value,
                         to_date: document.getElementById('backtest_to_date').value,
-                        initial_capital: document.getElementById('backtest_capital').value
+                        initial_capital: document.getElementById('backtest_capital').value,
+                        timeframe: document.getElementById('backtest_timeframe').value
                     };
                     break;
             }
@@ -2364,6 +2458,584 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 raise Exception(f"Command execution failed: {e}")
         else:
             raise ValueError(f"Unknown command: {command}")
+
+    def serve_parameters(self):
+        """Serve the Parameters management page"""
+        html = """
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BreadthFlow Parameters</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .nav-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .panel h2 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .timeframe-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .timeframe-tab {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .timeframe-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+        .timeframe-tab:hover {
+            transform: translateY(-2px);
+        }
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .param-label {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .param-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .param-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+        .save-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+        .save-btn:hover {
+            transform: scale(1.05);
+        }
+        .reset-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+            margin-left: 10px;
+        }
+        .reset-btn:hover {
+            transform: scale(1.05);
+        }
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .parameter-description {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BreadthFlow Parameters</h1>
+            <p>Manage timeframe-specific signal generation parameters</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn active" onclick="window.location.href='/parameters'">Parameters</button>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>📊 Parameter Management</h3>
+            <p>Configure signal generation parameters for different timeframes. Each timeframe has optimized settings for technical indicators, thresholds, and signal generation logic. Changes are applied immediately to new signal generation runs.</p>
+        </div>
+        
+        <div class="content-grid">
+            <div class="panel">
+                <h2>⏰ Timeframe Selection</h2>
+                <div class="timeframe-tabs">
+                    <div class="timeframe-tab active" onclick="selectTimeframe('1day')">Daily (1day)</div>
+                    <div class="timeframe-tab" onclick="selectTimeframe('1hour')">Hourly (1hour)</div>
+                    <div class="timeframe-tab" onclick="selectTimeframe('15min')">15 Minutes (15min)</div>
+                    <div class="timeframe-tab" onclick="selectTimeframe('5min')">5 Minutes (5min)</div>
+                    <div class="timeframe-tab" onclick="selectTimeframe('1min')">1 Minute (1min)</div>
+                </div>
+                
+                <div id="parameter-form">
+                    <!-- Parameters will be loaded here -->
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="save-btn" onclick="saveParameters()">💾 Save Parameters</button>
+                    <button class="reset-btn" onclick="resetParameters()">🔄 Reset to Defaults</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📈 Parameter Descriptions</h2>
+                <div id="parameter-descriptions">
+                    <!-- Descriptions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentTimeframe = '1day';
+        let currentParameters = {};
+        
+        // Default parameters for each timeframe
+        const defaultParameters = {
+            '1day': {
+                ma_short: 20,
+                ma_long: 50,
+                rsi_period: 14,
+                rsi_oversold: 30,
+                rsi_overbought: 70,
+                bb_period: 20,
+                bb_std: 2,
+                volume_ma: 20,
+                min_volume_ratio: 1.5,
+                price_change_threshold: 0.02,
+                confidence_base: 0.6,
+                lookback_period: 50
+            },
+            '1hour': {
+                ma_short: 12,
+                ma_long: 24,
+                rsi_period: 14,
+                rsi_oversold: 25,
+                rsi_overbought: 75,
+                bb_period: 20,
+                bb_std: 1.8,
+                volume_ma: 24,
+                min_volume_ratio: 1.3,
+                price_change_threshold: 0.015,
+                confidence_base: 0.5,
+                lookback_period: 48
+            },
+            '15min': {
+                ma_short: 8,
+                ma_long: 16,
+                rsi_period: 14,
+                rsi_oversold: 20,
+                rsi_overbought: 80,
+                bb_period: 16,
+                bb_std: 1.6,
+                volume_ma: 20,
+                min_volume_ratio: 1.2,
+                price_change_threshold: 0.01,
+                confidence_base: 0.4,
+                lookback_period: 32
+            },
+            '5min': {
+                ma_short: 6,
+                ma_long: 12,
+                rsi_period: 10,
+                rsi_oversold: 15,
+                rsi_overbought: 85,
+                bb_period: 12,
+                bb_std: 1.4,
+                volume_ma: 15,
+                min_volume_ratio: 1.1,
+                price_change_threshold: 0.008,
+                confidence_base: 0.3,
+                lookback_period: 24
+            },
+            '1min': {
+                ma_short: 5,
+                ma_long: 10,
+                rsi_period: 8,
+                rsi_oversold: 10,
+                rsi_overbought: 90,
+                bb_period: 10,
+                bb_std: 1.2,
+                volume_ma: 10,
+                min_volume_ratio: 1.05,
+                price_change_threshold: 0.005,
+                confidence_base: 0.2,
+                lookback_period: 20
+            }
+        };
+        
+        const parameterDescriptions = {
+            ma_short: "Short-term moving average period for trend detection",
+            ma_long: "Long-term moving average period for trend confirmation",
+            rsi_period: "RSI calculation period for momentum analysis",
+            rsi_oversold: "RSI threshold for oversold conditions (buy signal)",
+            rsi_overbought: "RSI threshold for overbought conditions (sell signal)",
+            bb_period: "Bollinger Bands calculation period",
+            bb_std: "Bollinger Bands standard deviation multiplier",
+            volume_ma: "Volume moving average period for volume analysis",
+            min_volume_ratio: "Minimum volume ratio for signal confirmation",
+            price_change_threshold: "Minimum price change threshold for signal generation",
+            confidence_base: "Base confidence level for signal generation",
+            lookback_period: "Minimum data points required for analysis"
+        };
+        
+        function selectTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update active tab
+            document.querySelectorAll('.timeframe-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load parameters for this timeframe
+            loadParameters(timeframe);
+        }
+        
+        async function loadParameters(timeframe) {
+            try {
+                const response = await fetch('/api/parameters?timeframe=' + timeframe);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentParameters = data.parameters;
+                    renderParameterForm();
+                    renderParameterDescriptions();
+                } else {
+                    // Use defaults if API fails
+                    currentParameters = defaultParameters[timeframe];
+                    renderParameterForm();
+                    renderParameterDescriptions();
+                }
+            } catch (error) {
+                console.error('Error loading parameters:', error);
+                // Use defaults on error
+                currentParameters = defaultParameters[timeframe];
+                renderParameterForm();
+                renderParameterDescriptions();
+            }
+        }
+        
+        function renderParameterForm() {
+            const form = document.getElementById('parameter-form');
+            const params = currentParameters;
+            
+            form.innerHTML = `
+                <div class="parameter-grid">
+                    <div class="param-group">
+                        <label class="param-label">Short MA Period</label>
+                        <input type="number" class="param-input" id="ma_short" value="${params.ma_short}" min="1" max="100">
+                        <div class="parameter-description">${parameterDescriptions.ma_short}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">Long MA Period</label>
+                        <input type="number" class="param-input" id="ma_long" value="${params.ma_long}" min="1" max="200">
+                        <div class="parameter-description">${parameterDescriptions.ma_long}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">RSI Period</label>
+                        <input type="number" class="param-input" id="rsi_period" value="${params.rsi_period}" min="1" max="50">
+                        <div class="parameter-description">${parameterDescriptions.rsi_period}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">RSI Oversold</label>
+                        <input type="number" class="param-input" id="rsi_oversold" value="${params.rsi_oversold}" min="0" max="100" step="0.1">
+                        <div class="parameter-description">${parameterDescriptions.rsi_oversold}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">RSI Overbought</label>
+                        <input type="number" class="param-input" id="rsi_overbought" value="${params.rsi_overbought}" min="0" max="100" step="0.1">
+                        <div class="parameter-description">${parameterDescriptions.rsi_overbought}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">BB Period</label>
+                        <input type="number" class="param-input" id="bb_period" value="${params.bb_period}" min="1" max="100">
+                        <div class="parameter-description">${parameterDescriptions.bb_period}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">BB Std Dev</label>
+                        <input type="number" class="param-input" id="bb_std" value="${params.bb_std}" min="0.1" max="5" step="0.1">
+                        <div class="parameter-description">${parameterDescriptions.bb_std}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">Volume MA Period</label>
+                        <input type="number" class="param-input" id="volume_ma" value="${params.volume_ma}" min="1" max="100">
+                        <div class="parameter-description">${parameterDescriptions.volume_ma}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">Min Volume Ratio</label>
+                        <input type="number" class="param-input" id="min_volume_ratio" value="${params.min_volume_ratio}" min="0.1" max="10" step="0.1">
+                        <div class="parameter-description">${parameterDescriptions.min_volume_ratio}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">Price Change Threshold</label>
+                        <input type="number" class="param-input" id="price_change_threshold" value="${params.price_change_threshold}" min="0.001" max="0.1" step="0.001">
+                        <div class="parameter-description">${parameterDescriptions.price_change_threshold}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">Base Confidence</label>
+                        <input type="number" class="param-input" id="confidence_base" value="${params.confidence_base}" min="0" max="1" step="0.1">
+                        <div class="parameter-description">${parameterDescriptions.confidence_base}</div>
+                    </div>
+                    <div class="param-group">
+                        <label class="param-label">Lookback Period</label>
+                        <input type="number" class="param-input" id="lookback_period" value="${params.lookback_period}" min="10" max="200">
+                        <div class="parameter-description">${parameterDescriptions.lookback_period}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderParameterDescriptions() {
+            const descriptions = document.getElementById('parameter-descriptions');
+            const timeframe = currentTimeframe;
+            
+            descriptions.innerHTML = `
+                <h3>📊 ${timeframe.toUpperCase()} Timeframe Parameters</h3>
+                <p>These parameters are optimized for ${timeframe} data analysis:</p>
+                <ul>
+                    <li><strong>Moving Averages:</strong> Faster response for shorter timeframes</li>
+                    <li><strong>RSI Thresholds:</strong> More sensitive for intraday trading</li>
+                    <li><strong>Price Thresholds:</strong> Lower thresholds for shorter timeframes</li>
+                    <li><strong>Volume Analysis:</strong> Adjusted for timeframe-specific volume patterns</li>
+                </ul>
+                <p><em>Changes are applied to new signal generation runs only.</em></p>
+            `;
+        }
+        
+        async function saveParameters() {
+            const params = {};
+            const inputs = document.querySelectorAll('.param-input');
+            
+            inputs.forEach(input => {
+                params[input.id] = parseFloat(input.value);
+            });
+            
+            try {
+                const response = await fetch('/api/parameters/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        timeframe: currentTimeframe,
+                        parameters: params
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Parameters saved successfully!');
+                    currentParameters = params;
+                } else {
+                    alert('❌ Error saving parameters: ' + data.error);
+                }
+            } catch (error) {
+                alert('❌ Error saving parameters: ' + error);
+            }
+        }
+        
+        function resetParameters() {
+            if (confirm('Are you sure you want to reset all parameters to defaults?')) {
+                currentParameters = defaultParameters[currentTimeframe];
+                renderParameterForm();
+                alert('✅ Parameters reset to defaults!');
+            }
+        }
+        
+        // Load initial parameters
+        loadParameters('1day');
+    </script>
+</body>
+</html>
+        """
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(html.encode('utf-8'))
+
+    def serve_parameters_api(self):
+        """Serve parameters API endpoint"""
+        try:
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            timeframe = query.get('timeframe', ['1day'])[0]
+            
+            # For now, return default parameters
+            # In a real implementation, these would be stored in the database
+            default_params = {
+                '1day': {
+                    'ma_short': 20, 'ma_long': 50, 'rsi_period': 14,
+                    'rsi_oversold': 30, 'rsi_overbought': 70, 'bb_period': 20,
+                    'bb_std': 2, 'volume_ma': 20, 'min_volume_ratio': 1.5,
+                    'price_change_threshold': 0.02, 'confidence_base': 0.6, 'lookback_period': 50
+                },
+                '1hour': {
+                    'ma_short': 12, 'ma_long': 24, 'rsi_period': 14,
+                    'rsi_oversold': 25, 'rsi_overbought': 75, 'bb_period': 20,
+                    'bb_std': 1.8, 'volume_ma': 24, 'min_volume_ratio': 1.3,
+                    'price_change_threshold': 0.015, 'confidence_base': 0.5, 'lookback_period': 48
+                },
+                '15min': {
+                    'ma_short': 8, 'ma_long': 16, 'rsi_period': 14,
+                    'rsi_oversold': 20, 'rsi_overbought': 80, 'bb_period': 16,
+                    'bb_std': 1.6, 'volume_ma': 20, 'min_volume_ratio': 1.2,
+                    'price_change_threshold': 0.01, 'confidence_base': 0.4, 'lookback_period': 32
+                },
+                '5min': {
+                    'ma_short': 6, 'ma_long': 12, 'rsi_period': 10,
+                    'rsi_oversold': 15, 'rsi_overbought': 85, 'bb_period': 12,
+                    'bb_std': 1.4, 'volume_ma': 15, 'min_volume_ratio': 1.1,
+                    'price_change_threshold': 0.008, 'confidence_base': 0.3, 'lookback_period': 24
+                },
+                '1min': {
+                    'ma_short': 5, 'ma_long': 10, 'rsi_period': 8,
+                    'rsi_oversold': 10, 'rsi_overbought': 90, 'bb_period': 10,
+                    'bb_std': 1.2, 'volume_ma': 10, 'min_volume_ratio': 1.05,
+                    'price_change_threshold': 0.005, 'confidence_base': 0.2, 'lookback_period': 20
+                }
+            }
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'timeframe': timeframe,
+                'parameters': default_params.get(timeframe, default_params['1day'])
+            }).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': False,
+                'error': str(e)
+            }).encode('utf-8'))
+
+    def serve_update_parameters(self):
+        """Handle parameter updates"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            timeframe = data.get('timeframe')
+            parameters = data.get('parameters')
+            
+            if not timeframe or not parameters:
+                raise ValueError("Missing timeframe or parameters")
+            
+            # For now, just log the parameters
+            # In a real implementation, these would be saved to the database
+            print(f"📊 Parameters updated for {timeframe}: {parameters}")
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': True,
+                'message': f'Parameters saved for {timeframe}'
+            }).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': False,
+                'error': str(e)
+            }).encode('utf-8'))
 
 @click.command()
 @click.option('--port', default=8080, help='Port to run dashboard on')

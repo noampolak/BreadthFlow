@@ -78,23 +78,42 @@ class CommandHandler(BaseHTTPRequestHandler):
     
     def execute_command(self, command, parameters):
         """Execute a command with parameters"""
-        # Map commands to actual CLI commands
+        # Map commands to actual CLI commands with timeframe support
         command_map = {
             'data_summary': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'data', 'summary'],
             'data_fetch': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'data', 'fetch', 
                           '--symbols', parameters.get("symbols", "AAPL,MSFT"),
                           '--start-date', parameters.get("start_date", "2024-08-15"),
-                          '--end-date', parameters.get("end_date", "2024-08-16")],
+                          '--end-date', parameters.get("end_date", "2024-08-16"),
+                          '--timeframe', parameters.get("timeframe", "1day"),
+                          '--data-source', parameters.get("data_source", "yfinance")],
             'signal_generate': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'signals', 'generate',
                                '--symbols', parameters.get("symbols", "AAPL,MSFT"),
                                '--start-date', parameters.get("start_date", "2024-08-15"),
-                               '--end-date', parameters.get("end_date", "2024-08-16")],
+                               '--end-date', parameters.get("end_date", "2024-08-16"),
+                               '--timeframe', parameters.get("timeframe", "1day")],
             'signal_summary': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'signals', 'summary'],
             'backtest_run': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'backtest', 'run',
                             '--symbols', parameters.get("symbols", "AAPL,MSFT"),
                             '--from-date', parameters.get("from_date", "2024-08-15"),
                             '--to-date', parameters.get("to_date", "2024-08-16"),
-                            '--initial-capital', parameters.get("initial_capital", "100000")]
+                            '--timeframe', parameters.get("timeframe", "1day"),
+                            '--initial-capital', parameters.get("initial_capital", "100000")],
+            # New pipeline commands with timeframe support
+            'pipeline_start': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'pipeline', 'start',
+                              '--mode', parameters.get("mode", "demo"),
+                              '--interval', parameters.get("interval", "300"),
+                              '--timeframe', parameters.get("timeframe", "1day"),
+                              '--start-date', parameters.get("start_date", "2024-08-15"),
+                              '--end-date', parameters.get("end_date", "2024-08-16")],
+            'pipeline_stop': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'pipeline', 'stop'],
+            'pipeline_status': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'pipeline', 'status'],
+            'pipeline_logs': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'pipeline', 'logs'],
+            'pipeline_run': ['python3', '/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py', 'pipeline', 'run',
+                            '--mode', parameters.get("mode", "demo"),
+                            '--interval', parameters.get("interval", "300"),
+                            '--timeframe', parameters.get("timeframe", "1day"),
+                            '--cycles', parameters.get("cycles", "3")]
         }
         
         if command not in command_map:

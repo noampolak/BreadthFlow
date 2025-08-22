@@ -216,6 +216,23 @@ def load_parquet_from_minio(s3_client, bucket: str, key: str) -> pd.DataFrame:
         logger.error(f"Error loading {key}: {str(e)}")
         return pd.DataFrame()
 
+def save_parquet_to_minio(s3_client, df: pd.DataFrame, bucket: str, key: str) -> bool:
+    """Save a DataFrame to MinIO as Parquet."""
+    try:
+        parquet_buffer = io.BytesIO()
+        df.to_parquet(parquet_buffer, index=False)
+        parquet_buffer.seek(0)
+        
+        s3_client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=parquet_buffer.getvalue()
+        )
+        return True
+    except Exception as e:
+        logger.error(f"Error saving {key}: {str(e)}")
+        return False
+
 @click.group()
 def cli():
     """🚀 BreadthFlow Kibana-Enhanced CLI with Dual Logging"""
@@ -313,11 +330,13 @@ def summary():
 @click.option('--symbol-list', help='Use predefined symbol list (demo_small, tech_leaders)')
 @click.option('--start-date', default='2024-01-01', help='Start date (YYYY-MM-DD)')
 @click.option('--end-date', default='2024-12-31', help='End date (YYYY-MM-DD)')
+@click.option('--timeframe', default='1day', help='Data timeframe: 1min, 5min, 15min, 1hour, 1day (default: 1day for backward compatibility)')
+@click.option('--data-source', default='yfinance', help='Data source: yfinance, alpha_vantage, polygon (default: yfinance)')
 @click.option('--parallel', default=2, help='Number of parallel workers')
-def fetch(symbols, symbol_list, start_date, end_date, parallel):
+def fetch(symbols, symbol_list, start_date, end_date, timeframe, data_source, parallel):
     """Fetch historical data with dual logging and detailed progress."""
     run_id = str(uuid.uuid4())
-    dual_logger = DualLogger(run_id, f"data fetch --symbols {symbols or symbol_list}")
+    dual_logger = DualLogger(run_id, f"data fetch --symbols {symbols or symbol_list} --timeframe {timeframe}")
     
     try:
         # Handle symbol selection
@@ -342,11 +361,15 @@ def fetch(symbols, symbol_list, start_date, end_date, parallel):
         dual_logger.update_metadata("symbols_count", len(symbols_to_fetch))
         dual_logger.update_metadata("symbols", symbols_to_fetch)
         dual_logger.update_metadata("date_range", f"{start_date} to {end_date}")
+        dual_logger.update_metadata("timeframe", timeframe)
+        dual_logger.update_metadata("data_source", data_source)
         
         dual_logger.log("INFO", f"📅 Period: {start_date} to {end_date}")
+        dual_logger.log("INFO", f"⏰ Timeframe: {timeframe}")
+        dual_logger.log("INFO", f"🔗 Data Source: {data_source}")
         dual_logger.log("INFO", f"⚡ Parallel workers: {parallel}")
         dual_logger.log("INFO", f"📊 Total symbols: {len(symbols_to_fetch)}")
-        dual_logger.log("INFO", "💾 Storage: MinIO (s3://breadthflow/ohlcv/)")
+        dual_logger.log("INFO", f"💾 Storage: MinIO (s3://breadthflow/ohlcv/{timeframe}/)")
         
         # Initialize Spark session
         dual_logger.log("INFO", "🔄 Initializing Spark + DataFetcher...")
@@ -359,53 +382,134 @@ def fetch(symbols, symbol_list, start_date, end_date, parallel):
         
         # Perform data fetching with detailed progress tracking
         try:
-            dual_logger.log("INFO", "🌐 Fetching REAL market data from Yahoo Finance...")
+            dual_logger.log("INFO", f"🌐 Fetching REAL market data using {data_source} for {timeframe} timeframe...")
             
-            results = []
-            s3_client = get_minio_client()
-            failed_symbols = []
-            
-            for i, symbol in enumerate(symbols_to_fetch, 1):
-                dual_logger.log("INFO", f"  📊 Fetching {symbol} ({i}/{len(symbols_to_fetch)})...")
+            # Use timeframe-agnostic fetcher if available
+            try:
+                # Import timeframe-enhanced components
+                import sys
+                sys.path.insert(0, '/opt/bitnami/spark/jobs/model')
+                from timeframe_agnostic_fetcher import create_timeframe_fetcher
+                from timeframe_enhanced_storage import create_timeframe_storage
                 
-                try:
-                    # Real Yahoo Finance API call
-                    import yfinance as yf
-                    ticker = yf.Ticker(symbol)
-                    df = ticker.history(start=start_date, end=end_date)
+                # Create timeframe-aware fetcher and storage
+                fetcher = create_timeframe_fetcher()
+                storage = create_timeframe_storage()
+                
+                dual_logger.log("INFO", "✅ Using timeframe-agnostic fetcher")
+                
+                results = []
+                failed_symbols = []
+                
+                for i, symbol in enumerate(symbols_to_fetch, 1):
+                    dual_logger.log("INFO", f"  📊 Fetching {symbol} ({i}/{len(symbols_to_fetch)}) for {timeframe}...")
                     
-                    if not df.empty:
-                        df = df.reset_index()
-                        df['symbol'] = symbol
-                        df['fetched_at'] = pd.Timestamp.now()
-                        
-                        # Save to MinIO as Parquet in symbol-specific folder
-                        parquet_buffer = io.BytesIO()
-                        df.to_parquet(parquet_buffer, index=False)
-                        parquet_buffer.seek(0)
-                        
-                        key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
-                        s3_client.put_object(
-                            Bucket='breadthflow',
-                            Key=key,
-                            Body=parquet_buffer.getvalue()
+                    try:
+                        # Fetch data using timeframe-agnostic fetcher
+                        data, metadata = fetcher.fetch_data(
+                            symbol=symbol,
+                            timeframe=timeframe,
+                            start_date=start_date,
+                            end_date=end_date,
+                            data_source=data_source
                         )
                         
-                        results.append(f"{symbol}: {len(df)} records")
-                        dual_logger.log("INFO", f"    ✅ {symbol}: {len(df)} records saved to MinIO")
-                        
-                        # Log detailed progress to both systems
-                        dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), True, len(df))
-                        
-                    else:
-                        dual_logger.log("WARN", f"    ⚠️ {symbol}: No data available")
+                        if not data.empty:
+                            # Save using timeframe-enhanced storage
+                            save_result = storage.save_ohlcv_data(
+                                data=data,
+                                symbol=symbol,
+                                start_date=start_date,
+                                end_date=end_date,
+                                timeframe=timeframe,
+                                metadata=metadata
+                            )
+                            
+                            if save_result['success']:
+                                results.append(f"{symbol}: {len(data)} records")
+                                dual_logger.log("INFO", f"    ✅ {symbol}: {len(data)} records saved to MinIO ({timeframe})")
+                                dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), True, len(data))
+                            else:
+                                dual_logger.log("ERROR", f"    ❌ {symbol}: Failed to save data - {save_result.get('error', 'Unknown error')}")
+                                dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), False, 0)
+                                failed_symbols.append(symbol)
+                        else:
+                            dual_logger.log("WARN", f"    ⚠️ {symbol}: No data available")
+                            dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), False, 0)
+                            failed_symbols.append(symbol)
+                            
+                    except Exception as symbol_error:
+                        dual_logger.log("ERROR", f"    ❌ {symbol}: {str(symbol_error)}")
                         dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), False, 0)
                         failed_symbols.append(symbol)
+                
+            except ImportError:
+                dual_logger.log("WARN", "⚠️ Timeframe-agnostic fetcher not available, using legacy fetcher...")
+                
+                # Fallback to legacy fetching for backward compatibility
+                results = []
+                s3_client = get_minio_client()
+                failed_symbols = []
+                
+                for i, symbol in enumerate(symbols_to_fetch, 1):
+                    dual_logger.log("INFO", f"  📊 Fetching {symbol} ({i}/{len(symbols_to_fetch)})...")
+                    
+                    try:
+                        # Real Yahoo Finance API call (legacy)
+                        import yfinance as yf
+                        ticker = yf.Ticker(symbol)
                         
-                except Exception as symbol_error:
-                    dual_logger.log("ERROR", f"    ❌ {symbol}: {str(symbol_error)}")
-                    dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), False, 0)
-                    failed_symbols.append(symbol)
+                        # Use appropriate interval for timeframe
+                        interval_map = {
+                            '1min': '1m', '5min': '5m', '15min': '15m', 
+                            '1hour': '1h', '1day': '1d'
+                        }
+                        interval = interval_map.get(timeframe, '1d')
+                        
+                        if timeframe == '1day':
+                            df = ticker.history(start=start_date, end=end_date, interval=interval)
+                        else:
+                            # For intraday, adjust date range if needed
+                            df = ticker.history(start=start_date, end=end_date, interval=interval)
+                        
+                        if not df.empty:
+                            df = df.reset_index()
+                            df['symbol'] = symbol
+                            df['fetched_at'] = pd.Timestamp.now()
+                            
+                            # Save to MinIO with timeframe-aware path
+                            parquet_buffer = io.BytesIO()
+                            df.to_parquet(parquet_buffer, index=False)
+                            parquet_buffer.seek(0)
+                            
+                            # Use timeframe-aware storage path
+                            if timeframe == '1day':
+                                key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"  # Legacy path
+                            else:
+                                timeframe_folder = 'hourly' if timeframe == '1hour' else 'minute'
+                                key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}_{timeframe.upper()}.parquet"
+                            
+                            s3_client.put_object(
+                                Bucket='breadthflow',
+                                Key=key,
+                                Body=parquet_buffer.getvalue()
+                            )
+                            
+                            results.append(f"{symbol}: {len(df)} records")
+                            dual_logger.log("INFO", f"    ✅ {symbol}: {len(df)} records saved to MinIO ({timeframe})")
+                            
+                            # Log detailed progress to both systems
+                            dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), True, len(df))
+                            
+                        else:
+                            dual_logger.log("WARN", f"    ⚠️ {symbol}: No data available")
+                            dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), False, 0)
+                            failed_symbols.append(symbol)
+                        
+                    except Exception as symbol_error:
+                        dual_logger.log("ERROR", f"    ❌ {symbol}: {str(symbol_error)}")
+                        dual_logger.log_fetch_progress(symbol, i, len(symbols_to_fetch), False, 0)
+                        failed_symbols.append(symbol)
             
             # Final summary
             successful_count = len(results)
@@ -418,22 +522,38 @@ def fetch(symbols, symbol_list, start_date, end_date, parallel):
             dual_logger.log("INFO", f"✅ Real data fetch completed! {successful_count} symbols fetched, {failed_count} failed")
             
             # Verification summary
-            dual_logger.log("INFO", "📊 Fetched Data Summary:")
+            dual_logger.log("INFO", f"📊 Fetched Data Summary ({timeframe}):")
             for symbol in symbols_to_fetch:
-                key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
-                try:
-                    df = load_parquet_from_minio(s3_client, 'breadthflow', key)
-                    if not df.empty:
-                        dual_logger.log("INFO", f"   📈 {symbol}: {len(df)} records")
-                    else:
-                        dual_logger.log("WARN", f"   ⚠️  {symbol}: No data found")
-                except:
-                    dual_logger.log("ERROR", f"   ❌ {symbol}: Error loading data")
+                # Try timeframe-aware path first, then fallback to legacy
+                keys_to_try = []
+                
+                if timeframe == '1day':
+                    keys_to_try.append(f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet")
+                    keys_to_try.append(f"ohlcv/daily/{symbol}/{symbol}_{start_date}_{end_date}.parquet")
+                else:
+                    timeframe_folder = 'hourly' if timeframe == '1hour' else 'minute'
+                    keys_to_try.append(f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}_{timeframe.upper()}.parquet")
+                    keys_to_try.append(f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}_{timeframe.upper()}.parquet")
+                
+                found_data = False
+                for key in keys_to_try:
+                    try:
+                        s3_client = get_minio_client()  # Ensure s3_client is available
+                        df = load_parquet_from_minio(s3_client, 'breadthflow', key)
+                        if not df.empty:
+                            dual_logger.log("INFO", f"   📈 {symbol}: {len(df)} records ({timeframe})")
+                            found_data = True
+                            break
+                    except:
+                        continue
+                
+                if not found_data:
+                    dual_logger.log("WARN", f"   ⚠️  {symbol}: No data found for {timeframe}")
             
             dual_logger.complete('completed')
             
-        except ImportError:
-            dual_logger.log("WARN", "⚠️ DataFetcher not available, using simple fetch...")
+        except ImportError as import_error:
+            dual_logger.log("WARN", f"⚠️ Legacy import error: {import_error}")
             dual_logger.complete('completed')
         
     except Exception as e:
@@ -455,12 +575,13 @@ def backtest():
 @click.option('--symbol-list', help='Use predefined symbol list')
 @click.option('--from-date', default='2024-01-01', help='Start date (YYYY-MM-DD)')
 @click.option('--to-date', default='2024-12-31', help='End date (YYYY-MM-DD)')
+@click.option('--timeframe', default='1day', help='Backtest timeframe: 1min, 5min, 15min, 1hour, 1day (default: 1day for backward compatibility)')
 @click.option('--initial-capital', default=100000, help='Initial capital ($)')
 @click.option('--save-results', is_flag=True, help='Save results to MinIO')
-def run(symbols, symbol_list, from_date, to_date, initial_capital, save_results):
+def run(symbols, symbol_list, from_date, to_date, timeframe, initial_capital, save_results):
     """Run backtesting with dual logging."""
     run_id = str(uuid.uuid4())
-    command = f"backtest run --symbols {symbols or 'default'} --from-date {from_date} --to-date {to_date} --initial-capital {initial_capital}"
+    command = f"backtest run --symbols {symbols or 'default'} --from-date {from_date} --to-date {to_date} --timeframe {timeframe} --initial-capital {initial_capital}"
     dual_logger = DualLogger(run_id, command)
     
     try:
@@ -490,11 +611,13 @@ def run(symbols, symbol_list, from_date, to_date, initial_capital, save_results)
         
         dual_logger.log("INFO", f"📈 Symbols: {', '.join(symbols_to_test)}")
         dual_logger.log("INFO", f"📅 Period: {from_date} to {to_date}")
+        dual_logger.log("INFO", f"⏰ Timeframe: {timeframe}")
         dual_logger.log("INFO", f"💰 Initial Capital: ${initial_capital:,}")
         
         dual_logger.update_metadata("symbols", symbols_to_test)
         dual_logger.update_metadata("from_date", from_date)
         dual_logger.update_metadata("to_date", to_date)
+        dual_logger.update_metadata("timeframe", timeframe)
         dual_logger.update_metadata("initial_capital", initial_capital)
         
         # Initialize Spark session
@@ -704,10 +827,11 @@ def run(symbols, symbol_list, from_date, to_date, initial_capital, save_results)
 @click.option('--symbol-list', help='Use predefined symbol list')
 @click.option('--start-date', default='2024-01-01', help='Start date (YYYY-MM-DD)')
 @click.option('--end-date', default='2024-12-31', help='End date (YYYY-MM-DD)')
-def generate(symbols, symbol_list, start_date, end_date):
+@click.option('--timeframe', default='1day', help='Signal timeframe: 1min, 5min, 15min, 1hour, 1day (default: 1day for backward compatibility)')
+def generate(symbols, symbol_list, start_date, end_date, timeframe):
     """Generate trading signals with dual logging."""
     run_id = str(uuid.uuid4())
-    command = f"signals generate --symbols {symbols or 'default'} --start-date {start_date} --end-date {end_date}"
+    command = f"signals generate --symbols {symbols or 'default'} --start-date {start_date} --end-date {end_date} --timeframe {timeframe}"
     dual_logger = DualLogger(run_id, command)
     
     try:
@@ -737,10 +861,12 @@ def generate(symbols, symbol_list, start_date, end_date):
         
         dual_logger.log("INFO", f"📈 Symbols: {', '.join(symbols_to_process)}")
         dual_logger.log("INFO", f"📅 Period: {start_date} to {end_date}")
+        dual_logger.log("INFO", f"⏰ Timeframe: {timeframe}")
         
         dual_logger.update_metadata("symbols", symbols_to_process)
         dual_logger.update_metadata("start_date", start_date)
         dual_logger.update_metadata("end_date", end_date)
+        dual_logger.update_metadata("timeframe", timeframe)
         
         # Initialize Spark session
         dual_logger.log("INFO", "🔄 Initializing Spark session...")
@@ -756,17 +882,35 @@ def generate(symbols, symbol_list, start_date, end_date):
         s3_client = get_minio_client()
         bucket = 'breadthflow'
         
-        # Verify data exists for symbols
+        # Verify data exists for symbols using timeframe-aware paths
         data_available = False
         available_symbols = []
         for symbol in symbols_to_process:
             try:
-                key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                # Try timeframe-aware path first with correct naming convention
+                timeframe_folder = 'daily' if timeframe == '1day' else 'hourly' if timeframe == '1hour' else 'minute'
+                
+                if timeframe == '1day':
+                    key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                elif timeframe == '1hour':
+                    key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}_1H.parquet"
+                else:
+                    # For minute timeframes, use appropriate suffix
+                    suffix = timeframe.upper().replace('MIN', 'M')
+                    key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}_{suffix}.parquet"
+                
                 s3_client.head_object(Bucket=bucket, Key=key)
                 available_symbols.append(symbol)
                 data_available = True
             except:
-                continue
+                # Fallback to legacy path for backward compatibility
+                try:
+                    key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                    s3_client.head_object(Bucket=bucket, Key=key)
+                    available_symbols.append(symbol)
+                    data_available = True
+                except:
+                    continue
         
         if not data_available:
             dual_logger.log("ERROR", "❌ No market data found in MinIO for the specified period")
@@ -779,28 +923,48 @@ def generate(symbols, symbol_list, start_date, end_date):
             dual_logger.log("INFO", f"✅ Market data found for {len(available_symbols)} symbols!")
             dual_logger.log("INFO", f"📈 Available symbols: {', '.join(available_symbols)}")
             
-            # Generate signals directly using MinIO data (bypass SignalGenerator)
-            dual_logger.log("INFO", "🔄 Generating signals directly from MinIO data...")
+            # Generate signals using timeframe-agnostic signal generator
+            dual_logger.log("INFO", "🔄 Generating signals using timeframe-agnostic signal generator...")
             dual_logger.log("INFO", "   • Loading OHLCV data from MinIO")
-            dual_logger.log("INFO", "   • Calculating price and volume changes")
-            dual_logger.log("INFO", "   • Generating buy/sell/hold signals")
+            dual_logger.log("INFO", "   • Calculating advanced technical indicators")
+            dual_logger.log("INFO", "   • Generating signals with timeframe-optimized parameters")
             
             try:
-                # Load OHLCV data directly from MinIO
+                # Load OHLCV data directly from MinIO using timeframe-aware paths
                 all_data = []
                 for symbol in available_symbols:
                     try:
-                        # Try to load the specific date range file
-                        key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                        # Try timeframe-aware path first with correct naming convention
+                        timeframe_folder = 'daily' if timeframe == '1day' else 'hourly' if timeframe == '1hour' else 'minute'
+                        
+                        if timeframe == '1day':
+                            key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                        elif timeframe == '1hour':
+                            key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}_1H.parquet"
+                        else:
+                            # For minute timeframes, use appropriate suffix
+                            suffix = timeframe.upper().replace('MIN', 'M')
+                            key = f"ohlcv/{timeframe_folder}/{symbol}/{symbol}_{start_date}_{end_date}_{suffix}.parquet"
+                        
                         response = s3_client.get_object(Bucket=bucket, Key=key)
                         parquet_content = response['Body'].read()
                         df = pd.read_parquet(io.BytesIO(parquet_content))
                         df['symbol'] = symbol
                         all_data.append(df)
-                        dual_logger.log("INFO", f"📊 Loaded data for {symbol}: {len(df)} records")
+                        dual_logger.log("INFO", f"📊 Loaded data for {symbol}: {len(df)} records ({timeframe})")
                     except Exception as e:
-                        dual_logger.log("WARN", f"⚠️  Could not load data for {symbol}: {e}")
-                        continue
+                        # Fallback to legacy path for backward compatibility
+                        try:
+                            key = f"ohlcv/{symbol}/{symbol}_{start_date}_{end_date}.parquet"
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            parquet_content = response['Body'].read()
+                            df = pd.read_parquet(io.BytesIO(parquet_content))
+                            df['symbol'] = symbol
+                            all_data.append(df)
+                            dual_logger.log("INFO", f"📊 Loaded data for {symbol}: {len(df)} records (legacy path)")
+                        except Exception as e2:
+                            dual_logger.log("WARN", f"⚠️  Could not load data for {symbol}: {e2}")
+                            continue
                 
                 if not all_data:
                     dual_logger.log("ERROR", "❌ No OHLCV data found for any symbols")
@@ -811,74 +975,96 @@ def generate(symbols, symbol_list, start_date, end_date):
                 # Combine all data
                 combined_df = pd.concat(all_data, ignore_index=True)
                 
-                # Generate signals based on price movement
-                signals_data = []
+                # Ensure Date column is datetime
+                if 'Date' in combined_df.columns:
+                    combined_df['Date'] = pd.to_datetime(combined_df['Date'])
                 
-                for symbol in combined_df['symbol'].unique():
-                    symbol_data = combined_df[combined_df['symbol'] == symbol].copy()
+                # Use timeframe-agnostic signal generator
+                dual_logger.log("INFO", f"🔧 Initializing signal generator for {timeframe} timeframe...")
+                
+                try:
+                    from model.timeframe_agnostic_signals import TimeframeAgnosticSignalGenerator
                     
-                    if len(symbol_data) == 0:
-                        continue
+                    # Initialize signal generator with timeframe
+                    signal_generator = TimeframeAgnosticSignalGenerator(timeframe)
+                    dual_logger.log("INFO", f"✅ Signal generator initialized with parameters: {signal_generator.parameters}")
+                    
+                    # Generate signals using advanced logic
+                    signals_data = signal_generator.generate_signals(combined_df, available_symbols)
+                    dual_logger.log("INFO", f"📊 Generated {len(signals_data)} signals using advanced logic")
+                    
+                except ImportError as e:
+                    dual_logger.log("WARN", f"⚠️  Could not import TimeframeAgnosticSignalGenerator: {e}")
+                    dual_logger.log("INFO", "🔄 Falling back to simplified signal generation...")
+                    
+                    # Fallback to simple signal generation
+                    signals_data = []
+                    
+                    for symbol in combined_df['symbol'].unique():
+                        symbol_data = combined_df[combined_df['symbol'] == symbol].copy()
                         
-                    # Sort by date
-                    symbol_data = symbol_data.sort_values('Date')
-                    
-                    # Calculate simple technical indicators
-                    symbol_data['price_change'] = symbol_data['Close'].pct_change()
-                    symbol_data['volume_change'] = symbol_data['Volume'].pct_change()
-                    
-                    # Generate signals for today's date (end_date) only
-                    # Find the data for today's date, or use the latest if today's data doesn't exist
-                    today_date = pd.to_datetime(end_date)
-                    today_data = symbol_data[symbol_data['Date'].dt.date == today_date.date()]
-                    
-                    if len(today_data) > 0:
-                        signal_data = today_data.iloc[-1]  # Use today's data
-                    else:
-                        signal_data = symbol_data.iloc[-1]  # Fallback to latest data
-                        dual_logger.log("WARN", f"No data for today ({end_date}), using latest available data")
-                    
-                    # Simple signal logic based on price and volume
-                    price_change = signal_data['price_change']
-                    volume_change = signal_data['volume_change']
-                    
-                    if price_change > 0.02 and volume_change > 0.1:  # Strong positive movement
-                        signal_type = 'buy'
-                        confidence = 85.0
-                        strength = 'strong'
-                    elif price_change > 0.01:  # Moderate positive movement
-                        signal_type = 'buy'
-                        confidence = 70.0
-                        strength = 'medium'
-                    elif price_change < -0.02 and volume_change > 0.1:  # Strong negative movement
-                        signal_type = 'sell'
-                        confidence = 85.0
-                        strength = 'strong'
-                    elif price_change < -0.01:  # Moderate negative movement
-                        signal_type = 'sell'
-                        confidence = 70.0
-                        strength = 'medium'
-                    else:  # No clear direction
-                        signal_type = 'hold'
-                        confidence = 60.0
-                        strength = 'weak'
-                    
-                    # Create signal record
-                    signal_record = {
-                        'symbol': symbol,
-                        'date': signal_data['Date'].strftime('%Y-%m-%d') if hasattr(signal_data['Date'], 'strftime') else str(signal_data['Date']),
-                        'signal_type': signal_type,
-                        'confidence': float(confidence),
-                        'strength': strength,
-                        'composite_score': float(confidence),  # Use confidence as composite score
-                        'price_change': float(price_change) if not pd.isna(price_change) else 0.0,
-                        'volume_change': float(volume_change) if not pd.isna(volume_change) else 0.0,
-                        'close': float(signal_data['Close']),
-                        'volume': int(signal_data['Volume']),
-                        'generated_at': datetime.now().isoformat()
-                    }
-                    
-                    signals_data.append(signal_record)
+                        if len(symbol_data) == 0:
+                            continue
+                            
+                        # Sort by date
+                        symbol_data = symbol_data.sort_values('Date')
+                        
+                        # Calculate simple technical indicators
+                        symbol_data['price_change'] = symbol_data['Close'].pct_change()
+                        symbol_data['volume_change'] = symbol_data['Volume'].pct_change()
+                        
+                        # Generate signals for today's date (end_date) only
+                        today_date = pd.to_datetime(end_date)
+                        today_data = symbol_data[symbol_data['Date'].dt.date == today_date.date()]
+                        
+                        if len(today_data) > 0:
+                            signal_data = today_data.iloc[-1]
+                        else:
+                            signal_data = symbol_data.iloc[-1]
+                            dual_logger.log("WARN", f"No data for today ({end_date}), using latest available data")
+                        
+                        # Simple signal logic based on price and volume
+                        price_change = signal_data['price_change']
+                        volume_change = signal_data['volume_change']
+                        
+                        if price_change > 0.02 and volume_change > 0.1:
+                            signal_type = 'buy'
+                            confidence = 85.0
+                            strength = 'strong'
+                        elif price_change > 0.01:
+                            signal_type = 'buy'
+                            confidence = 70.0
+                            strength = 'medium'
+                        elif price_change < -0.02 and volume_change > 0.1:
+                            signal_type = 'sell'
+                            confidence = 85.0
+                            strength = 'strong'
+                        elif price_change < -0.01:
+                            signal_type = 'sell'
+                            confidence = 70.0
+                            strength = 'medium'
+                        else:
+                            signal_type = 'hold'
+                            confidence = 60.0
+                            strength = 'weak'
+                        
+                        # Create signal record
+                        signal_record = {
+                            'symbol': symbol,
+                            'date': signal_data['Date'].strftime('%Y-%m-%d') if hasattr(signal_data['Date'], 'strftime') else str(signal_data['Date']),
+                            'signal_type': signal_type,
+                            'confidence': float(confidence),
+                            'strength': strength,
+                            'composite_score': float(confidence),
+                            'price_change': float(price_change) if not pd.isna(price_change) else 0.0,
+                            'volume_change': float(volume_change) if not pd.isna(volume_change) else 0.0,
+                            'close': float(signal_data['Close']),
+                            'volume': int(signal_data['Volume']),
+                            'timeframe': timeframe,
+                            'generated_at': datetime.now().isoformat()
+                        }
+                        
+                        signals_data.append(signal_record)
                 
                 # Save signals to MinIO (Parquet only)
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -989,13 +1175,14 @@ def pipeline():
 @pipeline.command()
 @click.option('--mode', default='demo', help='Pipeline mode (demo, all_symbols, custom_symbols)')
 @click.option('--interval', default=300, help='Interval between runs in seconds (default: 5 minutes)')
+@click.option('--timeframe', default='1day', help='Data timeframe: 1min, 5min, 15min, 1hour, 1day (default: 1day)')
 @click.option('--symbols', help='Comma-separated symbols (for custom_symbols mode)')
 @click.option('--start-date', default='2024-01-01', help='Start date for analysis')
 @click.option('--end-date', default='2024-12-31', help='End date for analysis')
-def start(mode, interval, symbols, start_date, end_date):
+def start(mode, interval, timeframe, symbols, start_date, end_date):
     """Start continuous pipeline with dual logging."""
     run_id = str(uuid.uuid4())
-    command = f"pipeline start --mode {mode} --interval {interval}"
+    command = f"pipeline start --mode {mode} --interval {interval} --timeframe {timeframe}"
     dual_logger = DualLogger(run_id, command)
     
     try:
@@ -1003,6 +1190,7 @@ def start(mode, interval, symbols, start_date, end_date):
         dual_logger.log("INFO", "=" * 50)
         dual_logger.log("INFO", f"📊 Mode: {mode}")
         dual_logger.log("INFO", f"⏰ Interval: {interval} seconds ({interval/60:.1f} minutes)")
+        dual_logger.log("INFO", f"⏰ Timeframe: {timeframe}")
         dual_logger.log("INFO", f"📅 Date Range: {start_date} to {end_date}")
         
         # Handle symbol selection based on mode
@@ -1032,6 +1220,7 @@ def start(mode, interval, symbols, start_date, end_date):
         
         dual_logger.update_metadata("mode", mode)
         dual_logger.update_metadata("interval", interval)
+        dual_logger.update_metadata("timeframe", timeframe)
         dual_logger.update_metadata("symbols", symbols_to_process)
         dual_logger.update_metadata("date_range", f"{start_date} to {end_date}")
         
@@ -1138,11 +1327,12 @@ def logs():
 @pipeline.command()
 @click.option('--mode', default='demo', help='Pipeline mode')
 @click.option('--interval', default=300, help='Interval between runs in seconds')
+@click.option('--timeframe', default='1day', help='Data timeframe: 1min, 5min, 15min, 1hour, 1day (default: 1day)')
 @click.option('--cycles', default=3, help='Number of cycles to run')
-def run(mode, interval, cycles):
+def run(mode, interval, timeframe, cycles):
     """Run pipeline for specified number of cycles."""
     run_id = str(uuid.uuid4())
-    command = f"pipeline run --mode {mode} --interval {interval} --cycles {cycles}"
+    command = f"pipeline run --mode {mode} --interval {interval} --timeframe {timeframe} --cycles {cycles}"
     dual_logger = DualLogger(run_id, command)
     
     try:
@@ -1150,6 +1340,7 @@ def run(mode, interval, cycles):
         dual_logger.log("INFO", "=" * 40)
         dual_logger.log("INFO", f"📊 Mode: {mode}")
         dual_logger.log("INFO", f"⏰ Interval: {interval} seconds")
+        dual_logger.log("INFO", f"⏰ Timeframe: {timeframe}")
         dual_logger.log("INFO", f"🔄 Cycles: {cycles}")
         
         # Handle symbol selection
@@ -1162,6 +1353,7 @@ def run(mode, interval, cycles):
         
         dual_logger.update_metadata("mode", mode)
         dual_logger.update_metadata("interval", interval)
+        dual_logger.update_metadata("timeframe", timeframe)
         dual_logger.update_metadata("cycles", cycles)
         dual_logger.update_metadata("symbols", symbols_to_process)
         
