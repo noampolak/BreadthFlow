@@ -68,7 +68,7 @@ print_status "Step 5/6: Setting up Kibana dashboards..."
 sleep 10  # Wait for Kibana to be ready
 
 # Run Kibana setup script
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py setup_kibana
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py setup-kibana
 
 # Step 6: Generate initial data and logs
 print_status "Step 6/6: Generating initial data and logs..."
