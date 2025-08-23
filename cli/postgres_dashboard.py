@@ -59,6 +59,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_infrastructure()
         elif self.path == '/trading':
             self.serve_trading()
+        elif self.path == '/paper-trading':
+            self.serve_paper_trading()
         elif self.path == '/commands':
             self.serve_commands()
         elif self.path == '/parameters':
@@ -86,6 +88,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_execute_command()
         elif self.path == '/api/parameters/update':
             self.serve_update_parameters()
+        elif self.path == '/api/alpaca/execute':
+            self.serve_alpaca_execute()
         else:
             self.send_error(404)
     
@@ -353,6 +357,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <button class="nav-btn active" onclick="window.location.href='/'">Dashboard</button>
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                     <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                    <button class="nav-btn" onclick="window.location.href='/paper-trading'">Paper Trading</button>
                     <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                     <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                     <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
@@ -841,6 +846,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
                             <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                             <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                            <button class="nav-btn" onclick="window.location.href='/paper-trading'">Paper Trading</button>
                             <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                             <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                             <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
@@ -1339,6 +1345,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                     <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
+                    <button class="nav-btn" onclick="window.location.href='/paper-trading'">Paper Trading</button>
                     <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                     <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                     <button class="refresh-btn" onclick="loadSignals()">Refresh Signals</button>
@@ -1435,7 +1442,129 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
         self.wfile.write(html.encode('utf-8'))
-    
+
+    def serve_paper_trading(self):
+        html = """
+<!DOCTYPE html>
+<html lang=\"en\">
+    <head>
+        <meta charset=\"UTF-8\">
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+        <title>Alpaca Paper Trading</title>
+        <link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\">
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 2.5em; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        .nav-buttons { margin-top: 20px; display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap; }
+        .nav-btn { background: rgba(255,255,255,0.8); color: #333; border: 2px solid transparent; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+        .nav-btn:hover { background: rgba(255,255,255,1); transform: translateY(-2px); }
+        .nav-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .refresh-btn { background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: transform 0.3s ease; }
+        .refresh-btn:hover { transform: scale(1.05); }
+        .panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .signals-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .signals-table th, .signals-table td { padding: 8px 12px; border-bottom: 1px solid #eee; text-align: left; }
+    </style>
+    </head>
+    <body>
+        <div class=\"container\">
+            <div class=\"header\">
+                <h1>Alpaca Paper Trading</h1>
+                <p>Execute model signals on a paper trading account</p>
+                <div class=\"nav-buttons\">
+                    <button class=\"nav-btn\" onclick=\"window.location.href='/'\">Dashboard</button>
+                    <button class=\"nav-btn\" onclick=\"window.location.href='/infrastructure'\">Infrastructure</button>
+                    <button class=\"nav-btn\" onclick=\"window.location.href='/trading'\">Trading Signals</button>
+                    <button class=\"nav-btn active\" onclick=\"window.location.href='/paper-trading'\">Paper Trading</button>
+                    <button class=\"nav-btn\" onclick=\"window.location.href='/commands'\">Commands</button>
+                    <button class=\"nav-btn\" onclick=\"window.location.href='/parameters'\">Parameters</button>
+                </div>
+            </div>
+
+            <div class=\"panel\">
+                <h2>Latest Signals</h2>
+                <table class=\"signals-table\">
+                    <thead><tr><th>Symbol</th><th>Signal</th><th>Confidence</th><th>Timeframe</th></tr></thead>
+                    <tbody id=\"signals-body\"></tbody>
+                </table>
+                <button class=\"refresh-btn\" style=\"margin-top:15px;\" onclick=\"executeTrades()\">Execute on Alpaca</button>
+                <pre id=\"trade-result\" style=\"background:#f8f9fa; padding:10px; border-radius:8px; margin-top:15px; overflow:auto;\"></pre>
+            </div>
+        </div>
+
+    <script>
+        async function loadSignals() {
+            const resp = await fetch('/api/signals/latest');
+            const data = await resp.json();
+            const body = document.getElementById('signals-body');
+            body.innerHTML = '';
+            (data.signals || []).forEach(sig => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${sig.symbol}</td><td>${sig.signal_type}</td><td>${sig.confidence}</td><td>${sig.timeframe || ''}</td>`;
+                body.appendChild(tr);
+            });
+        }
+
+        async function executeTrades() {
+            const resp = await fetch('/api/alpaca/execute', {method: 'POST'});
+            const data = await resp.json();
+            document.getElementById('trade-result').textContent = JSON.stringify(data, null, 2);
+        }
+
+        loadSignals();
+    </script>
+    </body>
+</html>
+        """
+
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+        self.wfile.write(html.encode('utf-8'))
+
+    def serve_alpaca_execute(self):
+        try:
+            api_key = os.getenv('ALPACA_API_KEY')
+            api_secret = os.getenv('ALPACA_API_SECRET')
+            base_url = os.getenv('ALPACA_BASE_URL', 'https://paper-api.alpaca.markets')
+            if not api_key or not api_secret:
+                self.send_json({'error': 'Missing Alpaca API credentials'})
+                return
+
+            signals_data = self.get_latest_signals()
+            orders = []
+            for sig in signals_data.get('signals', []):
+                side = (sig.get('signal_type') or '').lower()
+                if side not in ['buy', 'sell']:
+                    continue
+                symbol = sig.get('symbol')
+                order = {
+                    'symbol': symbol,
+                    'qty': 1,
+                    'side': side,
+                    'type': 'market',
+                    'time_in_force': 'day'
+                }
+                response = requests.post(
+                    f"{base_url}/v2/orders",
+                    json=order,
+                    headers={
+                        'APCA-API-KEY-ID': api_key,
+                        'APCA-API-SECRET-KEY': api_secret
+                    }
+                )
+                try:
+                    resp_json = response.json()
+                except Exception:
+                    resp_json = {'status_code': response.status_code, 'text': response.text}
+                orders.append({'symbol': symbol, 'side': side, 'response': resp_json})
+
+            self.send_json({'orders': orders})
+        except Exception as e:
+            self.send_json({'error': str(e)})
+
     def get_run_details(self, run_id):
         conn = get_db_connection()
         if not conn:
@@ -2024,6 +2153,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                 <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/paper-trading'">Paper Trading</button>
                 <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
                 <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                 <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
@@ -2635,6 +2765,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
                 <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/paper-trading'">Paper Trading</button>
                 <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                 <button class="nav-btn active" onclick="window.location.href='/parameters'">Parameters</button>
             </div>
