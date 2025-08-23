@@ -1526,8 +1526,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def serve_alpaca_execute(self):
         try:
-            api_key = os.getenv('PK7CFDNBAF5GZSG0MFOG')
-            api_secret = os.getenv('66Pe95pZ1Yt7aZPxkvAWBK4YmayBtDJGSgheFNXV')
+            api_key = os.getenv('ALPACA_API_KEY')
+            api_secret = os.getenv('ALPACA_API_SECRET')
             base_url = os.getenv('ALPACA_BASE_URL', 'https://paper-api.alpaca.markets')
             if not api_key or not api_secret:
                 self.send_json({'error': 'Missing Alpaca API credentials'})
@@ -3177,7 +3177,11 @@ def start_dashboard(port: int, host: str):
     print(f"🚀 Starting BreadthFlow PostgreSQL Dashboard...")
     print(f"📊 Dashboard URL: http://localhost:{port}")
     print(f"🐘 Database: {DATABASE_URL}")
-    
+
+    # Ensure Alpaca credentials are set before starting
+    if not os.getenv('ALPACA_API_KEY') or not os.getenv('ALPACA_API_SECRET'):
+        raise EnvironmentError("ALPACA_API_KEY and ALPACA_API_SECRET must be set before starting the dashboard")
+
     # Initialize database
     init_database()
     
