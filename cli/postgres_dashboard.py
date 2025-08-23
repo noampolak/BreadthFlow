@@ -3178,9 +3178,19 @@ def start_dashboard(port: int, host: str):
     print(f"📊 Dashboard URL: http://localhost:{port}")
     print(f"🐘 Database: {DATABASE_URL}")
 
-    # Ensure Alpaca credentials are set before starting
-    if not os.getenv('ALPACA_API_KEY') or not os.getenv('ALPACA_API_SECRET'):
-        raise EnvironmentError("ALPACA_API_KEY and ALPACA_API_SECRET must be set before starting the dashboard")
+    # Prompt for Alpaca credentials if they are missing
+    api_key = os.getenv('ALPACA_API_KEY')
+    api_secret = os.getenv('ALPACA_API_SECRET')
+    if not api_key or not api_secret:
+        print("⚠️ Alpaca API credentials not found.")
+        if click.confirm("Would you like to enter them now?", default=False):
+            api_key = click.prompt("Alpaca API Key", type=str)
+            api_secret = click.prompt("Alpaca API Secret", hide_input=True)
+            os.environ['ALPACA_API_KEY'] = api_key
+            os.environ['ALPACA_API_SECRET'] = api_secret
+            print("✅ Alpaca credentials configured for this session.")
+        else:
+            print("🔌 Continuing without Alpaca credentials. Trading features will be disabled.")
 
     # Initialize database
     init_database()
