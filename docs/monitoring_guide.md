@@ -70,7 +70,7 @@ open http://localhost:8081
 ### **Setup**
 ```bash
 # Setup Kibana dashboards (one-time)
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/setup_kibana_dashboards.py
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py setup-kibana
 
 # Access Kibana
 open http://localhost:5601
@@ -137,7 +137,7 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/enhanced_bf_minio.p
 ### **For Production Monitoring**
 ```bash
 # 1. Setup Kibana dashboards
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/setup_kibana_dashboards.py
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py setup-kibana
 
 # 2. Configure alerts in Kibana
 open http://localhost:5601
@@ -201,7 +201,7 @@ docker exec -d spark-master python3 /opt/bitnami/spark/jobs/cli/web_dashboard.py
 curl http://localhost:9200/_cluster/health
 
 # Re-setup dashboards
-docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/setup_kibana_dashboards.py
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py setup-kibana
 ```
 
 ### **Services Not Responding**
