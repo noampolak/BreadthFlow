@@ -1526,8 +1526,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def serve_alpaca_execute(self):
         try:
-            api_key = os.getenv('ALPACA_API_KEY')
-            api_secret = os.getenv('ALPACA_API_SECRET')
+            api_key = os.getenv('PK7CFDNBAF5GZSG0MFOG')
+            api_secret = os.getenv('66Pe95pZ1Yt7aZPxkvAWBK4YmayBtDJGSgheFNXV')
             base_url = os.getenv('ALPACA_BASE_URL', 'https://paper-api.alpaca.markets')
             if not api_key or not api_secret:
                 self.send_json({'error': 'Missing Alpaca API credentials'})
