@@ -64,6 +64,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_commands()
         elif self.path == '/pipeline':
             self.serve_pipeline_management()
+        elif self.path == '/theory':
+            self.serve_theory_page()
         elif self.path == '/parameters':
             self.serve_parameters()
         elif self.path == '/favicon.svg':
@@ -369,11 +371,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Real-time pipeline monitoring with PostgreSQL backend</p>
                                                     <div class="nav-buttons">
                     <button class="nav-btn active" onclick="window.location.href='/'">Dashboard</button>
+                    <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                    <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
-                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
                     <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
                     <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
                 </div>
         </div>
@@ -858,11 +861,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>System Architecture &amp; Component Overview</p>
                                     <div class="nav-buttons">
                             <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                            <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                             <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                            <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                            <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
-                            <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
                             <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                            <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                            <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                            <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
                             <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
                         </div>
         </div>
@@ -1367,11 +1371,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Real-time trading signals and market analysis</p>
                             <div class="nav-buttons">
                     <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                    <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                    <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
-                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
-                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
                     <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
+                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
                     <button class="refresh-btn" onclick="loadSignals()">Refresh Signals</button>
                 </div>
         </div>
@@ -2188,11 +2193,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Execute pipeline commands directly from the web interface</p>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
-                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
                 <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
                 <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
             </div>
         </div>
@@ -2800,11 +2806,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Manage timeframe-specific signal generation parameters</p>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
-                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
                 <button class="nav-btn active" onclick="window.location.href='/parameters'">Parameters</button>
+                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
             </div>
         </div>
         
@@ -3665,6 +3672,346 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 'success': False,
                 'error': str(e)
             }).encode('utf-8'))
+    
+    def serve_theory_page(self):
+        """Serve the BreadthFlow theory explanation page"""
+        html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BreadthFlow Theory</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .nav-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .panel h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        .theory-diagram {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #eee;
+        }
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .indicator-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .indicator-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .weight-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .weight-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        .flow-diagram {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .flow-step {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            margin: 10px;
+            font-weight: 600;
+        }
+        .flow-arrow {
+            font-size: 1.5em;
+            color: #667eea;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 BreadthFlow Theory</h1>
+            <p>Understanding Market Breadth Analysis & Signal Generation</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn active" onclick="window.location.href='/theory'">Theory</button>
+                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>🎯 Market Breadth Theory</h2>
+            <p><strong>Market Breadth</strong> is a fundamental concept in technical analysis that measures the participation of individual stocks in market movements. Unlike traditional analysis that focuses on major indices, breadth analysis examines how many stocks are advancing versus declining.</p>
+            
+            <div class="theory-diagram">
+                <h3>📊 Core Concept</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">Market Data</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">Advancing/Declining</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">Breadth Indicators</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">Trading Signals</div>
+                </div>
+            </div>
+            
+            <h3>🔍 Why Market Breadth Works</h3>
+            <ul>
+                <li><strong>Broad Participation:</strong> When many stocks move together, it reflects genuine market sentiment</li>
+                <li><strong>Narrow Leadership:</strong> When only a few stocks drive the market, it's often unsustainable</li>
+                <li><strong>Early Warning:</strong> Breadth often deteriorates before major market declines</li>
+                <li><strong>Confirmation:</strong> Strong breadth confirms sustainable rallies</li>
+            </ul>
+        </div>
+        
+        <div class="panel">
+            <h2>🚀 Four Core Breadth Indicators</h2>
+            <div class="indicator-grid">
+                <div class="indicator-card">
+                    <h4>📈 Advance/Decline (A/D) Features</h4>
+                    <p><strong>Purpose:</strong> Measures the ratio of advancing to declining stocks</p>
+                    <div class="code-block">
+A/D Ratio = Advancing Stocks / Declining Stocks<br>
+A/D Line = Cumulative (Advancing - Declining)<br>
+A/D Volume = Volume-weighted breadth
+                    </div>
+                    <p><strong>Weight:</strong> 25% (Highest - Core breadth measure)</p>
+                    <div class="weight-bar">
+                        <div class="weight-fill" style="width: 25%;"></div>
+                    </div>
+                </div>
+                
+                <div class="indicator-card">
+                    <h4>⚡ Zweig Breadth Thrust (ZBT)</h4>
+                    <p><strong>Purpose:</strong> Rare but powerful momentum signal</p>
+                    <div class="code-block">
+ZBT occurs when >61.5% of stocks advance<br>
+for the first time in 6 months<br>
+Extremely rare but highly predictive
+                    </div>
+                    <p><strong>Weight:</strong> 5% (Rare but powerful signals)</p>
+                    <div class="weight-bar">
+                        <div class="weight-fill" style="width: 5%;"></div>
+                    </div>
+                </div>
+                
+                <div class="indicator-card">
+                    <h4>📊 McClellan Oscillator</h4>
+                    <p><strong>Purpose:</strong> Smoothed breadth indicator</p>
+                    <div class="code-block">
+EMA19 - EMA39 of A/D data<br>
+Identifies overbought/oversold<br>
+Generates buy/sell signals
+                    </div>
+                    <p><strong>Weight:</strong> 10% (Smoothed breadth)</p>
+                    <div class="weight-bar">
+                        <div class="weight-fill" style="width: 10%;"></div>
+                    </div>
+                </div>
+                
+                <div class="indicator-card">
+                    <h4>📈 Moving Average (MA) Features</h4>
+                    <p><strong>Purpose:</strong> Trend and momentum analysis</p>
+                    <div class="code-block">
+MA Momentum = Rate of change<br>
+MA Trend Strength = Trend direction<br>
+Crossovers and divergences
+                    </div>
+                    <p><strong>Weight:</strong> 15% (Trend momentum)</p>
+                    <div class="weight-bar">
+                        <div class="weight-fill" style="width: 15%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>🎯 Signal Generation Process</h2>
+            <div class="theory-diagram">
+                <h3>📊 Composite Scoring System</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">Raw Indicators</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">Normalization</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">Weighted Combination</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">0-100 Score</div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step">Trading Signal</div>
+                </div>
+            </div>
+            
+            <h3>⚙️ Processing Steps</h3>
+            <ol>
+                <li><strong>Feature Calculation:</strong> Compute all breadth indicators</li>
+                <li><strong>Normalization:</strong> Z-score normalization for standardization</li>
+                <li><strong>Outlier Handling:</strong> Winsorization (5% percentile clipping)</li>
+                <li><strong>Weighted Combination:</strong> Apply configurable weights</li>
+                <li><strong>0-100 Scaling:</strong> Convert to interpretable signal scores</li>
+                <li><strong>Signal Classification:</strong> Strong/Moderate/Weak signals</li>
+            </ol>
+            
+            <h3>📊 Indicator Weights</h3>
+            <div class="code-block">
+A/D Issues Ratio:     25% (Core breadth measure)<br>
+A/D Volume Ratio:     20% (Volume-weighted breadth)<br>
+A/D Momentum:         15% (Breadth momentum)<br>
+MA Momentum:          15% (Trend momentum)<br>
+MA Trend Strength:    10% (Trend strength)<br>
+McClellan Oscillator: 10% (Smoothed breadth)<br>
+ZBT Confidence:        5% (Rare but powerful)
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>📈 Practical Application</h2>
+            <h3>🎮 Multi-Timeframe Support</h3>
+            <p>BreadthFlow supports <strong>5 different timeframes</strong> with optimized parameters for each:</p>
+            <ul>
+                <li><strong>1day:</strong> Traditional daily trading (MA: 20/50, RSI: 14)</li>
+                <li><strong>1hour:</strong> Intraday swing trading (MA: 12/24, RSI: 14)</li>
+                <li><strong>15min:</strong> Medium frequency trading (MA: 8/16, RSI: 14)</li>
+                <li><strong>5min:</strong> High frequency trading (MA: 6/12, RSI: 10)</li>
+                <li><strong>1min:</strong> Ultra-high frequency (MA: 5/10, RSI: 8)</li>
+            </ul>
+            
+            <h3>🔬 Scientific Foundation</h3>
+            <ul>
+                <li><strong>Market Microstructure:</strong> Studies how individual stock behavior aggregates</li>
+                <li><strong>Behavioral Finance:</strong> Explains why breadth indicators predict psychology</li>
+                <li><strong>Statistical Arbitrage:</strong> Uses breadth divergences to identify mispricings</li>
+                <li><strong>Historical Evidence:</strong> Proven track record in market analysis</li>
+            </ul>
+        </div>
+        
+        <div class="panel">
+            <h2>🚀 The BreadthFlow Advantage</h2>
+            <p>BreadthFlow transforms traditional market breadth theory into a <strong>quantitative, real-time trading system</strong> that:</p>
+            <ul>
+                <li><strong>Automates Analysis:</strong> Processes 100+ stocks simultaneously</li>
+                <li><strong>Multi-Timeframe:</strong> Adapts to different trading styles</li>
+                <li><strong>Real-time Signals:</strong> Provides actionable trading signals</li>
+                <li><strong>Risk Management:</strong> Includes confidence and strength metrics</li>
+                <li><strong>Backtesting:</strong> Validates performance historically</li>
+                <li><strong>Production-Ready:</strong> Scalable, monitored, and reliable</li>
+            </ul>
+            
+            <div class="theory-diagram">
+                <h3>🎯 Success Metrics</h3>
+                <div class="code-block">
+• Signal Performance: 42+ signals displayed<br>
+• Multi-Timeframe Support: All timeframes (1min-1day)<br>
+• Export Functionality: CSV and JSON export<br>
+• Real-time Updates: Auto-refreshing every 30 seconds<br>
+• Error Handling: Graceful handling of missing data
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+        """
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html; charset=utf-8')
+        self.end_headers()
+        self.wfile.write(html.encode('utf-8'))
     
 @click.command()
 @click.option('--port', default=8080, help='Port to run dashboard on')
