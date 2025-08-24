@@ -54,6 +54,7 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 
 ### **4. Access Monitoring & UIs**
 - **🎯 Real-time Dashboard**: http://localhost:8083 (Pipeline monitoring, Infrastructure overview & **Commands execution**)
+- **🎮 Pipeline Management**: http://localhost:8083/pipeline (Automated batch processing control)
 - **📊 Kibana Analytics**: http://localhost:5601 (Advanced log analysis)
 - **🎨 Kafka UI (Kafdrop)**: http://localhost:9002 (Streaming data & message monitoring)
 - **🗄️ MinIO Data Storage**: http://localhost:9001 (minioadmin/minioadmin)
@@ -65,6 +66,7 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 - **📊 Data Commands**: Data summary, market data fetching (with timeframe selection)
 - **🎯 Signal Commands**: Signal generation, signal summary (timeframe-aware)
 - **🔄 Backtesting**: Run backtesting simulations (timeframe-optimized)
+- **🎮 Pipeline Management**: Automated batch processing with continuous execution
 - **🎨 Kafka Commands**: Kafka demo, real integration testing
 - **⚡ HTTP API**: Clean communication between dashboard and Spark container
 - **⏰ Timeframe Support**: 1min, 5min, 15min, 1hour, 1day with optimized parameters
@@ -341,6 +343,451 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py COMMAND
 
 ---
 
+## 🎮 **Pipeline Management - Automated Batch Processing**
+
+### **🚀 Overview**
+The Enhanced Batch Processing system transforms manual command execution into automated, continuous pipeline execution with comprehensive monitoring and dashboard control.
+
+### **✨ Key Features**
+- **🔄 Continuous Execution**: Automated pipeline runs at configurable intervals
+- **🎛️ Web Control**: Start/stop/monitor pipelines from the dashboard
+- **📊 Real-time Monitoring**: Live status updates, metrics, and run history
+- **⚙️ Flexible Configuration**: Multiple modes, intervals, and timeframes
+- **📋 Run History**: Complete tracking of all pipeline executions
+- **❌ Error Handling**: Graceful error handling and recovery
+- **🔍 Detailed Logging**: Comprehensive logs for troubleshooting
+
+### **🎯 Access Pipeline Management**
+- **Web Interface**: http://localhost:8083/pipeline
+- **API Endpoints**: http://localhost:8081/execute (pipeline commands)
+
+### **📋 Pipeline Commands**
+```bash
+# Start continuous pipeline (CLI)
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline start --mode demo --interval 5m --timeframe 1day
+
+# Stop pipeline
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline stop
+
+# Check status
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline status
+
+# View logs
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline logs --lines 20
+
+# Run specific number of cycles
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline run --mode demo --cycles 3 --timeframe 1hour
+```
+
+### **🎛️ Pipeline Configuration Options**
+
+#### **📊 Pipeline Modes**
+| Mode | Description | Symbols | Best For |
+|------|-------------|---------|----------|
+| **demo** | Basic demo (3 symbols) | AAPL, MSFT, GOOGL | Testing, development |
+| **demo_small** | Small demo | 3 symbols | Quick testing |
+| **tech_leaders** | Technology leaders | 8 major tech stocks | Production testing |
+| **all_symbols** | All available symbols | 100+ symbols | Full production |
+| **custom** | User-defined symbols | Custom list | Specific analysis |
+
+#### **⏰ Execution Intervals**
+| Interval | Best For | Use Case |
+|----------|----------|----------|
+| **1m** | Ultra-high frequency | Real-time trading |
+| **5m** | High frequency | Intraday updates |
+| **15m** | Medium frequency | Regular monitoring |
+| **1h** | Hourly updates | Standard operation |
+| **6h** | Twice daily | Conservative approach |
+| **1d** | Daily execution | Traditional trading |
+
+#### **📈 Timeframe Support**
+| Timeframe | Data Granularity | Parameters Optimized |
+|-----------|------------------|---------------------|
+| **1min** | 1-minute bars | Ultra-high frequency trading |
+| **5min** | 5-minute bars | High frequency trading |
+| **15min** | 15-minute bars | Medium frequency trading |
+| **1hour** | 1-hour bars | Intraday swing trading |
+| **1day** | Daily bars | Traditional daily trading |
+
+### **🎯 Pipeline Execution Flow**
+1. **Data Fetch**: Retrieves latest market data for configured symbols and timeframe
+2. **Signal Generation**: Analyzes data and generates trading signals using timeframe-optimized parameters
+3. **Backtesting**: Runs performance simulation with timeframe-specific costs and logic
+4. **Logging**: Records all activities to PostgreSQL and Elasticsearch
+5. **Wait**: Pauses for configured interval before next cycle
+
+### **📊 Monitoring & Metrics**
+- **Pipeline Status**: Real-time status (stopped/running/starting/stopping)
+- **Success Rate**: Percentage of successful pipeline runs
+- **Run History**: Complete log of all pipeline executions
+- **Performance Metrics**: Average duration, symbols processed, signals generated
+- **Error Analysis**: Error rates, common failures, troubleshooting information
+- **Uptime Tracking**: Total runtime and availability statistics
+
+### **🔄 Web Dashboard Integration**
+The Pipeline Management page (http://localhost:8083/pipeline) provides:
+- **🎛️ Control Panel**: Start/stop buttons with real-time status
+- **⚙️ Configuration Forms**: Mode, interval, timeframe, and symbol selection
+- **📊 Live Metrics**: Real-time pipeline statistics and performance data
+- **📋 Run History Table**: Clickable table of recent pipeline executions
+- **🔄 Auto-refresh**: Updates every 30 seconds automatically
+- **💬 Status Messages**: Real-time feedback on pipeline operations
+
+### **🚀 Quick Start Examples**
+
+#### **Demo Pipeline (Recommended)**
+```bash
+# Start demo pipeline via dashboard
+# 1. Go to http://localhost:8083/pipeline
+# 2. Select Mode: "Demo"
+# 3. Set Interval: "5 Minutes"
+# 4. Choose Timeframe: "1day"
+# 5. Click "Start Pipeline"
+
+# Or via CLI
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline start --mode demo --interval 5m --timeframe 1day
+```
+
+#### **Intraday Trading Pipeline**
+```bash
+# Hourly intraday pipeline
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline start --mode tech_leaders --interval 1h --timeframe 1hour
+```
+
+#### **Custom Symbols Pipeline**
+```bash
+# Custom symbol list with specific timeframe
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py pipeline start --mode custom --symbols AAPL,TSLA,NVDA --interval 15m --timeframe 5min
+```
+
+### **⚡ Advanced Features**
+- **🔄 Background Execution**: Pipelines run continuously in background threads
+- **🛑 Graceful Shutdown**: Clean stop with final statistics
+- **📊 Metadata Tracking**: Complete run metadata stored in PostgreSQL
+- **🔍 Error Recovery**: Automatic retry logic and fallback mechanisms
+- **📈 Performance Optimization**: Timeframe-specific parameter optimization
+- **💾 State Persistence**: Pipeline state maintained across restarts
+- **🌐 HTTP API**: Full programmatic control via REST API
+
+### **🔧 Pipeline Architecture**
+```
+Web Dashboard → HTTP API → Spark Command Server → Pipeline Runner
+                                    ↓
+                      Execute: data fetch → signals generate → backtest run
+                                    ↓
+                      Log Results → PostgreSQL + Elasticsearch
+                                    ↓
+                      Wait for Interval → Repeat Cycle
+```
+
+---
+
+## 🎮 **Pipeline Management Dashboard - Real-Time Control**
+
+### **🚀 Overview**
+The Pipeline Management Dashboard provides **real-time control** over pipeline execution with a modern web interface. This feature allows you to start, stop, and monitor pipelines directly from the browser with comprehensive status tracking and run history.
+
+### **✨ Key Features**
+- **🎛️ Real-Time Control**: Start/stop pipelines with one-click buttons
+- **📊 Live Status Monitoring**: Real-time pipeline status and metrics
+- **📋 Run History**: Complete table of all pipeline runs from the last 2 days
+- **🔒 Smart State Management**: Only one pipeline can run at a time
+- **⚡ Dynamic UI**: Buttons automatically enable/disable based on pipeline state
+- **🔄 Auto-Refresh**: Dashboard updates automatically every 30 seconds
+- **📈 Duration Tracking**: Real-time calculation of pipeline run durations
+- **❌ Error Handling**: Comprehensive error tracking and display
+
+### **🎯 Access Pipeline Management**
+- **Web Interface**: http://localhost:8083/pipeline
+- **API Endpoints**: 
+  - `POST /api/pipeline/start` - Start a new pipeline
+  - `POST /api/pipeline/stop` - Stop the current pipeline
+  - `GET /api/pipeline/runs` - Get recent pipeline runs
+  - `GET /api/pipeline/status` - Get current pipeline status
+  - `GET /api/pipeline/running-status` - Check if pipeline is running
+
+### **🎮 Dashboard Interface**
+
+#### **🎛️ Control Panel**
+- **🚀 Start Pipeline Button**: Creates and starts a new pipeline
+  - **Disabled when**: A pipeline is already running
+  - **Enabled when**: No pipeline is currently running
+- **🛑 Stop Pipeline Button**: Stops the currently running pipeline
+  - **Disabled when**: No pipeline is running or current pipeline is stopped
+  - **Enabled when**: A pipeline is currently running
+- **🔄 Refresh Button**: Manually refresh the dashboard data
+
+#### **⚙️ Configuration Form**
+- **Mode Selection**: Demo, Small, Medium, Full pipeline configurations
+- **Interval Selection**: 1m, 5m, 15m, 1h, 6h, 1d execution intervals
+- **Timeframe Selection**: 1min, 5min, 15min, 1hour, 1day data timeframes
+- **Symbols Input**: Custom symbol list (optional)
+- **Data Source**: yfinance, alpha_vantage, etc.
+
+#### **📊 Live Metrics Display**
+- **Pipeline State**: Running, Stopped, Starting, Stopping
+- **Total Runs**: Number of pipeline executions
+- **Success Rate**: Percentage of successful runs
+- **Average Duration**: Mean execution time
+- **Last Run Time**: Timestamp of most recent execution
+- **Uptime**: Current pipeline runtime (if running)
+
+#### **📋 Recent Pipeline Runs Table**
+- **Run ID**: Unique identifier for each pipeline execution
+- **Command**: Pipeline command executed
+- **Status**: Running, Stopped, Completed, Failed
+- **Start Time**: When the pipeline started
+- **End Time**: When the pipeline ended (if completed)
+- **Duration**: Total execution time in seconds
+- **Error Message**: Any error details (if failed)
+- **Configuration**: Pipeline parameters used
+
+### **🔄 Pipeline State Management**
+
+#### **🚀 Starting a Pipeline**
+1. **Click "Start Pipeline"** button
+2. **System checks**: Ensures no other pipeline is running
+3. **Creates new record**: Adds pipeline run to database with "running" status
+4. **Executes pipeline**: Starts the actual data processing
+5. **Updates UI**: Start button becomes disabled, stop button becomes enabled
+6. **Shows in table**: New pipeline appears in Recent Pipeline Runs with "running" status
+
+#### **🛑 Stopping a Pipeline**
+1. **Click "Stop Pipeline"** button
+2. **System identifies**: Finds the currently running pipeline
+3. **Stops execution**: Terminates the pipeline process
+4. **Updates status**: Changes status from "running" to "stopped"
+5. **Records end time**: Updates database with completion timestamp
+6. **Updates UI**: Stop button becomes disabled, start button becomes enabled
+7. **Shows in table**: Pipeline appears with "stopped" status and duration
+
+#### **🔄 Multiple Pipeline Runs**
+- **First start**: Creates pipeline with "running" status
+- **Stop**: Changes status to "stopped", remains in table
+- **Second start**: Creates NEW pipeline with "running" status
+- **Result**: Table shows both pipelines - old (stopped) and new (running)
+
+### **📊 API Endpoints**
+
+#### **Start Pipeline**
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"mode": "demo", "interval": "5m", "timeframe": "1day", "symbols": "AAPL,MSFT", "data_source": "yfinance"}' \
+  http://localhost:8083/api/pipeline/start
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Pipeline started successfully with ID: pipeline_20250824_115327_10709148",
+  "pipeline_id": "pipeline_20250824_115327_10709148",
+  "config": {
+    "mode": "demo",
+    "interval": "5m",
+    "timeframe": "1day",
+    "symbols": "AAPL,MSFT",
+    "data_source": "yfinance"
+  }
+}
+```
+
+#### **Stop Pipeline**
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  http://localhost:8083/api/pipeline/stop
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Pipeline pipeline_20250824_115327_10709148 stopped successfully",
+  "pipeline_id": "pipeline_20250824_115327_10709148"
+}
+```
+
+#### **Get Pipeline Runs**
+```bash
+curl -s http://localhost:8083/api/pipeline/runs
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "runs": [
+    {
+      "run_id": "pipeline_20250824_115819_c682d6d5",
+      "command": "spark_streaming_start_demo",
+      "status": "running",
+      "start_time": "2025-08-24 11:58:19",
+      "end_time": null,
+      "duration_seconds": 118,
+      "error_message": null,
+      "config": {}
+    },
+    {
+      "run_id": "pipeline_20250824_115327_10709148",
+      "command": "spark_streaming_start_demo",
+      "status": "stopped",
+      "start_time": "2025-08-24 11:53:27",
+      "end_time": "2025-08-24 11:58:01",
+      "duration_seconds": 273,
+      "error_message": null,
+      "config": {}
+    }
+  ]
+}
+```
+
+#### **Get Pipeline Status**
+```bash
+curl -s http://localhost:8083/api/pipeline/status
+```
+
+**Response:**
+```json
+{
+  "state": "running",
+  "total_runs": 5,
+  "successful_runs": 4,
+  "failed_runs": 0,
+  "stopped_runs": 1,
+  "uptime_seconds": 118,
+  "last_run_time": "2025-08-24 11:58:19"
+}
+```
+
+### **🎯 Usage Examples**
+
+#### **Quick Start Demo**
+1. **Open Dashboard**: http://localhost:8083/pipeline
+2. **Select Configuration**:
+   - Mode: "Demo"
+   - Interval: "5 Minutes"
+   - Timeframe: "1day"
+   - Symbols: "AAPL,MSFT"
+3. **Click "Start Pipeline"**
+4. **Monitor**: Watch the pipeline run in real-time
+5. **Stop**: Click "Stop Pipeline" when done
+
+#### **Production Pipeline**
+1. **Configure for Production**:
+   - Mode: "Tech Leaders"
+   - Interval: "1 Hour"
+   - Timeframe: "1hour"
+   - Symbols: Leave empty (uses predefined list)
+2. **Start Pipeline**: Click start button
+3. **Monitor**: Check metrics and run history
+4. **Manage**: Stop and restart as needed
+
+#### **Custom Configuration**
+1. **Set Custom Parameters**:
+   - Mode: "Custom"
+   - Interval: "15 Minutes"
+   - Timeframe: "5min"
+   - Symbols: "AAPL,TSLA,NVDA,GOOGL"
+2. **Start**: Execute with custom settings
+3. **Track**: Monitor performance and results
+
+### **🔧 Technical Architecture**
+
+#### **Frontend Components**
+- **Pipeline Dashboard**: `cli/pipeline_dashboard.py` - HTML/CSS/JavaScript UI
+- **Real-time Updates**: JavaScript polling for status changes
+- **Dynamic Buttons**: State-based enable/disable logic
+- **Responsive Design**: Works on desktop and mobile
+
+#### **Backend Components**
+- **Pipeline Controller**: `cli/pipeline_controller.py` - Core business logic
+- **Database Integration**: PostgreSQL for pipeline metadata
+- **Spark Integration**: HTTP API calls to Spark command server
+- **State Management**: Real-time pipeline state tracking
+
+#### **Data Flow**
+```
+User Action → Dashboard → Pipeline Controller → Database
+                                    ↓
+                      Spark Command Server → Pipeline Execution
+                                    ↓
+                      Status Updates → Database → Dashboard UI
+```
+
+### **🛠️ Development & Customization**
+
+#### **Adding New Pipeline Modes**
+1. **Update Pipeline Controller**: Add new mode logic in `pipeline_controller.py`
+2. **Update Dashboard**: Add mode option in `pipeline_dashboard.py`
+3. **Test**: Verify start/stop functionality
+4. **Deploy**: Rebuild dashboard container
+
+#### **Customizing UI**
+1. **Modify HTML**: Update `pipeline_dashboard.py` HTML generation
+2. **Add CSS**: Customize styling for buttons and tables
+3. **Enhance JavaScript**: Add new interactive features
+4. **Test**: Verify all functionality works
+
+#### **Extending API**
+1. **Add Endpoints**: Create new API routes in `postgres_dashboard.py`
+2. **Update Controller**: Add corresponding methods in `pipeline_controller.py`
+3. **Test API**: Verify endpoints work correctly
+4. **Update Documentation**: Document new features
+
+### **🔍 Monitoring & Troubleshooting**
+
+#### **Dashboard Not Loading**
+```bash
+# Check dashboard container
+docker logs breadthflow-dashboard
+
+# Verify API endpoints
+curl http://localhost:8083/api/pipeline/status
+
+# Check database connection
+docker exec breadthflow-postgres psql -U pipeline -d breadthflow -c "SELECT COUNT(*) FROM pipeline_runs;"
+```
+
+#### **Pipeline Won't Start**
+```bash
+# Check if pipeline is already running
+curl http://localhost:8083/api/pipeline/running-status
+
+# Check Spark command server
+curl http://localhost:8081/health
+
+# View pipeline logs
+docker logs spark-master
+```
+
+#### **Pipeline Won't Stop**
+```bash
+# Check running pipeline ID
+curl http://localhost:8083/api/pipeline/status
+
+# Force stop via database
+docker exec breadthflow-postgres psql -U pipeline -d breadthflow -c "UPDATE pipeline_runs SET status = 'stopped', end_time = NOW() WHERE status = 'running';"
+```
+
+#### **No Pipeline Runs Showing**
+```bash
+# Check database for pipeline runs
+docker exec breadthflow-postgres psql -U pipeline -d breadthflow -c "SELECT * FROM pipeline_runs WHERE command LIKE '%spark_streaming%' OR command LIKE '%pipeline%' ORDER BY start_time DESC LIMIT 5;"
+
+# Rebuild dashboard if needed
+docker-compose build dashboard && docker-compose up -d dashboard
+```
+
+### **📈 Performance Characteristics**
+- **Response Time**: <1 second for API calls
+- **UI Updates**: 30-second auto-refresh interval
+- **Database Queries**: Optimized for recent pipeline runs
+- **Concurrent Users**: Supports multiple dashboard users
+- **Memory Usage**: Minimal overhead for dashboard operations
+- **Scalability**: Can handle hundreds of pipeline runs
+
+---
+
 ## 📊 **Monitoring & Analytics**
 
 ### **🎯 Real-time Web Dashboard** (Primary)
@@ -350,9 +797,13 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py COMMAND
    - **Live Updates**: Auto-refreshing statistics every 30 seconds
    - **Recent Runs**: Detailed view of latest pipeline executions
    - **Infrastructure Overview**: Interactive D3.js architecture diagram
+   - **📈 Trading Signals Dashboard**: Real-time signal monitoring with 4-day history
+   - **📊 Data Export**: CSV and JSON export functionality for signals
 
 **Dashboard Pages:**
 - **📊 Main Dashboard**: Live pipeline metrics and run history
+- **🎮 Pipeline Management**: Real-time pipeline control with start/stop buttons
+- **📈 Trading Signals**: Comprehensive signal monitoring with export capabilities
 - **🏗️ Infrastructure**: System architecture visualization with 8 services
 
 ### **🔍 Kibana Analytics** (Advanced)
@@ -365,6 +816,21 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py COMMAND
 - **🚀 BreadthFlow Working Dashboard**: Real-time pipeline monitoring
 - **🔍 Index Pattern**: `breadthflow-logs*` for custom visualizations
 
+### **📈 Trading Signals Dashboard** (Enhanced)
+1. **Access**: http://localhost:8083/signals
+2. **Key Features**:
+   - **📊 4-Day Signal History**: Reads all signal files from the last 4 days
+   - **⏰ Chronological Ordering**: Signals ordered by timestamp (newest first)
+   - **🕒 Create Time Tracking**: Each signal includes creation timestamp
+   - **📊 Multi-Timeframe Support**: Displays signals from all timeframes (1min, 5min, 15min, 1hour, 1day)
+   - **📥 Export Functionality**: Download signals in CSV or JSON format
+   - **🔍 Real-time Updates**: Auto-refreshing signal data every 30 seconds
+
+**Signal Export Options:**
+- **CSV Export**: `GET /api/signals/export?format=csv` - Download as CSV file
+- **JSON Export**: `GET /api/signals/export?format=json` - Download as JSON file
+- **Fields Included**: Symbol, Signal Type, Confidence, Strength, Date, Timeframe, Create Time
+
 ### **📈 What You Can Monitor**
 - **Pipeline Success Rates**: Track successful vs failed runs
 - **Performance Trends**: Monitor execution durations over time
@@ -372,6 +838,9 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py COMMAND
 - **Error Analysis**: Detailed error logs and patterns
 - **Real-time Activity**: Live updates as pipelines execute
 - **PostgreSQL Metrics**: Pipeline run history with metadata
+- **Trading Signals**: Real-time signal monitoring with 4-day history
+- **Signal Performance**: Track signal generation across multiple timeframes
+- **Export Analytics**: Monitor data export usage and patterns
 
 ### **🔍 Useful Kibana Searches**
 ```bash
@@ -386,6 +855,12 @@ duration:>10
 
 # Recent activity
 @timestamp:>=now-1h
+
+# Signal generation activity
+metadata.command:signal_generate
+
+# Export operations
+metadata.command:export
 ```
 
 ---
@@ -412,10 +887,19 @@ duration:>10
   │       │   └── AAPL_2024-01-01_2024-12-31_5M.parquet
   │       └── MSFT/
   ├── trading_signals/
-  │   └── signals_YYYYMMDD_HHMMSS.parquet (timeframe-aware)
+  │   ├── signals_YYYYMMDD_HHMMSS.parquet (timeframe-aware)
+  │   ├── signals_YYYYMMDD_HHMMSS_1day.parquet (daily signals)
+  │   ├── signals_YYYYMMDD_HHMMSS_1hour.parquet (hourly signals)
+  │   └── signals_YYYYMMDD_HHMMSS_15min.parquet (intraday signals)
   └── analytics/
       └── processed_results.parquet
   ```
+
+**Signal File Organization:**
+- **4-Day History**: Dashboard reads all signal files from the last 4 days
+- **Chronological Ordering**: Files processed by timestamp (newest first)
+- **Multi-Timeframe Support**: Separate files for each timeframe
+- **Create Time Tracking**: Each signal includes creation timestamp
 
 ### **🗃️ Database Storage**
 
@@ -469,14 +953,19 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py backtest run --symbols AAPL --timeframe 1day
 docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py backtest run --symbols AAPL --timeframe 1hour
 
-# 5. Monitor in real-time
+# 5. Monitor signals in real-time
+# Trading Signals Dashboard: http://localhost:8083/signals (4-day history, multi-timeframe)
 # Web Dashboard: http://localhost:8083 (timeframe-aware interface)
 # Kibana: http://localhost:5601 → Discover → breadthflow-logs*
 
-# 6. Check timeframe-organized data storage
+# 6. Export signal data
+# CSV Export: curl "http://localhost:8083/api/signals/export?format=csv" > signals.csv
+# JSON Export: curl "http://localhost:8083/api/signals/export?format=json" > signals.json
+
+# 7. Check timeframe-organized data storage
 # MinIO: http://localhost:9001 → Browse ohlcv/daily/, ohlcv/hourly/, ohlcv/minute/
 
-# 7. Monitor streaming data
+# 8. Monitor streaming data
 # Kafka UI: http://localhost:9002 → View topics and messages
 
 ### **🔧 Development Workflow**
@@ -498,15 +987,20 @@ curl -X POST -H "Content-Type: application/json" \
 
 # 3. Monitor in real-time
 # Dashboard: http://localhost:8083
+# Trading Signals: http://localhost:8083/signals (4-day history)
 # Kibana: http://localhost:5601
 # Kafka UI: http://localhost:9002
 # Spark UI: http://localhost:8080
 # Command API: http://localhost:8081
 
-# 4. Stop when done
+# 4. Export and analyze data
+# CSV Export: curl "http://localhost:8083/api/signals/export?format=csv" > signals.csv
+# JSON Export: curl "http://localhost:8083/api/signals/export?format=json" > signals.json
+
+# 5. Stop when done
 ./scripts/stop_infrastructure.sh
 
-# 5. Restart with all features
+# 6. Restart with all features
 ./scripts/start_infrastructure.sh
 ```
 
@@ -539,6 +1033,8 @@ BreadthFlow/
 │   ├── kibana_enhanced_bf.py          # Primary CLI with PostgreSQL + Elasticsearch logging (timeframe-aware)
 │   ├── bf_minio.py                   # Feature-rich CLI with complete pipeline
 │   ├── postgres_dashboard.py         # Web dashboard backend (PostgreSQL) with timeframe UI
+│   ├── pipeline_controller.py        # Pipeline management business logic
+│   ├── pipeline_dashboard.py         # Pipeline management UI components
 │   ├── spark_command_server.py       # HTTP API server for command execution (timeframe support)
 │   └── elasticsearch_logger.py       # Elasticsearch integration
 ├── infra/                             # 🐳 Infrastructure setup
@@ -618,6 +1114,68 @@ The platform now includes enhanced PostgreSQL schema:
 - `signals_metadata` - Signal generation metadata with timeframe context
 - `backtest_results` - Backtesting results with timeframe-specific metrics
 - Performance views: `timeframe_performance_stats`, `signals_summary_by_timeframe`
+
+---
+
+## 📈 **Enhanced Signal Monitoring & Export**
+
+### **🎯 Trading Signals Dashboard Features**
+The Trading Signals Dashboard (http://localhost:8083/signals) provides comprehensive signal monitoring with advanced features:
+
+#### **📊 4-Day Signal History**
+- **Comprehensive Coverage**: Reads all signal files from the last 4 days
+- **Chronological Ordering**: Signals ordered by timestamp (newest first)
+- **Multi-Timeframe Support**: Displays signals from all timeframes (1min, 5min, 15min, 1hour, 1day)
+- **Create Time Tracking**: Each signal includes creation timestamp for precise timing analysis
+
+#### **📥 Data Export Functionality**
+- **CSV Export**: Download signals as CSV file with all metadata
+  ```bash
+  curl "http://localhost:8083/api/signals/export?format=csv" > signals.csv
+  ```
+- **JSON Export**: Download signals as JSON file with structured data
+  ```bash
+  curl "http://localhost:8083/api/signals/export?format=json" > signals.json
+  ```
+- **Export Fields**: Symbol, Signal Type, Confidence, Strength, Date, Timeframe, Create Time
+
+#### **🔍 Signal Organization**
+- **Timeframe Grouping**: Signals organized by timeframe for easy analysis
+- **Real-time Updates**: Auto-refreshing signal data every 30 seconds
+- **Error Handling**: Graceful handling of missing or corrupted signal files
+- **Performance Optimized**: Efficient file reading with chronological processing
+
+### **🎯 API Endpoints**
+```bash
+# Get latest signals (4-day history)
+GET /api/signals/latest
+
+# Export signals as CSV
+GET /api/signals/export?format=csv
+
+# Export signals as JSON
+GET /api/signals/export?format=json
+
+# Get pipeline parameters
+GET /api/parameters
+```
+
+### **📊 Signal Data Structure**
+```json
+{
+  "signals": [
+    {
+      "symbol": "AAPL",
+      "signal_type": "BUY",
+      "confidence": 0.85,
+      "strength": "STRONG",
+      "date": "2024-08-24",
+      "timeframe": "1day",
+      "create_time": "2024-08-24T10:30:00Z"
+    }
+  ]
+}
+```
 
 ---
 
@@ -707,6 +1265,9 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 - **Web Interface**: Complete command execution through dashboard
 - **API-First**: HTTP API for programmatic command execution
 - **Clean Architecture**: Separation of concerns with dedicated command server
+- **Pipeline Management**: Real-time pipeline control with start/stop functionality
+- **Signal Monitoring**: 4-day signal history with multi-timeframe support
+- **Data Export**: CSV and JSON export functionality for signals
 
 ### **📊 Financial Data Processing - Timeframe-Agnostic**
 - **Multi-Timeframe Fetching**: Yahoo Finance integration for 1min, 5min, 15min, 1hour, 1day data
@@ -727,6 +1288,9 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 - **Quick Flows**: Pre-configured pipeline flows (Demo/Small/Medium/Full) with timeframe options
 - **HTTP API**: Programmatic access to all pipeline commands with timeframe parameters
 - **Command Server**: Dedicated HTTP server for Spark command execution with timeframe support
+- **Trading Signals Dashboard**: 4-day signal history with chronological ordering and create time tracking
+- **Multi-Timeframe Signal Display**: Support for all timeframes (1min, 5min, 15min, 1hour, 1day)
+- **Data Export**: CSV and JSON export functionality with comprehensive signal metadata
 
 ### **⚡ Developer Experience - Timeframe-Enhanced**
 - **Streamlined CLIs**: Two primary CLIs with complete timeframe functionality (legacy files removed)
@@ -743,7 +1307,7 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 
 ## 📈 **Performance Characteristics**
 
-### **🎯 Tested Capabilities** (Updated 2025-08-21 - Timeframe-Agnostic)
+### **🎯 Tested Capabilities** (Updated 2025-08-24 - Enhanced Signal Monitoring)
 - **Multi-Timeframe Processing**: Successfully processes 1day, 1hour data with automatic storage organization
 - **Symbols**: Successfully processes 25+ symbols across multiple timeframes
 - **Data Volume**: 251 records (daily), 1745 records (hourly) per symbol with optimized Parquet storage
@@ -756,6 +1320,10 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 - **Timeframe Features**: Database schema with 5 new tables/views for timeframe tracking and analytics
 - **Signal Generation**: Working across multiple timeframes with optimized parameters
 - **Container Communication**: HTTP-based command execution with timeframe-aware parameters
+- **Signal Monitoring**: 4-day signal history with chronological ordering and create time tracking
+- **Multi-Timeframe Signal Display**: Support for all timeframes (1min, 5min, 15min, 1hour, 1day)
+- **Data Export**: CSV and JSON export functionality with comprehensive signal metadata
+- **Signal Performance**: 42+ signals displayed with multi-timeframe support and export capabilities
 
 ### **⚡ Scaling Guidelines - Timeframe-Aware**
 - **Small Scale**: 1-10 symbols, demo_small list, daily timeframe (fastest processing)

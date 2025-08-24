@@ -30,7 +30,7 @@ python kibana_enhanced_bf.py pipeline logs
 ```
 
 ### 2. Pipeline Runner
-- **Triggers**: `fetch`, `signals`, `backtest` commands
+- **Triggers**: `data fetch`, `signals generate`, `backtest run` commands
 - **Uses**: Existing Spark API (no changes to core commands)
 - **Runs**: Continuously until stop order
 - **Logs**: All activities to PostgreSQL/Elasticsearch
@@ -112,9 +112,9 @@ python kibana_enhanced_bf.py pipeline logs
 ## Integration with Existing Commands
 
 ### Current Commands (No Changes)
-- `bf fetch` - Data fetching
-- `bf signals generate` - Signal generation
-- `bf backtest run` - Backtesting
+- `kibana_enhanced_bf.py data fetch` - Data fetching
+- `kibana_enhanced_bf.py signals generate` - Signal generation
+- `kibana_enhanced_bf.py backtest run` - Backtesting
 
 ### New Pipeline Commands
 - `python kibana_enhanced_bf.py pipeline start` - Start automated pipeline
@@ -147,15 +147,15 @@ python kibana_enhanced_bf.py pipeline logs
 
 ### New Files
 ```
-cli/kibana_enhanced_bf.py          # Add pipeline commands
-cli/postgres_dashboard.py          # Add Pipeline Management page
-cli/spark_command_server.py        # Add pipeline endpoints
 model/pipeline_runner.py           # Core pipeline logic
 model/pipeline_metadata.py         # Metadata tracking
 ```
 
 ### Modified Files
 ```
+cli/kibana_enhanced_bf.py          # Add pipeline commands
+cli/postgres_dashboard.py          # Add Pipeline Management page
+cli/spark_command_server.py        # Add pipeline endpoints
 infra/docker-compose.yml           # Add pipeline service (if needed)
 README.md                          # Update with pipeline docs
 ```

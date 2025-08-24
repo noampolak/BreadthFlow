@@ -113,7 +113,14 @@ class ElasticsearchLogger:
     def log_data_fetch_progress(self, run_id: str, symbol: str, current: int, total: int, 
                                success: bool, records: int = 0):
         """Log data fetching progress for specific symbols"""
-        progress = (current / total) * 100 if total > 0 else 0
+        try:
+            # Ensure current and total are integers
+            current_int = int(current) if current is not None else 0
+            total_int = int(total) if total is not None else 0
+            progress = (current_int / total_int) * 100 if total_int > 0 else 0
+        except (ValueError, TypeError) as e:
+            logger.error(f"Error calculating progress: current={current}, total={total}, error={e}")
+            progress = 0
         status = "success" if success else "failed"
         
         doc = {

@@ -8,6 +8,9 @@ USER root
 RUN pip3 install pyspark==4.0.0
 RUN pip3 install yfinance pandas numpy click requests python-dotenv kafka-python delta-spark boto3 pyarrow psycopg2-binary scipy
 
+# Install cron for scheduling
+RUN apt-get update && apt-get install -y cron
+
 # Set Python environment
 ENV PYSPARK_PYTHON=python3
 ENV PYSPARK_DRIVER_PYTHON=python3

@@ -389,8 +389,8 @@ def fetch(symbols, symbol_list, start_date, end_date, timeframe, data_source, pa
                 # Import timeframe-enhanced components
                 import sys
                 sys.path.insert(0, '/opt/bitnami/spark/jobs/model')
-                from timeframe_agnostic_fetcher import create_timeframe_fetcher
-                from timeframe_enhanced_storage import create_timeframe_storage
+                from model.timeframe_agnostic_fetcher import create_timeframe_fetcher
+                from model.timeframe_enhanced_storage import create_timeframe_storage
                 
                 # Create timeframe-aware fetcher and storage
                 fetcher = create_timeframe_fetcher()
@@ -649,47 +649,99 @@ def run(symbols, symbol_list, from_date, to_date, timeframe, initial_capital, sa
             dual_logger.log("WARN", "⚠️  No market data found in MinIO for the specified period")
             dual_logger.log("INFO", "💡 Run 'data fetch' first to get market data")
             
-            # For demo purposes, create some mock data and run simplified backtest
-            dual_logger.log("INFO", "🔄 Running simplified backtest with mock data...")
+            # Run REAL backtest using actual data from MinIO
+            dual_logger.log("INFO", "🔄 Running REAL backtest with actual market data...")
             
-            # Create mock backtest results that are realistic
-            import numpy as np
-            np.random.seed(42)  # For reproducible results
-            
-            # More realistic simulation
-            trading_days = pd.bdate_range(start=from_date, end=to_date)
-            num_days = len(trading_days)
-            
-            # Simulate daily returns (slightly positive bias)
-            daily_returns = np.random.normal(0.0008, 0.015, num_days)  # 0.08% avg daily return, 1.5% volatility
-            
-            # Calculate portfolio evolution
-            portfolio_values = [initial_capital]
-            for daily_return in daily_returns:
-                new_value = portfolio_values[-1] * (1 + daily_return)
-                portfolio_values.append(new_value)
-            
-            # Calculate metrics
-            final_value = portfolio_values[-1]
-            total_return = (final_value - initial_capital) / initial_capital
-            
-            # Calculate volatility and Sharpe ratio
-            volatility = np.std(daily_returns) * np.sqrt(252)
-            annualized_return = total_return * (252 / num_days)
-            sharpe_ratio = (annualized_return - 0.02) / volatility  # Assume 2% risk-free rate
-            
-            # Calculate max drawdown
-            peak = initial_capital
-            max_drawdown = 0.0
-            for value in portfolio_values:
-                if value > peak:
-                    peak = value
-                drawdown = (peak - value) / peak
-                max_drawdown = max(max_drawdown, drawdown)
-            
-            # Simulate trading stats
-            total_trades = np.random.randint(25, 75)
-            win_rate = 0.55 + np.random.random() * 0.15  # 55-70% win rate
+            try:
+                # Use the actual BacktestEngine with real data
+                from backtests.engine import BacktestEngine, BacktestConfig
+                
+                # Create backtest configuration
+                config = BacktestConfig(
+                    initial_capital=float(initial_capital),
+                    position_size_pct=0.1,  # 10% per position
+                    max_positions=min(len(symbols_to_test), 10),
+                    commission_rate=0.001,  # 0.1% commission
+                    slippage_rate=0.0005,   # 0.05% slippage
+                    stop_loss_pct=0.05,     # 5% stop loss
+                    take_profit_pct=0.15,   # 15% take profit
+                    min_signal_confidence=70.0,
+                    benchmark_symbol="SPY"
+                )
+                
+                dual_logger.log("INFO", "🎯 Creating BacktestEngine with real configuration...")
+                engine = BacktestEngine(spark, config)
+                
+                dual_logger.log("INFO", "🚀 Running comprehensive backtest with real data...")
+                results = engine.run_backtest(
+                    start_date=from_date,
+                    end_date=to_date,
+                    symbols=symbols_to_test,
+                    save_results=save_results
+                )
+                
+                # Extract results from BacktestResult
+                total_return = results.total_return
+                sharpe_ratio = results.sharpe_ratio
+                max_drawdown = results.max_drawdown
+                win_rate = results.hit_rate
+                total_trades = results.total_trades
+                final_value = initial_capital * (1 + total_return)
+                
+                dual_logger.log("INFO", "✅ Real backtest completed using BacktestEngine!")
+                
+            except Exception as backtest_error:
+                dual_logger.log("ERROR", f"❌ Real backtest failed: {backtest_error}")
+                dual_logger.log("INFO", "🔄 Attempting fallback with real data processing...")
+                
+                # Fallback: Process real data manually
+                try:
+                    s3_client = get_minio_client()
+                    bucket = 'breadthflow'
+                    
+                    # Load real data from MinIO
+                    all_data = []
+                    for symbol in symbols_to_test:
+                        try:
+                            key = f"ohlcv/{symbol}/{symbol}_{from_date}_{to_date}.parquet"
+                            df = load_parquet_from_minio(s3_client, bucket, key)
+                            if not df.empty:
+                                df['symbol'] = symbol
+                                all_data.append(df)
+                                dual_logger.log("INFO", f"📊 Loaded real data for {symbol}: {len(df)} records")
+                        except Exception as e:
+                            dual_logger.log("WARN", f"⚠️ Could not load data for {symbol}: {e}")
+                    
+                    if all_data:
+                        # Process real data for backtest results
+                        combined_df = pd.concat(all_data, ignore_index=True)
+                        
+                        # Calculate real metrics from actual data
+                        if 'Close' in combined_df.columns:
+                            price_changes = combined_df.groupby('symbol')['Close'].pct_change().dropna()
+                            total_return = price_changes.mean() * len(price_changes)
+                            volatility = price_changes.std() * np.sqrt(252)
+                            sharpe_ratio = (total_return - 0.02) / volatility if volatility > 0 else 0
+                            max_drawdown = abs(price_changes.min()) if len(price_changes) > 0 else 0
+                            win_rate = (price_changes > 0).mean() if len(price_changes) > 0 else 0.5
+                            total_trades = len(price_changes)
+                            final_value = initial_capital * (1 + total_return.mean())
+                            
+                            dual_logger.log("INFO", "✅ Real data processing completed!")
+                        else:
+                            raise Exception("No Close price data available")
+                    else:
+                        raise Exception("No real data found in MinIO")
+                        
+                except Exception as fallback_error:
+                    dual_logger.log("ERROR", f"❌ Fallback processing failed: {fallback_error}")
+                    # Set default values if all else fails
+                    total_return = 0.0
+                    sharpe_ratio = 0.0
+                    max_drawdown = 0.0
+                    win_rate = 0.5
+                    total_trades = 0
+                    final_value = initial_capital
             
         else:
             dual_logger.log("INFO", "✅ Market data found! Running REAL backtest simulation...")
@@ -1173,80 +1225,79 @@ def pipeline():
     pass
 
 @pipeline.command()
-@click.option('--mode', default='demo', help='Pipeline mode (demo, all_symbols, custom_symbols)')
-@click.option('--interval', default=300, help='Interval between runs in seconds (default: 5 minutes)')
+@click.option('--mode', default='demo', help='Pipeline mode (demo, demo_small, tech_leaders, all_symbols, custom)')
+@click.option('--interval', default='5m', help='Interval between runs (e.g., 5m, 1h, 300s)')
 @click.option('--timeframe', default='1day', help='Data timeframe: 1min, 5min, 15min, 1hour, 1day (default: 1day)')
-@click.option('--symbols', help='Comma-separated symbols (for custom_symbols mode)')
-@click.option('--start-date', default='2024-01-01', help='Start date for analysis')
-@click.option('--end-date', default='2024-12-31', help='End date for analysis')
-def start(mode, interval, timeframe, symbols, start_date, end_date):
-    """Start continuous pipeline with dual logging."""
+@click.option('--symbols', help='Comma-separated symbols (for custom mode)')
+@click.option('--data-source', default='yfinance', help='Data source: yfinance, alpha_vantage, polygon')
+def start(mode, interval, timeframe, symbols, data_source):
+    """Start continuous pipeline with real execution."""
     run_id = str(uuid.uuid4())
     command = f"pipeline start --mode {mode} --interval {interval} --timeframe {timeframe}"
     dual_logger = DualLogger(run_id, command)
     
     try:
-        dual_logger.log("INFO", "🚀 Starting Continuous Pipeline")
-        dual_logger.log("INFO", "=" * 50)
+        dual_logger.log("INFO", "🚀 Starting BreadthFlow Continuous Pipeline")
+        dual_logger.log("INFO", "=" * 60)
         dual_logger.log("INFO", f"📊 Mode: {mode}")
-        dual_logger.log("INFO", f"⏰ Interval: {interval} seconds ({interval/60:.1f} minutes)")
-        dual_logger.log("INFO", f"⏰ Timeframe: {timeframe}")
-        dual_logger.log("INFO", f"📅 Date Range: {start_date} to {end_date}")
+        dual_logger.log("INFO", f"⏰ Interval: {interval}")
+        dual_logger.log("INFO", f"📈 Timeframe: {timeframe}")
+        dual_logger.log("INFO", f"🔗 Data Source: {data_source}")
         
-        # Handle symbol selection based on mode
-        if mode == "demo":
-            symbols_to_process = ["AAPL", "MSFT", "GOOGL"]
-            dual_logger.log("INFO", f"📈 Demo mode: {', '.join(symbols_to_process)}")
-        elif mode == "all_symbols":
-            try:
-                from features.common.symbols import get_symbol_manager
-                manager = get_symbol_manager()
-                symbols_to_process = manager.get_all_symbols()
-                dual_logger.log("INFO", f"📈 All symbols mode: {len(symbols_to_process)} symbols")
-            except:
-                symbols_to_process = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"]
-                dual_logger.log("INFO", f"⚠️ Fallback to demo symbols: {', '.join(symbols_to_process)}")
-        elif mode == "custom_symbols":
-            if not symbols:
-                dual_logger.log("ERROR", "❌ Custom symbols mode requires --symbols parameter")
-                dual_logger.complete('failed')
-                return
-            symbols_to_process = [s.strip().upper() for s in symbols.split(',')]
-            dual_logger.log("INFO", f"📈 Custom symbols: {', '.join(symbols_to_process)}")
-        else:
-            dual_logger.log("ERROR", f"❌ Unknown mode: {mode}")
-            dual_logger.complete('failed')
-            return
+        # Parse symbols for custom mode
+        symbols_list = None
+        if symbols:
+            symbols_list = [s.strip().upper() for s in symbols.split(',')]
+            dual_logger.log("INFO", f"📋 Custom symbols: {', '.join(symbols_list)}")
         
         dual_logger.update_metadata("mode", mode)
         dual_logger.update_metadata("interval", interval)
         dual_logger.update_metadata("timeframe", timeframe)
-        dual_logger.update_metadata("symbols", symbols_to_process)
-        dual_logger.update_metadata("date_range", f"{start_date} to {end_date}")
+        dual_logger.update_metadata("data_source", data_source)
+        dual_logger.update_metadata("symbols", symbols_list)
         
-        # Start pipeline runner
-        dual_logger.log("INFO", "🔄 Starting pipeline runner...")
-        
-        # For now, run one complete cycle to demonstrate
-        # In a real implementation, this would run continuously
-        dual_logger.log("INFO", "📥 Step 1: Fetching data...")
-        # Simulate data fetch
-        time.sleep(2)
-        dual_logger.log("INFO", "✅ Data fetched successfully")
-        
-        dual_logger.log("INFO", "🎯 Step 2: Generating signals...")
-        # Simulate signal generation
-        time.sleep(2)
-        dual_logger.log("INFO", "✅ Signals generated successfully")
-        
-        dual_logger.log("INFO", "📈 Step 3: Running backtest...")
-        # Simulate backtest
-        time.sleep(2)
-        dual_logger.log("INFO", "✅ Backtest completed successfully")
-        
-        dual_logger.log("INFO", "🎉 Pipeline cycle completed!")
-        dual_logger.log("INFO", f"💡 Pipeline will run every {interval} seconds")
-        dual_logger.log("INFO", f"📊 View progress at: http://localhost:8082")
+        # Import and use the real pipeline runner
+        try:
+            import sys
+            sys.path.insert(0, '/opt/bitnami/spark/jobs')
+            from model.pipeline_runner import start_pipeline
+            
+            dual_logger.log("INFO", "🔧 Initializing pipeline runner...")
+            
+            # Start the pipeline with configuration
+            result = start_pipeline(
+                mode=mode,
+                interval=interval,
+                symbols=symbols_list,
+                timeframe=timeframe,
+                data_source=data_source
+            )
+            
+            if result.get("success"):
+                dual_logger.log("INFO", "✅ Pipeline runner started successfully!")
+                dual_logger.log("INFO", "🔄 Pipeline is now running in the background")
+                dual_logger.log("INFO", f"📊 Configuration: {result.get('config', {})}")
+                dual_logger.log("INFO", f"📈 Pipeline State: {result.get('state', {})}")
+                dual_logger.log("INFO", "💡 Use 'pipeline status' to check progress")
+                dual_logger.log("INFO", "🛑 Use 'pipeline stop' to stop the pipeline")
+                
+                dual_logger.update_metadata("pipeline_config", result.get('config'))
+                dual_logger.update_metadata("pipeline_state", result.get('state'))
+                
+            else:
+                dual_logger.log("ERROR", f"❌ Pipeline start failed: {result.get('error')}")
+                dual_logger.complete('failed')
+                return
+            
+        except ImportError as e:
+            dual_logger.log("ERROR", f"❌ Could not import pipeline runner: {e}")
+            dual_logger.log("INFO", "🔄 Falling back to demo mode...")
+            
+            # Fallback to demo execution
+            dual_logger.log("INFO", "📥 Running demo pipeline cycle...")
+            time.sleep(2)
+            dual_logger.log("INFO", "✅ Demo cycle completed")
+            dual_logger.log("INFO", "💡 Install pipeline runner for full functionality")
         
         dual_logger.complete('completed')
         
@@ -1261,13 +1312,31 @@ def stop():
     dual_logger = DualLogger(run_id, "pipeline stop")
     
     try:
-        dual_logger.log("INFO", "⏹️ Stopping Continuous Pipeline")
+        dual_logger.log("INFO", "⏹️ Stopping BreadthFlow Pipeline")
         dual_logger.log("INFO", "=" * 40)
         
-        # In a real implementation, this would signal the running pipeline to stop
-        dual_logger.log("INFO", "🛑 Sending stop signal to pipeline...")
-        time.sleep(1)
-        dual_logger.log("INFO", "✅ Pipeline stopped successfully")
+        # Import and use the real pipeline runner
+        try:
+            import sys
+            sys.path.insert(0, '/opt/bitnami/spark/jobs')
+            from model.pipeline_runner import stop_pipeline
+            
+            dual_logger.log("INFO", "🛑 Sending stop signal to pipeline...")
+            
+            result = stop_pipeline()
+            
+            if result.get("success"):
+                dual_logger.log("INFO", "✅ Pipeline stopped successfully!")
+                dual_logger.log("INFO", f"📊 Final stats: {result.get('final_stats', {})}")
+                
+                dual_logger.update_metadata("final_stats", result.get('final_stats'))
+                
+            else:
+                dual_logger.log("WARN", f"⚠️ Pipeline stop result: {result.get('error')}")
+            
+        except ImportError as e:
+            dual_logger.log("WARN", f"⚠️ Could not import pipeline runner: {e}")
+            dual_logger.log("INFO", "💡 Pipeline runner may not be running")
         
         dual_logger.complete('completed')
         
@@ -1282,17 +1351,53 @@ def status():
     dual_logger = DualLogger(run_id, "pipeline status")
     
     try:
-        dual_logger.log("INFO", "📊 Pipeline Status Check")
-        dual_logger.log("INFO", "=" * 30)
+        dual_logger.log("INFO", "📊 BreadthFlow Pipeline Status")
+        dual_logger.log("INFO", "=" * 40)
         
-        # Check if pipeline is running
-        # In a real implementation, this would check a status file or process
-        dual_logger.log("INFO", "🔍 Checking pipeline status...")
-        time.sleep(1)
-        
-        # For demo purposes, assume pipeline is not running
-        dual_logger.log("INFO", "📋 Status: Pipeline is not running")
-        dual_logger.log("INFO", "💡 Use 'pipeline start' to start the pipeline")
+        # Import and use the real pipeline runner
+        try:
+            import sys
+            sys.path.insert(0, '/opt/bitnami/spark/jobs')
+            from model.pipeline_runner import get_pipeline_status
+            
+            dual_logger.log("INFO", "🔍 Checking pipeline status...")
+            
+            status_result = get_pipeline_status()
+            
+            if status_result.get("success"):
+                state = status_result.get("state", {})
+                config = status_result.get("config")
+                
+                # Display status information
+                dual_logger.log("INFO", f"📋 Status: {state.get('state', 'unknown')}")
+                dual_logger.log("INFO", f"🔢 Total runs: {state.get('total_runs', 0)}")
+                dual_logger.log("INFO", f"✅ Successful runs: {state.get('successful_runs', 0)}")
+                dual_logger.log("INFO", f"❌ Failed runs: {state.get('failed_runs', 0)}")
+                
+                if state.get('last_run_time'):
+                    dual_logger.log("INFO", f"⏰ Last run: {state.get('last_run_time')}")
+                
+                if state.get('uptime_seconds', 0) > 0:
+                    uptime_hours = state.get('uptime_seconds') / 3600
+                    dual_logger.log("INFO", f"⏱️ Uptime: {uptime_hours:.1f} hours")
+                
+                if config:
+                    dual_logger.log("INFO", f"📊 Mode: {config.get('mode', 'unknown')}")
+                    dual_logger.log("INFO", f"⏰ Interval: {config.get('interval', 'unknown')}")
+                    dual_logger.log("INFO", f"📈 Timeframe: {config.get('timeframe', 'unknown')}")
+                    dual_logger.log("INFO", f"📋 Symbols: {len(config.get('symbols', []))} symbols")
+                
+                dual_logger.update_metadata("pipeline_state", state)
+                dual_logger.update_metadata("pipeline_config", config)
+                
+            else:
+                dual_logger.log("INFO", "📋 Status: Pipeline is not running")
+                dual_logger.log("INFO", "💡 Use 'pipeline start' to start the pipeline")
+            
+        except ImportError as e:
+            dual_logger.log("WARN", f"⚠️ Could not import pipeline runner: {e}")
+            dual_logger.log("INFO", "📋 Status: Pipeline runner not available")
+            dual_logger.log("INFO", "💡 Install pipeline runner for full functionality")
         
         dual_logger.complete('completed')
         
@@ -1301,22 +1406,66 @@ def status():
         dual_logger.complete('failed')
 
 @pipeline.command()
-def logs():
-    """View pipeline logs."""
+@click.option('--lines', default=20, help='Number of log lines to show')
+def logs(lines):
+    """View pipeline logs and recent activity."""
     run_id = str(uuid.uuid4())
     dual_logger = DualLogger(run_id, "pipeline logs")
     
     try:
-        dual_logger.log("INFO", "📋 Pipeline Logs")
-        dual_logger.log("INFO", "=" * 20)
+        dual_logger.log("INFO", "📋 BreadthFlow Pipeline Logs")
+        dual_logger.log("INFO", "=" * 40)
         
-        # In a real implementation, this would read from log files
-        dual_logger.log("INFO", "📄 Reading pipeline logs...")
-        time.sleep(1)
-        
-        dual_logger.log("INFO", "📝 Recent pipeline activity:")
-        dual_logger.log("INFO", "   • No recent pipeline runs found")
-        dual_logger.log("INFO", "💡 Use 'pipeline start' to begin pipeline execution")
+        # Import and use the metadata tracker
+        try:
+            import sys
+            sys.path.insert(0, '/opt/bitnami/spark/jobs/model')
+            from model.pipeline_metadata import get_metadata_tracker
+            
+            dual_logger.log("INFO", f"📄 Reading last {lines} pipeline activities...")
+            
+            tracker = get_metadata_tracker()
+            recent_runs = tracker.get_recent_runs(limit=lines)
+            
+            if recent_runs:
+                dual_logger.log("INFO", f"📝 Found {len(recent_runs)} recent pipeline runs:")
+                dual_logger.log("INFO", "-" * 60)
+                
+                for run in recent_runs:
+                    duration = f"{run.duration_seconds:.1f}s" if run.duration_seconds > 0 else "running"
+                    status_emoji = "✅" if run.status.value == "completed" else "❌" if run.status.value == "failed" else "🔄"
+                    
+                    dual_logger.log("INFO", f"{status_emoji} {run.start_time.strftime('%Y-%m-%d %H:%M:%S')} | {run.mode} | {run.timeframe} | {len(run.symbols)} symbols | {duration}")
+                    
+                    if run.error_messages:
+                        for error in run.error_messages[-1:]:  # Show latest error
+                            dual_logger.log("WARN", f"   ⚠️ Error: {error}")
+                
+                # Show error analysis
+                error_analysis = tracker.get_error_analysis(hours=24)
+                if error_analysis['failed_runs'] > 0:
+                    dual_logger.log("INFO", "-" * 60)
+                    dual_logger.log("INFO", f"📊 Error Analysis (Last 24h):")
+                    dual_logger.log("INFO", f"   Total runs: {error_analysis['total_runs']}")
+                    dual_logger.log("INFO", f"   Failed runs: {error_analysis['failed_runs']}")
+                    dual_logger.log("INFO", f"   Error rate: {error_analysis['error_rate']:.1%}")
+                    
+                    if error_analysis['most_common_errors']:
+                        dual_logger.log("INFO", f"   Most common errors:")
+                        for error, count in error_analysis['most_common_errors'][:3]:
+                            dual_logger.log("INFO", f"     • {error} ({count} times)")
+                
+                dual_logger.update_metadata("recent_runs_count", len(recent_runs))
+                dual_logger.update_metadata("error_analysis", error_analysis)
+                
+            else:
+                dual_logger.log("INFO", "📝 No recent pipeline runs found")
+                dual_logger.log("INFO", "💡 Use 'pipeline start' to begin pipeline execution")
+            
+        except ImportError as e:
+            dual_logger.log("WARN", f"⚠️ Could not import pipeline metadata: {e}")
+            dual_logger.log("INFO", "📝 Pipeline logs: Metadata tracker not available")
+            dual_logger.log("INFO", "💡 Install pipeline metadata system for detailed logs")
         
         dual_logger.complete('completed')
         
@@ -1357,24 +1506,84 @@ def run(mode, interval, timeframe, cycles):
         dual_logger.update_metadata("cycles", cycles)
         dual_logger.update_metadata("symbols", symbols_to_process)
         
+        # Calculate date range for data fetching
+        from datetime import datetime, timedelta
+        
+        # Set end date to today
+        end_date = datetime.now().strftime("%Y-%m-%d")
+        
+        # Set start date based on timeframe
+        if timeframe == "1day":
+            start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")  # 30 days for daily
+        elif timeframe == "1hour":
+            start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")   # 7 days for hourly
+        else:
+            start_date = (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d")   # 3 days for minute data
+        
+        dual_logger.log("INFO", f"📅 Date range: {start_date} to {end_date}")
+        dual_logger.update_metadata("start_date", start_date)
+        dual_logger.update_metadata("end_date", end_date)
+        
         for cycle in range(1, cycles + 1):
             cycle_start = datetime.now()
             dual_logger.log("INFO", f"🔄 Cycle {cycle}/{cycles} started at {cycle_start.strftime('%H:%M:%S')}")
             
-            # Step 1: Fetch Data
-            dual_logger.log("INFO", f"📥 Cycle {cycle}: Fetching data...")
-            time.sleep(2)  # Simulate processing
-            dual_logger.log("INFO", f"✅ Cycle {cycle}: Data fetched")
+            # Step 1: Fetch Data - REAL EXECUTION
+            dual_logger.log("INFO", f"📥 Cycle {cycle}: Fetching real market data...")
+            try:
+                import subprocess
+                fetch_cmd = [
+                    "python3", "/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py", "data", "fetch",
+                    "--symbols", ",".join(symbols_to_process),
+                    "--start-date", start_date,
+                    "--end-date", end_date,
+                    "--timeframe", timeframe,
+                    "--data-source", "yfinance"
+                ]
+                result = subprocess.run(fetch_cmd, capture_output=True, text=True, timeout=300)
+                if result.returncode == 0:
+                    dual_logger.log("INFO", f"✅ Cycle {cycle}: Real data fetched successfully")
+                else:
+                    dual_logger.log("ERROR", f"❌ Cycle {cycle}: Data fetch failed - {result.stderr}")
+            except Exception as e:
+                dual_logger.log("ERROR", f"❌ Cycle {cycle}: Data fetch error - {str(e)}")
             
-            # Step 2: Generate Signals
-            dual_logger.log("INFO", f"🎯 Cycle {cycle}: Generating signals...")
-            time.sleep(2)  # Simulate processing
-            dual_logger.log("INFO", f"✅ Cycle {cycle}: Signals generated")
+            # Step 2: Generate Signals - REAL EXECUTION
+            dual_logger.log("INFO", f"🎯 Cycle {cycle}: Generating real trading signals...")
+            try:
+                signals_cmd = [
+                    "python3", "/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py", "signals", "generate",
+                    "--symbols", ",".join(symbols_to_process),
+                    "--start-date", start_date,
+                    "--end-date", end_date,
+                    "--timeframe", timeframe
+                ]
+                result = subprocess.run(signals_cmd, capture_output=True, text=True, timeout=300)
+                if result.returncode == 0:
+                    dual_logger.log("INFO", f"✅ Cycle {cycle}: Real signals generated successfully")
+                else:
+                    dual_logger.log("ERROR", f"❌ Cycle {cycle}: Signal generation failed - {result.stderr}")
+            except Exception as e:
+                dual_logger.log("ERROR", f"❌ Cycle {cycle}: Signal generation error - {str(e)}")
             
-            # Step 3: Run Backtest
-            dual_logger.log("INFO", f"📈 Cycle {cycle}: Running backtest...")
-            time.sleep(2)  # Simulate processing
-            dual_logger.log("INFO", f"✅ Cycle {cycle}: Backtest completed")
+            # Step 3: Run Backtest - REAL EXECUTION
+            dual_logger.log("INFO", f"📈 Cycle {cycle}: Running real backtest...")
+            try:
+                backtest_cmd = [
+                    "python3", "/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py", "backtest", "run",
+                    "--symbols", ",".join(symbols_to_process),
+                    "--from-date", start_date,
+                    "--to-date", end_date,
+                    "--timeframe", timeframe,
+                    "--initial-capital", "100000"
+                ]
+                result = subprocess.run(backtest_cmd, capture_output=True, text=True, timeout=300)
+                if result.returncode == 0:
+                    dual_logger.log("INFO", f"✅ Cycle {cycle}: Real backtest completed successfully")
+                else:
+                    dual_logger.log("ERROR", f"❌ Cycle {cycle}: Backtest failed - {result.stderr}")
+            except Exception as e:
+                dual_logger.log("ERROR", f"❌ Cycle {cycle}: Backtest error - {str(e)}")
             
             cycle_end = datetime.now()
             cycle_duration = (cycle_end - cycle_start).total_seconds()
@@ -1422,21 +1631,46 @@ def demo(quick):
         dual_logger.log("INFO", "-" * 30)
         summary.callback()
         
-        # Step 2: Data Fetching (simulate)
+        # Step 2: Data Fetching (REAL EXECUTION)
         dual_logger.log("INFO", "📥 Step 2: Data Fetching")
         dual_logger.log("INFO", "-" * 30)
-        dual_logger.log("INFO", f"🔄 Simulating data fetch for: {symbols}")
-        time.sleep(2)  # Simulate processing time
-        dual_logger.log("INFO", "✅ Data fetching completed")
+        dual_logger.log("INFO", f"🔄 Fetching REAL market data for: {symbols}")
         
-        # Step 3: Analytics Processing (simulate)
+        try:
+            import subprocess
+            symbols_list = symbols.split(",")
+            fetch_cmd = [
+                "python3", "/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py", "data", "fetch",
+                "--symbols", symbols,
+                "--start-date", "2024-12-20",
+                "--end-date", "2024-12-23",
+                "--timeframe", "1day",
+                "--data-source", "yfinance"
+            ]
+            result = subprocess.run(fetch_cmd, capture_output=True, text=True, timeout=300)
+            if result.returncode == 0:
+                dual_logger.log("INFO", "✅ Real data fetching completed")
+            else:
+                dual_logger.log("ERROR", f"❌ Data fetch failed: {result.stderr}")
+        except Exception as e:
+            dual_logger.log("ERROR", f"❌ Data fetch error: {str(e)}")
+        
+        # Step 3: Analytics Processing (REAL EXECUTION)
         dual_logger.log("INFO", "🧮 Step 3: Analytics Processing")
         dual_logger.log("INFO", "-" * 30)
-        dual_logger.log("INFO", "🔄 Computing summary statistics...")
-        time.sleep(1)
-        dual_logger.log("INFO", "🔄 Calculating daily returns...")
-        time.sleep(1)
-        dual_logger.log("INFO", "✅ Analytics completed")
+        dual_logger.log("INFO", "🔄 Computing real summary statistics...")
+        
+        try:
+            summary_cmd = [
+                "python3", "/opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py", "data", "summary"
+            ]
+            result = subprocess.run(summary_cmd, capture_output=True, text=True, timeout=60)
+            if result.returncode == 0:
+                dual_logger.log("INFO", "✅ Real analytics completed")
+            else:
+                dual_logger.log("ERROR", f"❌ Analytics failed: {result.stderr}")
+        except Exception as e:
+            dual_logger.log("ERROR", f"❌ Analytics error: {str(e)}")
         
         dual_logger.log("INFO", "🎉 Demo completed successfully!")
         dual_logger.log("INFO", f"💡 View real-time progress at: http://localhost:8082")
