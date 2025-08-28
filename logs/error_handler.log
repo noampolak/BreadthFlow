@@ -1,0 +1,6 @@
+2025-08-28 21:27:41,513 - error_handler - INFO - Error in test_component:test_operation - Test error for validation
+2025-08-28 21:27:41,513 - test_logger - INFO - test_operation - {"timestamp": "2025-08-28T21:27:41.513576", "component": "test_component", "operation": "test_operation", "data": {"test_data": "test_value"}}
+2025-08-28 21:27:42,209 - test_logger - INFO - test_performance_performance - {"timestamp": "2025-08-28T21:27:42.209263", "component": "test_component", "operation": "test_performance_performance", "data": {"duration_seconds": 0.6954860687255859, "memory_delta_mb": 0.0, "success": true}}
+2025-08-28 21:27:42,209 - error_recovery - WARNING - Retry attempt 1/4 after 1.0s for test_function
+2025-08-28 21:27:43,214 - error_recovery - WARNING - Retry attempt 2/4 after 2.0s for test_function
+2025-08-28 21:27:45,219 - error_recovery - WARNING - Retry attempt 3/4 after 4.0s for test_function
