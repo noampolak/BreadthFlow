@@ -6,8 +6,14 @@ Abstract interface for data sources in the BreadthFlow system.
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
-import pandas as pd
 from datetime import datetime, timedelta
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 
 class DataSourceInterface(ABC):
     """Abstract interface for data sources"""
@@ -25,7 +31,7 @@ class DataSourceInterface(ABC):
     @abstractmethod
     def fetch_data(self, resource_name: str, symbols: List[str], 
                    start_date: datetime, end_date: datetime, 
-                   **kwargs) -> pd.DataFrame:
+                   **kwargs):
         """Fetch data for specified resource and symbols"""
         pass
     

@@ -4,3 +4,159 @@
 2025-08-28 21:27:42,209 - error_recovery - WARNING - Retry attempt 1/4 after 1.0s for test_function
 2025-08-28 21:27:43,214 - error_recovery - WARNING - Retry attempt 2/4 after 2.0s for test_function
 2025-08-28 21:27:45,219 - error_recovery - WARNING - Retry attempt 3/4 after 4.0s for test_function
+2025-08-29 12:59:05,502 - WorkflowManager - INFO - Registered workflow: Test Data Pipeline (test_workflow_001)
+2025-08-29 12:59:05,503 - WorkflowManager - INFO - Registered workflow: Async Test Workflow (async_test_workflow)
+2025-08-29 12:59:05,503 - WorkflowManager - INFO - Started workflow execution: 3344408f-603a-4e29-a65a-6dbed3115d6c for workflow: async_test_workflow
+2025-08-29 12:59:05,503 - WorkflowManager - INFO - Executing step: Async Step 1 (async_step1)
+2025-08-29 12:59:05,604 - WorkflowManager - INFO - Step async_step1 completed successfully
+2025-08-29 12:59:05,604 - WorkflowManager - INFO - Executing step: Async Step 2 (async_step2)
+2025-08-29 12:59:05,706 - WorkflowManager - INFO - Step async_step2 completed successfully
+2025-08-29 12:59:06,005 - SystemMonitor - INFO - Registered health check: system_resources
+2025-08-29 12:59:06,005 - SystemMonitor - INFO - Registered health check: python_process
+2025-08-29 12:59:06,005 - SystemMonitor - INFO - Registered health check: error_rate
+2025-08-29 12:59:06,005 - SystemMonitor - INFO - Registered health check: component_registry
+2025-08-29 12:59:06,005 - SystemMonitor - INFO - System monitoring started
+2025-08-29 12:59:09,010 - SystemMonitor - INFO - Set alert threshold for cpu_usage_percent: 50.0
+2025-08-29 12:59:09,011 - SystemMonitor - INFO - System monitoring stopped
+2025-08-29 12:59:09,013 - SystemMonitor - INFO - Registered health check: system_resources
+2025-08-29 12:59:09,013 - SystemMonitor - INFO - Registered health check: python_process
+2025-08-29 12:59:09,013 - SystemMonitor - INFO - Registered health check: error_rate
+2025-08-29 12:59:09,013 - SystemMonitor - INFO - Registered health check: component_registry
+2025-08-29 12:59:09,013 - SystemMonitor - INFO - System monitoring started
+2025-08-29 12:59:09,013 - WorkflowManager - INFO - Registered workflow: Integration Test Workflow (integration_test_workflow)
+2025-08-29 12:59:09,014 - WorkflowManager - INFO - Started workflow execution: e3317829-85be-4b0a-9b04-0f7d9171e558 for workflow: integration_test_workflow
+2025-08-29 12:59:09,014 - WorkflowManager - INFO - Executing step: Monitor Integration Test (monitor_test)
+2025-08-29 12:59:09,014 - WorkflowManager - INFO - Step monitor_test completed successfully
+2025-08-29 12:59:11,025 - SystemMonitor - INFO - System monitoring stopped
+2025-08-29 15:42:10,349 - SystemMonitor - INFO - Registered health check: system_resources
+2025-08-29 15:42:10,349 - SystemMonitor - INFO - Registered health check: python_process
+2025-08-29 15:42:10,349 - SystemMonitor - INFO - Registered health check: error_rate
+2025-08-29 15:42:10,349 - SystemMonitor - INFO - Registered health check: component_registry
+2025-08-29 15:42:10,353 - SystemMonitor - INFO - System monitoring started
+2025-08-29 15:42:10,353 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:42:10,353 - WorkflowManager - INFO - Started workflow execution: ef581e88-9df5-4f82-8f1c-7d740baf299b for workflow: test_workflow
+2025-08-29 15:42:10,357 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:42:10,459 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:42:11,355 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:42:11,355 - WorkflowManager - INFO - Started workflow execution: 41403770-df2a-4642-876d-1b55c35b2790 for workflow: pipeline_simulation
+2025-08-29 15:42:11,355 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:42:11,456 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:42:11,457 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:42:11,558 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:42:11,558 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:42:11,660 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:42:13,356 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:42:13,357 - WorkflowManager - INFO - Started workflow execution: 1be33066-3d43-425c-9102-99b48dd77780 for workflow: test_workflow
+2025-08-29 15:42:13,357 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:42:13,458 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:42:14,358 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:42:14,358 - WorkflowManager - INFO - Started workflow execution: 1f771849-c797-4af3-adb4-c104e0a4c67f for workflow: test_workflow
+2025-08-29 15:42:14,358 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:42:14,460 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:42:15,359 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:42:15,360 - WorkflowManager - INFO - Started workflow execution: c03323ba-bc43-416c-8f6a-2986f478931f for workflow: pipeline_simulation
+2025-08-29 15:42:15,360 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:42:15,461 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:42:15,461 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:42:15,563 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:42:15,563 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:42:15,664 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:43:27,889 - SystemMonitor - INFO - Registered health check: system_resources
+2025-08-29 15:43:27,889 - SystemMonitor - INFO - Registered health check: python_process
+2025-08-29 15:43:27,889 - SystemMonitor - INFO - Registered health check: error_rate
+2025-08-29 15:43:27,889 - SystemMonitor - INFO - Registered health check: component_registry
+2025-08-29 15:43:27,889 - SystemMonitor - INFO - System monitoring started
+2025-08-29 15:43:27,889 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:43:27,889 - WorkflowManager - INFO - Started workflow execution: c8e64c19-859b-45b5-8e19-c8d2edffe3cf for workflow: test_workflow
+2025-08-29 15:43:27,889 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:43:27,990 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:43:28,891 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:43:28,891 - WorkflowManager - INFO - Started workflow execution: 727a9213-2a1d-4c0c-a079-27b7912ba5ed for workflow: pipeline_simulation
+2025-08-29 15:43:28,891 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:43:28,993 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:43:28,993 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:43:29,094 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:43:29,095 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:43:29,196 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:43:30,894 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:43:30,894 - WorkflowManager - INFO - Started workflow execution: a07d4f8b-3e87-4178-8b1a-2180cdc7e3dd for workflow: test_workflow
+2025-08-29 15:43:30,895 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:43:30,997 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:43:31,895 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:43:31,896 - WorkflowManager - INFO - Started workflow execution: c30ba85f-0632-456c-be8a-00cf5fcb7f3f for workflow: test_workflow
+2025-08-29 15:43:31,896 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:43:31,997 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:43:32,897 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:43:32,897 - WorkflowManager - INFO - Started workflow execution: ee0e0505-d494-4f55-95b1-2522ce96f3cd for workflow: pipeline_simulation
+2025-08-29 15:43:32,897 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:43:32,998 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:43:32,998 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:43:33,100 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:43:33,100 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:43:33,201 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:44:47,047 - SystemMonitor - INFO - Registered health check: system_resources
+2025-08-29 15:44:47,047 - SystemMonitor - INFO - Registered health check: python_process
+2025-08-29 15:44:47,047 - SystemMonitor - INFO - Registered health check: error_rate
+2025-08-29 15:44:47,047 - SystemMonitor - INFO - Registered health check: component_registry
+2025-08-29 15:44:47,047 - SystemMonitor - INFO - System monitoring started
+2025-08-29 15:44:47,047 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:44:47,047 - WorkflowManager - INFO - Started workflow execution: 41e9cda0-e7a7-4f0e-a14d-5818c1d113af for workflow: test_workflow
+2025-08-29 15:44:47,048 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:44:47,149 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:44:48,049 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:44:48,049 - WorkflowManager - INFO - Started workflow execution: 9ec07f50-0627-4917-9598-a74f33caf41b for workflow: pipeline_simulation
+2025-08-29 15:44:48,049 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:44:48,159 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:44:48,164 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:44:48,274 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:44:48,274 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:44:48,376 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:44:50,050 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:44:50,051 - WorkflowManager - INFO - Started workflow execution: 8b12776a-270a-431b-b7d1-3fa99166b84a for workflow: test_workflow
+2025-08-29 15:44:50,051 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:44:50,152 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:44:51,058 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:44:51,058 - WorkflowManager - INFO - Started workflow execution: a956c4dc-3fd7-4b0b-8c93-df15259dcac1 for workflow: test_workflow
+2025-08-29 15:44:51,060 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:44:51,162 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:44:52,060 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:44:52,060 - WorkflowManager - INFO - Started workflow execution: 53b2cb60-a52b-4784-9ea1-846673b577aa for workflow: pipeline_simulation
+2025-08-29 15:44:52,061 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:44:52,162 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:44:52,163 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:44:52,264 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:44:52,264 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:44:52,365 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:46:01,504 - SystemMonitor - INFO - Registered health check: system_resources
+2025-08-29 15:46:01,504 - SystemMonitor - INFO - Registered health check: python_process
+2025-08-29 15:46:01,504 - SystemMonitor - INFO - Registered health check: error_rate
+2025-08-29 15:46:01,504 - SystemMonitor - INFO - Registered health check: component_registry
+2025-08-29 15:46:01,504 - SystemMonitor - INFO - System monitoring started
+2025-08-29 15:46:01,504 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:46:01,504 - WorkflowManager - INFO - Started workflow execution: 6ca80c6c-286d-443c-a661-19814703c719 for workflow: test_workflow
+2025-08-29 15:46:01,504 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:46:01,621 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:46:02,505 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:46:02,506 - WorkflowManager - INFO - Started workflow execution: 4f245abc-1248-4ffd-a137-a217c69165ea for workflow: pipeline_simulation
+2025-08-29 15:46:02,506 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:46:02,607 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:46:02,608 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:46:02,709 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:46:02,709 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:46:02,811 - WorkflowManager - INFO - Step backtest completed successfully
+2025-08-29 15:46:04,508 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:46:04,508 - WorkflowManager - INFO - Started workflow execution: 187bbf0d-53d6-4911-9aa6-447c0ad7f8f4 for workflow: test_workflow
+2025-08-29 15:46:04,508 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:46:04,610 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:46:05,509 - WorkflowManager - INFO - Registered workflow: Test Workflow (test_workflow)
+2025-08-29 15:46:05,509 - WorkflowManager - INFO - Started workflow execution: ff8cb260-59a4-42a8-9b04-62e80087b5e3 for workflow: test_workflow
+2025-08-29 15:46:05,509 - WorkflowManager - INFO - Executing step: Test Step (test_step)
+2025-08-29 15:46:05,610 - WorkflowManager - INFO - Step test_step completed successfully
+2025-08-29 15:46:06,510 - WorkflowManager - INFO - Registered workflow: Pipeline Simulation (pipeline_simulation)
+2025-08-29 15:46:06,511 - WorkflowManager - INFO - Started workflow execution: ad3be473-52be-40a0-b0ac-a2eabf0424c4 for workflow: pipeline_simulation
+2025-08-29 15:46:06,511 - WorkflowManager - INFO - Executing step: Data Fetch (data_fetch)
+2025-08-29 15:46:06,612 - WorkflowManager - INFO - Step data_fetch completed successfully
+2025-08-29 15:46:06,612 - WorkflowManager - INFO - Executing step: Signal Generation (signal_generation)
+2025-08-29 15:46:06,714 - WorkflowManager - INFO - Step signal_generation completed successfully
+2025-08-29 15:46:06,714 - WorkflowManager - INFO - Executing step: Backtest (backtest)
+2025-08-29 15:46:06,815 - WorkflowManager - INFO - Step backtest completed successfully

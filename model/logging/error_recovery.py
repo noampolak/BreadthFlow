@@ -19,6 +19,34 @@ class ErrorRecovery:
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
     
+    @staticmethod
+    def retry(max_attempts: int = 3, backoff_factor: float = 2.0):
+        """Static decorator for retrying operations"""
+        def decorator(func: Callable):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                last_exception = None
+                
+                for attempt in range(max_attempts):
+                    try:
+                        return func(*args, **kwargs)
+                    except Exception as e:
+                        last_exception = e
+                        
+                        # If this is the last attempt, raise the exception
+                        if attempt == max_attempts - 1:
+                            raise e
+                        
+                        # Calculate backoff delay
+                        delay = (backoff_factor ** attempt)
+                        logger.warning(f"Retry attempt {attempt + 1}/{max_attempts} after {delay}s for {func.__name__}")
+                        time.sleep(delay)
+                
+                raise last_exception
+            
+            return wrapper
+        return decorator
+    
     def retry_on_error(self, retryable_errors: list = None):
         """Decorator for retrying operations on specific errors"""
         

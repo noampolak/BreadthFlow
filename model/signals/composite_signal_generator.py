@@ -6,7 +6,13 @@ into a unified signal generation system.
 """
 
 from typing import Dict, List, Any, Optional
-import pandas as pd
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 from datetime import datetime
 import logging
 import time
@@ -92,8 +98,11 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
         """Get signal generator configuration"""
         return self.config
     
-    def generate_signals(self, config: SignalConfig, data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def generate_signals(self, config: SignalConfig, data: Dict[str, Any]):
         """Generate composite signals using multiple strategies"""
+        
+        if not PANDAS_AVAILABLE:
+            raise ImportError("pandas is required for signal generation but not available")
         
         # Simplified performance logging
         start_time = time.time()
@@ -111,7 +120,10 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
             
             if not strategy_results:
                 logger.warning("No strategy results generated")
-                return pd.DataFrame()
+                if PANDAS_AVAILABLE:
+                    return pd.DataFrame()
+                else:
+                    return {}
             
             # Combine strategy results
             composite_signals = self._combine_strategy_signals(strategy_results, config)
@@ -133,7 +145,10 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
             
         except Exception as e:
             logger.error(f"Error in composite signal generation: {e}")
-            self._update_generation_stats(pd.DataFrame(), False)
+            if PANDAS_AVAILABLE:
+                self._update_generation_stats(pd.DataFrame(), False)
+            else:
+                self._update_generation_stats({}, False)
             raise
     
     def _validate_config(self, config: SignalConfig) -> bool:

@@ -4,9 +4,15 @@ Technical Indicators Component
 Provides technical analysis indicators for signal generation.
 """
 
-import pandas as pd
 import numpy as np
 from typing import Dict, List, Any, Optional
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,22 +34,22 @@ class TechnicalIndicators:
             'atr': self.average_true_range
         }
     
-    def calculate_indicator(self, indicator_name: str, data: pd.DataFrame, **kwargs) -> pd.Series:
+    def calculate_indicator(self, indicator_name: str, data, **kwargs):
         """Calculate a specific technical indicator"""
         if indicator_name not in self.indicators:
             raise ValueError(f"Unknown indicator: {indicator_name}")
         
         return self.indicators[indicator_name](data, **kwargs)
     
-    def simple_moving_average(self, data: pd.DataFrame, period: int = 20, column: str = 'close') -> pd.Series:
+    def simple_moving_average(self, data, period: int = 20, column: str = 'close'):
         """Calculate Simple Moving Average"""
         return data[column].rolling(window=period).mean()
     
-    def exponential_moving_average(self, data: pd.DataFrame, period: int = 20, column: str = 'close') -> pd.Series:
+    def exponential_moving_average(self, data, period: int = 20, column: str = 'close'):
         """Calculate Exponential Moving Average"""
         return data[column].ewm(span=period).mean()
     
-    def relative_strength_index(self, data: pd.DataFrame, period: int = 14, column: str = 'close') -> pd.Series:
+    def relative_strength_index(self, data, period: int = 14, column: str = 'close'):
         """Calculate Relative Strength Index"""
         delta = data[column].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
@@ -52,11 +58,11 @@ class TechnicalIndicators:
         rsi = 100 - (100 / (1 + rs))
         return rsi
     
-    def moving_average_convergence_divergence(self, data: pd.DataFrame, 
+    def moving_average_convergence_divergence(self, data, 
                                             fast_period: int = 12, 
                                             slow_period: int = 26, 
                                             signal_period: int = 9,
-                                            column: str = 'close') -> Dict[str, pd.Series]:
+                                            column: str = 'close'):
         """Calculate MACD"""
         ema_fast = data[column].ewm(span=fast_period).mean()
         ema_slow = data[column].ewm(span=slow_period).mean()
@@ -70,8 +76,8 @@ class TechnicalIndicators:
             'histogram': histogram
         }
     
-    def bollinger_bands(self, data: pd.DataFrame, period: int = 20, 
-                       std_dev: float = 2, column: str = 'close') -> Dict[str, pd.Series]:
+    def bollinger_bands(self, data, period: int = 20,
+                       std_dev: float = 2, column: str = 'close'):
         """Calculate Bollinger Bands"""
         sma = data[column].rolling(window=period).mean()
         std = data[column].rolling(window=period).std()
@@ -84,8 +90,8 @@ class TechnicalIndicators:
             'lower': lower_band
         }
     
-    def stochastic_oscillator(self, data: pd.DataFrame, k_period: int = 14, 
-                            d_period: int = 3) -> Dict[str, pd.Series]:
+    def stochastic_oscillator(self, data, k_period: int = 14,
+                             d_period: int = 3):
         """Calculate Stochastic Oscillator"""
         low_min = data['low'].rolling(window=k_period).min()
         high_max = data['high'].rolling(window=k_period).max()
@@ -97,14 +103,14 @@ class TechnicalIndicators:
             'd_percent': d_percent
         }
     
-    def williams_percent_r(self, data: pd.DataFrame, period: int = 14) -> pd.Series:
+    def williams_percent_r(self, data, period: int = 14):
         """Calculate Williams %R"""
         high_max = data['high'].rolling(window=period).max()
         low_min = data['low'].rolling(window=period).min()
         williams_r = -100 * ((high_max - data['close']) / (high_max - low_min))
         return williams_r
     
-    def commodity_channel_index(self, data: pd.DataFrame, period: int = 20) -> pd.Series:
+    def commodity_channel_index(self, data, period: int = 20):
         """Calculate Commodity Channel Index"""
         typical_price = (data['high'] + data['low'] + data['close']) / 3
         sma_tp = typical_price.rolling(window=period).mean()
@@ -114,7 +120,7 @@ class TechnicalIndicators:
         cci = (typical_price - sma_tp) / (0.015 * mean_deviation)
         return cci
     
-    def average_directional_index(self, data: pd.DataFrame, period: int = 14) -> Dict[str, pd.Series]:
+    def average_directional_index(self, data, period: int = 14):
         """Calculate Average Directional Index"""
         high_diff = data['high'].diff()
         low_diff = data['low'].diff()
@@ -144,7 +150,7 @@ class TechnicalIndicators:
             'adx': adx
         }
     
-    def average_true_range(self, data: pd.DataFrame, period: int = 14) -> pd.Series:
+    def average_true_range(self, data, period: int = 14):
         """Calculate Average True Range"""
         high_low = data['high'] - data['low']
         high_close = np.abs(data['high'] - data['close'].shift(1))
@@ -155,10 +161,13 @@ class TechnicalIndicators:
         
         return atr
     
-    def generate_technical_signals(self, data: pd.DataFrame, 
+    def generate_technical_signals(self, data,
                                  indicators: List[str],
-                                 parameters: Dict[str, Any] = None) -> pd.DataFrame:
+                                 parameters: Dict[str, Any] = None):
         """Generate technical analysis signals"""
+        if not PANDAS_AVAILABLE:
+            raise ImportError("pandas is required for technical indicators but not available")
+            
         if parameters is None:
             parameters = {}
         
@@ -216,9 +225,9 @@ class TechnicalIndicators:
         
         return signals
     
-    def get_signal_strength(self, data: pd.DataFrame, 
-                           buy_conditions: List[str], 
-                           sell_conditions: List[str]) -> pd.Series:
+    def get_signal_strength(self, data,
+                           buy_conditions: List[str],
+                           sell_conditions: List[str]):
         """Calculate signal strength based on technical conditions"""
         signal_strength = pd.Series(0.0, index=data.index)
         

@@ -4,7 +4,13 @@ Fundamental Indicators Component
 Provides fundamental analysis indicators for signal generation.
 """
 
-import pandas as pd
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+
 import numpy as np
 from typing import Dict, List, Any, Optional
 import logging

@@ -4,10 +4,16 @@ Technical Analysis Strategy
 Implements technical analysis-based signal generation strategies.
 """
 
-import pandas as pd
 import numpy as np
 from typing import Dict, List, Any, Optional
 import logging
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 import time
 from base_signal_strategy import BaseSignalStrategy
 from signal_config import SignalConfig
@@ -46,9 +52,12 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
         # Update config with defaults
         self.config.update(self.default_config)
     
-    def generate_signals(self, data: Dict[str, pd.DataFrame], 
-                        config: SignalConfig) -> pd.DataFrame:
+    def generate_signals(self, data: Dict[str, Any], 
+                        config: SignalConfig):
         """Generate technical analysis signals"""
+        
+        if not PANDAS_AVAILABLE:
+            raise ImportError("pandas is required for technical analysis but not available")
         
         start_time = time.time()
         success = False
@@ -63,13 +72,19 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
             
             if not processed_data:
                 logger.error("No valid data after preprocessing")
-                return pd.DataFrame()
+                if PANDAS_AVAILABLE:
+                    return pd.DataFrame()
+                else:
+                    return {}
             
             # Get stock price data
             stock_data = processed_data.get("stock_price")
             if stock_data is None or stock_data.empty:
                 logger.error("No stock price data available")
-                return pd.DataFrame()
+                if PANDAS_AVAILABLE:
+                    return pd.DataFrame()
+                else:
+                    return {}
             
             # Generate technical indicators
             indicators = self.config.get('indicators', ['rsi', 'macd', 'bollinger_bands'])
@@ -91,7 +106,10 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
             
         except Exception as e:
             logger.error(f"Error generating technical analysis signals: {e}")
-            return pd.DataFrame()
+            if PANDAS_AVAILABLE:
+                return pd.DataFrame()
+            else:
+                return {}
         
         finally:
             # Update performance stats

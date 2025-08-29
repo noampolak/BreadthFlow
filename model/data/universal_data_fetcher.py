@@ -6,13 +6,19 @@ providing a unified interface for the BreadthFlow system.
 """
 
 from typing import Dict, List, Any, Optional
-import pandas as pd
 from datetime import datetime, timedelta
 import logging
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 from sources.data_source_interface import DataSourceInterface
 from resources.data_resources import get_resource_by_name, validate_resource_data
-from model.logging.enhanced_logger import EnhancedLogger
-from model.logging.error_handler import ErrorHandler
+from enhanced_logger import EnhancedLogger
+from error_handler import ErrorHandler
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +38,19 @@ class UniversalDataFetcher:
             'failed_requests': 0,
             'total_data_points': 0
         }
+        
+        # Register default data sources
+        self._register_default_sources()
+    
+    def _register_default_sources(self):
+        """Register default data sources"""
+        try:
+            from .sources.yfinance_source import YFinanceDataSource
+            yfinance_source = YFinanceDataSource()
+            self.register_data_source("yfinance", yfinance_source)
+            logger.info("✅ Registered YFinance data source")
+        except Exception as e:
+            logger.warning(f"Could not register YFinance data source: {e}")
     
     def register_data_source(self, source_name: str, data_source: DataSourceInterface):
         """Register a data source"""
@@ -51,8 +70,11 @@ class UniversalDataFetcher:
     
     def fetch_data(self, resource_name: str, symbols: List[str], 
                    start_date: datetime, end_date: datetime,
-                   source_name: str = None, **kwargs) -> pd.DataFrame:
+                   source_name: str = None, **kwargs):
         """Fetch data for specified resource and symbols"""
+        
+        if not PANDAS_AVAILABLE:
+            raise ImportError("pandas is required for data fetching but not available")
         
         with self.logger.log_performance("fetch_data"):
             try:
@@ -150,7 +172,7 @@ class UniversalDataFetcher:
     
     def fetch_multiple_resources(self, resources: List[str], symbols: List[str],
                                 start_date: datetime, end_date: datetime,
-                                **kwargs) -> Dict[str, pd.DataFrame]:
+                                **kwargs):
         """Fetch multiple resources at once"""
         
         results = {}
@@ -161,12 +183,25 @@ class UniversalDataFetcher:
                 results[resource_name] = data
             except Exception as e:
                 logger.error(f"Failed to fetch {resource_name}: {e}")
-                results[resource_name] = pd.DataFrame()  # Empty DataFrame for failed resources
+                if PANDAS_AVAILABLE:
+                    results[resource_name] = pd.DataFrame()  # Empty DataFrame for failed resources
+                else:
+                    results[resource_name] = {}  # Empty dict for failed resources
         
         return results
     
-    def get_data_summary(self, data: pd.DataFrame, resource_name: str) -> Dict[str, Any]:
+    def get_data_summary(self, data, resource_name: str) -> Dict[str, Any]:
         """Get summary statistics for fetched data"""
+        
+        if not PANDAS_AVAILABLE:
+            return {
+                'resource': resource_name,
+                'total_records': 0,
+                'symbols': [],
+                'date_range': None,
+                'completeness': 0.0,
+                'error': 'pandas not available'
+            }
         
         if data.empty:
             return {
@@ -191,8 +226,11 @@ class UniversalDataFetcher:
         
         return summary
     
-    def _validate_data_quality(self, data: pd.DataFrame, resource) -> Dict[str, Any]:
+    def _validate_data_quality(self, data, resource) -> Dict[str, Any]:
         """Validate data quality"""
+        
+        if not PANDAS_AVAILABLE:
+            return {'quality_score': 0.0, 'issues': ['pandas not available']}
         
         if data.empty:
             return {'quality_score': 0.0, 'issues': ['No data']}

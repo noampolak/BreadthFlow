@@ -79,6 +79,11 @@ class ErrorHandler:
         
         return error_record
     
+    def record_error(self, error: Exception, context: Dict[str, Any], 
+                    component: str = "unknown", operation: str = "unknown"):
+        """Record an error (alias for handle_error)"""
+        return self.handle_error(error, context, component, operation)
+    
     def get_error_summary(self, time_window: timedelta = None) -> Dict[str, Any]:
         """Get error summary for monitoring"""
         

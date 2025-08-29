@@ -6,7 +6,13 @@ Abstract interface for signal generators in the BreadthFlow system.
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
-import pandas as pd
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 from datetime import datetime
 from signal_config import SignalConfig
 
@@ -24,7 +30,7 @@ class SignalGeneratorInterface(ABC):
         pass
     
     @abstractmethod
-    def generate_signals(self, config: SignalConfig, data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def generate_signals(self, config: SignalConfig, data: Dict[str, Any]):
         """Generate signals based on configuration and data"""
         pass
     
@@ -44,8 +50,11 @@ class SignalGeneratorInterface(ABC):
         
         return True
     
-    def validate_data(self, data: Dict[str, pd.DataFrame], required_resources: List[str]) -> bool:
+    def validate_data(self, data: Dict[str, Any], required_resources: List[str]) -> bool:
         """Validate that required data is available"""
+        if not PANDAS_AVAILABLE:
+            return False
+            
         for resource in required_resources:
             if resource not in data:
                 return False
@@ -64,8 +73,17 @@ class SignalGeneratorInterface(ABC):
             'last_generation': None
         }
     
-    def get_signal_quality_metrics(self, signals: pd.DataFrame) -> Dict[str, Any]:
+    def get_signal_quality_metrics(self, signals) -> Dict[str, Any]:
         """Calculate signal quality metrics"""
+        if not PANDAS_AVAILABLE:
+            return {
+                'total_signals': 0,
+                'signal_strength_avg': 0.0,
+                'confidence_avg': 0.0,
+                'signal_distribution': {},
+                'error': 'pandas not available'
+            }
+        
         if signals.empty:
             return {
                 'total_signals': 0,

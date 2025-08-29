@@ -6,7 +6,13 @@ Abstract base class for signal generation strategies.
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
-import pandas as pd
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 from datetime import datetime
 import logging
 from signal_config import SignalConfig
@@ -31,14 +37,16 @@ class BaseSignalStrategy(ABC):
         }
     
     @abstractmethod
-    def generate_signals(self, data: Dict[str, pd.DataFrame], 
-                        config: SignalConfig) -> pd.DataFrame:
+    def generate_signals(self, data: Dict[str, Any],
+                        config: SignalConfig):
         """Generate signals based on data and configuration"""
         pass
     
     @abstractmethod
-    def validate_data(self, data: Dict[str, pd.DataFrame]) -> bool:
+    def validate_data(self, data: Dict[str, Any]) -> bool:
         """Validate that required data is available"""
+        if not PANDAS_AVAILABLE:
+            return False
         pass
     
     def get_name(self) -> str:
@@ -72,9 +80,12 @@ class BaseSignalStrategy(ABC):
         
         return True
     
-    def preprocess_data(self, data: Dict[str, pd.DataFrame], 
-                       config: SignalConfig) -> Dict[str, pd.DataFrame]:
+    def preprocess_data(self, data: Dict[str, Any],
+                       config: SignalConfig):
         """Preprocess data before signal generation"""
+        if not PANDAS_AVAILABLE:
+            return {}
+            
         processed_data = {}
         
         for resource_name, resource_data in data.items():
@@ -98,9 +109,12 @@ class BaseSignalStrategy(ABC):
         
         return processed_data
     
-    def postprocess_signals(self, signals: pd.DataFrame, 
-                           config: SignalConfig) -> pd.DataFrame:
+    def postprocess_signals(self, signals,
+                           config: SignalConfig):
         """Postprocess generated signals"""
+        if not PANDAS_AVAILABLE:
+            return {}
+            
         if signals.empty:
             return signals
         
@@ -124,9 +138,12 @@ class BaseSignalStrategy(ABC):
         
         return signals
     
-    def calculate_signal_confidence(self, signals: pd.DataFrame, 
-                                  confidence_factors: List[str]) -> pd.Series:
+    def calculate_signal_confidence(self, signals, 
+                                  confidence_factors: List[str]):
         """Calculate signal confidence based on multiple factors"""
+        if not PANDAS_AVAILABLE:
+            return None
+            
         if signals.empty or not confidence_factors:
             return pd.Series(0.5, index=signals.index)
         
