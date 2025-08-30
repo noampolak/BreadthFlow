@@ -11,9 +11,11 @@ from .resources.data_resources import (
 )
 from .sources.data_source_interface import DataSourceInterface
 from .validation.data_validator import DataValidator, ValidationRule, ValidationResult
+from .universal_data_fetcher import UniversalDataFetcher
 
 __all__ = [
     'ResourceType', 'DataFrequency', 'ResourceField', 'DataResource',
     'STOCK_PRICE', 'REVENUE', 'MARKET_CAP', 'NEWS_SENTIMENT',
-    'DataSourceInterface', 'DataValidator', 'ValidationRule', 'ValidationResult'
+    'DataSourceInterface', 'DataValidator', 'ValidationRule', 'ValidationResult',
+    'UniversalDataFetcher'
 ]

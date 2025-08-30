@@ -14,7 +14,7 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 from datetime import datetime
-from signal_config import SignalConfig
+from .signal_config import SignalConfig
 
 class SignalGeneratorInterface(ABC):
     """Abstract interface for signal generators"""

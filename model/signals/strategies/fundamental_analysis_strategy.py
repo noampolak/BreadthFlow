@@ -9,9 +9,9 @@ import numpy as np
 from typing import Dict, List, Any, Optional
 import logging
 import time
-from base_signal_strategy import BaseSignalStrategy
-from signal_config import SignalConfig
-from components.fundamental_indicators import FundamentalIndicators
+from .base_signal_strategy import BaseSignalStrategy
+from ..signal_config import SignalConfig
+from ..components.fundamental_indicators import FundamentalIndicators
 
 logger = logging.getLogger(__name__)
 

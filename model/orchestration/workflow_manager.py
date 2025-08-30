@@ -14,9 +14,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 import uuid
 
-from enhanced_logger import EnhancedLogger
-from error_handler import ErrorHandler
-from error_recovery import ErrorRecovery
+from ..logging.enhanced_logger import EnhancedLogger
+from ..logging.error_handler import ErrorHandler
+from ..logging.error_recovery import ErrorRecovery
 
 
 class WorkflowStatus(Enum):

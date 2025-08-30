@@ -8,9 +8,9 @@ import uuid
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 import logging
-from execution_engine import ExecutionEngine
-from backtest_config import BacktestConfig, ExecutionType
-from trade_record import TradeRecord, TradeType, TradeStatus
+from .execution_engine import ExecutionEngine
+from ..backtest_config import BacktestConfig, ExecutionType
+from ..trade_record import TradeRecord, TradeType, TradeStatus
 
 logger = logging.getLogger(__name__)
 

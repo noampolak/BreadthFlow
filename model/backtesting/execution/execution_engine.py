@@ -8,8 +8,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 import pandas as pd
 from datetime import datetime
-from backtest_config import BacktestConfig, ExecutionType
-from trade_record import TradeRecord, TradeType, TradeStatus
+from ..backtest_config import BacktestConfig, ExecutionType
+from ..trade_record import TradeRecord, TradeType, TradeStatus
 
 class ExecutionEngine(ABC):
     """Abstract interface for trade execution engines"""

@@ -9,9 +9,9 @@ import logging
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
-from base_backtest_engine import BaseBacktestEngine
-from backtest_config import BacktestConfig
-from trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from .base_backtest_engine import BaseBacktestEngine
+from ..backtest_config import BacktestConfig
+from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
 
 logger = logging.getLogger(__name__)
 

@@ -8,9 +8,9 @@ and portfolio optimization.
 from typing import Dict, List, Any, Optional
 import logging
 import numpy as np
-from risk_manager import RiskManager
-from backtest_config import BacktestConfig
-from trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from .risk_manager import RiskManager
+from ..backtest_config import BacktestConfig
+from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
 
 logger = logging.getLogger(__name__)
 

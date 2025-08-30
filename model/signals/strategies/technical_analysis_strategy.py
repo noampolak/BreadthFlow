@@ -15,9 +15,9 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 import time
-from base_signal_strategy import BaseSignalStrategy
-from signal_config import SignalConfig
-from components.technical_indicators import TechnicalIndicators
+from .base_signal_strategy import BaseSignalStrategy
+from ..signal_config import SignalConfig
+from ..components.technical_indicators import TechnicalIndicators
 
 logger = logging.getLogger(__name__)
 

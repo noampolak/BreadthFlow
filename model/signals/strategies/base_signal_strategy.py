@@ -15,7 +15,7 @@ except ImportError:
     PANDAS_AVAILABLE = False
 from datetime import datetime
 import logging
-from signal_config import SignalConfig
+from ..signal_config import SignalConfig
 
 logger = logging.getLogger(__name__)
 

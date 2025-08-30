@@ -7,9 +7,9 @@ Standard implementation for backtesting with common features and optimizations.
 from typing import Dict, List, Any, Optional
 import logging
 from datetime import datetime, timedelta
-from base_backtest_engine import BaseBacktestEngine
-from backtest_config import BacktestConfig
-from trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from .base_backtest_engine import BaseBacktestEngine
+from ..backtest_config import BacktestConfig
+from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
 import pandas as pd
 import numpy as np
 

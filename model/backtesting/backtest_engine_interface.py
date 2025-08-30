@@ -8,8 +8,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 import pandas as pd
 from datetime import datetime
-from backtest_config import BacktestConfig
-from trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from .backtest_config import BacktestConfig
+from .trade_record import TradeRecord, PositionRecord, PortfolioRecord
 
 class BacktestEngineInterface(ABC):
     """Abstract interface for backtest engines"""

@@ -22,8 +22,8 @@ from enum import Enum
 import threading
 import queue
 
-from enhanced_logger import EnhancedLogger
-from error_handler import ErrorHandler
+from ..logging.enhanced_logger import EnhancedLogger
+from ..logging.error_handler import ErrorHandler
 
 
 class HealthStatus(Enum):

@@ -16,11 +16,11 @@ except ImportError:
 from datetime import datetime
 import logging
 import time
-from signal_config import SignalConfig
-from signal_generator_interface import SignalGeneratorInterface
-from strategies.base_signal_strategy import BaseSignalStrategy
-from strategies.technical_analysis_strategy import TechnicalAnalysisStrategy
-from strategies.fundamental_analysis_strategy import FundamentalAnalysisStrategy
+from .signal_config import SignalConfig
+from .signal_generator_interface import SignalGeneratorInterface
+from .strategies.base_signal_strategy import BaseSignalStrategy
+from .strategies.technical_analysis_strategy import TechnicalAnalysisStrategy
+from .strategies.fundamental_analysis_strategy import FundamentalAnalysisStrategy
 # Import logging components directly to avoid PySpark dependency
 import logging
 import time

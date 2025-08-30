@@ -9,12 +9,12 @@ from typing import Dict, List, Any, Optional
 import logging
 import pandas as pd
 from datetime import datetime
-from backtest_engine_interface import BacktestEngineInterface
-from backtest_config import BacktestConfig
-from trade_record import TradeRecord, PositionRecord, PortfolioRecord
-from execution.execution_engine import ExecutionEngine
-from risk.risk_manager import RiskManager
-from analytics.performance_analyzer import PerformanceAnalyzer
+from ..backtest_engine_interface import BacktestEngineInterface
+from ..backtest_config import BacktestConfig
+from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from ..execution.execution_engine import ExecutionEngine
+from ..risk.risk_manager import RiskManager
+from ..analytics.performance_analyzer import PerformanceAnalyzer
 
 logger = logging.getLogger(__name__)
 
