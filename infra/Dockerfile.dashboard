@@ -32,6 +32,7 @@ RUN mkdir -p /app/data
 COPY cli/postgres_dashboard.py /app/dashboard.py
 COPY cli/pipeline_controller.py /app/pipeline_controller.py
 COPY cli/pipeline_dashboard.py /app/pipeline_dashboard.py
+COPY cli/training_dashboard.py /app/training_dashboard.py
 
 # Expose port
 EXPOSE 8080

@@ -64,6 +64,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_commands()
         elif self.path == '/pipeline':
             self.serve_pipeline_management()
+        elif self.path == '/training':
+            self.serve_training()
         elif self.path == '/theory':
             self.serve_theory_page()
         elif self.path == '/parameters':
@@ -92,6 +94,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_pipeline_runs()
         elif self.path == '/api/pipeline/monitor':
             self.serve_pipeline_monitor()
+        elif self.path.startswith('/api/training'):
+            self.serve_training_api()
         else:
             self.send_error(404)
     
@@ -106,6 +110,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_pipeline_stop()
         elif self.path == '/api/pipeline/running-status':
             self.serve_pipeline_running_status()
+        elif self.path.startswith('/api/training'):
+            self.serve_training_api_post()
         else:
             self.send_error(404)
     
@@ -377,6 +383,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                     <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
                     <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
+                    <button class="nav-btn" onclick="window.location.href='/training'">Training</button>
                     <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
                 </div>
         </div>
@@ -3227,6 +3234,23 @@ class DashboardHandler(BaseHTTPRequestHandler):
             print(f"Error serving pipeline management: {e}")
             self.send_error(500)
 
+    def serve_training(self):
+        """Serve the Training Dashboard page"""
+        try:
+            import sys
+            sys.path.append('/app/cli')
+            from training_dashboard import TrainingDashboard
+            dashboard = TrainingDashboard()
+            html = dashboard.generate_html()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(html.encode('utf-8'))
+        except Exception as e:
+            print(f"Error serving training dashboard: {e}")
+            self.send_error(500)
+
     def serve_pipeline_status(self):
         """Handle pipeline status requests"""
         try:
@@ -4012,6 +4036,156 @@ ZBT Confidence:        5% (Rare but powerful)
         self.send_header('Content-type', 'text/html; charset=utf-8')
         self.end_headers()
         self.wfile.write(html.encode('utf-8'))
+
+    def serve_training_api(self):
+        """Handle training API requests"""
+        try:
+            path = self.path
+            if path == '/api/training/models':
+                self.serve_training_models()
+            elif path == '/api/training/analytics':
+                self.serve_training_analytics()
+            elif path == '/api/training/progress':
+                self.serve_training_progress()
+            else:
+                self.send_error(404)
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+    def serve_training_api_post(self):
+        """Handle training API POST requests"""
+        try:
+            path = self.path
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            if path == '/api/training/start':
+                self.serve_training_start(data)
+            elif path == '/api/training/stop':
+                self.serve_training_stop()
+            elif path == '/api/training/deploy':
+                self.serve_training_deploy(data)
+            elif path == '/api/training/delete':
+                self.serve_training_delete(data)
+            else:
+                self.send_error(404)
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+    def serve_training_models(self):
+        """Serve training models list"""
+        # Mock data for now - will be replaced with actual implementation
+        models = [
+            {
+                'id': 'model_001',
+                'name': 'Random Forest Classifier',
+                'type': 'random_forest',
+                'strategy': 'classification',
+                'created_at': '2024-01-15 10:30:00',
+                'accuracy': 85.5,
+                'precision': 82.3,
+                'recall': 87.1,
+                'f1_score': 84.6
+            },
+            {
+                'id': 'model_002',
+                'name': 'XGBoost Ensemble',
+                'type': 'xgboost',
+                'strategy': 'ensemble',
+                'created_at': '2024-01-14 15:45:00',
+                'accuracy': 88.2,
+                'precision': 86.7,
+                'recall': 89.4,
+                'f1_score': 88.0
+            }
+        ]
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'models': models}).encode('utf-8'))
+
+    def serve_training_analytics(self):
+        """Serve training analytics"""
+        # Mock data for now - will be replaced with actual implementation
+        analytics = {
+            'total_models': 2,
+            'avg_accuracy': 86.85,
+            'training_sessions': 5,
+            'deployed_models': 1
+        }
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'analytics': analytics}).encode('utf-8'))
+
+    def serve_training_progress(self):
+        """Serve training progress"""
+        # Mock data for now - will be replaced with actual implementation
+        progress = {
+            'percentage': 45,
+            'current_epoch': 45,
+            'total_epochs': 100,
+            'loss': 0.2345,
+            'accuracy': 0.8234,
+            'log': 'Training epoch 45/100 - Loss: 0.2345, Accuracy: 82.34%',
+            'completed': False
+        }
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'progress': progress}).encode('utf-8'))
+
+    def serve_training_start(self, data):
+        """Handle training start request"""
+        # Mock implementation - will be replaced with actual training logic
+        print(f"Training started with config: {data}")
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'success': True, 'message': 'Training started'}).encode('utf-8'))
+
+    def serve_training_stop(self):
+        """Handle training stop request"""
+        # Mock implementation - will be replaced with actual training logic
+        print("Training stopped")
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'success': True, 'message': 'Training stopped'}).encode('utf-8'))
+
+    def serve_training_deploy(self, data):
+        """Handle model deployment request"""
+        # Mock implementation - will be replaced with actual deployment logic
+        model_id = data.get('model_id')
+        print(f"Deploying model: {model_id}")
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'success': True, 'message': f'Model {model_id} deployed'}).encode('utf-8'))
+
+    def serve_training_delete(self, data):
+        """Handle model deletion request"""
+        # Mock implementation - will be replaced with actual deletion logic
+        model_id = data.get('model_id')
+        print(f"Deleting model: {model_id}")
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'success': True, 'message': f'Model {model_id} deleted'}).encode('utf-8'))
     
 @click.command()
 @click.option('--port', default=8080, help='Port to run dashboard on')
