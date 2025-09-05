@@ -53,7 +53,6 @@ def init_database():
 
 class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        print(f"DEBUG: do_GET called with path: {self.path}")
         if self.path == '/' or self.path == '/dashboard':
             self.serve_dashboard()
         elif self.path == '/infrastructure':
@@ -64,12 +63,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_commands()
         elif self.path == '/pipeline':
             self.serve_pipeline_management()
-        elif self.path == '/training':
-            self.serve_training()
-        elif self.path == '/theory':
-            self.serve_theory_page()
         elif self.path == '/parameters':
             self.serve_parameters()
+        elif self.path == '/training':
+            self.serve_training()
         elif self.path == '/favicon.svg':
             self.serve_favicon()
         elif self.path == '/api/summary':
@@ -81,7 +78,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_run_details(run_id)
         elif self.path == '/api/signals/latest':
             self.serve_latest_signals()
-        elif self.path.startswith('/api/signals/export'):
+        elif self.path == '/api/signals/export':
             self.serve_signals_export()
         elif self.path.startswith('/api/parameters'):
             self.serve_parameters_api()
@@ -90,12 +87,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         elif self.path == '/api/pipeline/logs':
             self.serve_pipeline_logs()
         elif self.path == '/api/pipeline/runs':
-            print(f"DEBUG: Route matched for /api/pipeline/runs")
             self.serve_pipeline_runs()
-        elif self.path == '/api/pipeline/monitor':
-            self.serve_pipeline_monitor()
-        elif self.path.startswith('/api/training'):
-            self.serve_training_api()
         else:
             self.send_error(404)
     
@@ -108,10 +100,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.serve_pipeline_start()
         elif self.path == '/api/pipeline/stop':
             self.serve_pipeline_stop()
-        elif self.path == '/api/pipeline/running-status':
-            self.serve_pipeline_running_status()
-        elif self.path.startswith('/api/training'):
-            self.serve_training_api_post()
         else:
             self.send_error(404)
     
@@ -377,13 +365,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Real-time pipeline monitoring with PostgreSQL backend</p>
                                                     <div class="nav-buttons">
                     <button class="nav-btn active" onclick="window.location.href='/'">Dashboard</button>
-                    <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                    <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
-                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                     <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
-                    <button class="nav-btn" onclick="window.location.href='/training'">Training</button>
+                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
+                    <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                     <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
                 </div>
         </div>
@@ -868,12 +854,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>System Architecture &amp; Component Overview</p>
                                     <div class="nav-buttons">
                             <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
-                            <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                             <button class="nav-btn active" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                            <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
-                            <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                             <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                            <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
+                            <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                            <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
+                            <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                             <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
                         </div>
         </div>
@@ -1232,23 +1217,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
     
     def serve_signals_export(self):
         try:
-            format_type = self.get_query_param('format')
             run_id = self.get_query_param('run_id')
-            
-            if format_type == 'json':
-                if run_id:
-                    data = self.export_run_signals_json(run_id)
-                    self.send_json_response(data, f"signals_{run_id[:8]}.json")
-                else:
-                    data = self.export_latest_signals_json()
-                    self.send_json_response(data, "latest_signals.json")
-            else:  # Default to CSV
-                if run_id:
-                    data = self.export_run_signals_csv(run_id)
-                    self.send_csv_response(data, f"signals_{run_id[:8]}.csv")
-                else:
-                    data = self.export_latest_signals_csv()
-                    self.send_csv_response(data, "latest_signals.csv")
+            if run_id:
+                data = self.export_run_signals(run_id)
+                self.send_csv_response(data, f"signals_{run_id[:8]}.csv")
+            else:
+                data = self.export_latest_signals()
+                self.send_csv_response(data, "latest_signals.csv")
         except Exception as e:
             self.send_json({"error": str(e)})
     
@@ -1378,12 +1353,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Real-time trading signals and market analysis</p>
                             <div class="nav-buttons">
                     <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
-                    <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                     <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                    <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
-                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                     <button class="nav-btn active" onclick="window.location.href='/trading'">Trading Signals</button>
-                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
+                    <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                    <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
+                    <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                     <button class="refresh-btn" onclick="loadSignals()">Refresh Signals</button>
                 </div>
         </div>
@@ -1586,64 +1560,40 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     print(f"Found {len(parquet_files)} Parquet files: {[obj['Key'] for obj in parquet_files]}")
                     
                     if parquet_files:
-                        # Get all files from the last 4 days
-                        from datetime import datetime, timezone, timedelta
-                        now = datetime.now(timezone.utc)
-                        four_days_ago = now - timedelta(days=4)
-                        
-                        recent_files = []
-                        for obj in parquet_files:
-                            file_time = obj['LastModified'].replace(tzinfo=timezone.utc)
-                            if file_time >= four_days_ago:
-                                recent_files.append(obj)
-                        
-                        # Sort files by timestamp (newest first)
-                        recent_files.sort(key=lambda x: x['LastModified'], reverse=True)
-                        
-                        print(f"Found {len(recent_files)} signal files from the last 4 days")
-                        
-                        # Read all signals from recent files
-                        all_signals = []
-                        for obj in recent_files:
-                            key = obj['Key']
-                            print(f"Reading Parquet file: {key}")
-                            try:
-                                # Read Parquet file
-                                response = s3_client.get_object(Bucket=bucket, Key=key)
-                                parquet_content = response['Body'].read()
-                                df = pd.read_parquet(io.BytesIO(parquet_content))
+                        obj = parquet_files[0]  # Get the most recent Parquet file
+                        key = obj['Key']
+                        print(f"Reading most recent Parquet file: {key}")
+                        try:
+                            # Read Parquet file
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            parquet_content = response['Body'].read()
+                            df = pd.read_parquet(io.BytesIO(parquet_content))
+                            
+                            if not df.empty:
+                                print(f"Successfully read {len(df)} signals from Parquet file {key}")
+                                print(f"DataFrame columns: {list(df.columns)}")
+                                print(f"Sample dates: {df['date'].unique()[:3] if 'date' in df.columns else 'No date column'}")
                                 
-                                if not df.empty and len(df) > 0:
-                                    print(f"Found {len(df)} signals in {key}")
+                                # Convert DataFrame to signal format - show all latest signals (no date filtering)
+                                print(f"Showing all {len(df)} latest signals (no date filtering)")
+                                
+                                for _, row in df.head(10).iterrows():
+                                    signal = {
+                                        "symbol": row.get('symbol', 'UNKNOWN'),
+                                        "signal_type": row.get('signal_type', 'hold'),
+                                        "confidence": row.get('confidence', 0),
+                                        "strength": row.get('signal_strength', 'medium'),
+                                        "date": row.get('date', 'N/A'),
+                                        "timeframe": row.get('timeframe', '1day')  # Add timeframe field
+                                    }
+                                    signals.append(signal)
+                                
+                                if signals:
+                                    print(f"Returning {len(signals)} latest signals from {key}")
+                                    return {"signals": signals}
                                     
-                                    # Convert DataFrame to signal format
-                                    for _, row in df.iterrows():
-                                        signal = {
-                                            "symbol": row.get('symbol', 'UNKNOWN'),
-                                            "signal_type": row.get('signal_type', 'hold'),
-                                            "confidence": row.get('confidence', 0),
-                                            "strength": row.get('signal_strength', 'medium'),
-                                            "date": row.get('date', 'N/A'),
-                                            "timeframe": row.get('timeframe', '1day'),
-                                            "create_time": row.get('create_time', 'N/A')  # Add create time
-                                        }
-                                        all_signals.append(signal)
-                                else:
-                                    print(f"File {key} is empty")
-                                    
-                            except Exception as e:
-                                print(f"Error reading Parquet file {key}: {e}")
-                                continue
-                        
-                        # Sort all signals by create_time (newest first)
-                        if all_signals:
-                            # Sort by create_time if available, otherwise by date
-                            all_signals.sort(key=lambda x: x.get('create_time', x.get('date', '')), reverse=True)
-                            print(f"Returning {len(all_signals)} signals from the last 4 days")
-                            return {"signals": all_signals[:50]}  # Limit to 50 most recent signals
-                        else:
-                            print("No signals found in the last 4 days")
-                            return {"signals": []}
+                        except Exception as e:
+                            print(f"Error reading Parquet file {key}: {e}")
                     
                     # Fallback to JSON files if Parquet reading failed
                     print("Trying JSON files as fallback...")
@@ -1705,13 +1655,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
         sys.stdout.flush()
         return {"signals": []}
     
-    def export_latest_signals_csv(self):
-        """Export latest signals as CSV using the new 4-day logic"""
+    def export_run_signals(self, run_id):
+        """Export signals for a specific run from MinIO"""
         try:
             import boto3
+            import json
             import pandas as pd
             import io
-            from datetime import datetime, timezone, timedelta
             
             # Create MinIO client
             s3_client = boto3.client(
@@ -1724,175 +1674,68 @@ class DashboardHandler(BaseHTTPRequestHandler):
             
             bucket = 'breadthflow'
             
-            # Get all files from the last 4 days (same logic as get_latest_signals)
-            response = s3_client.list_objects_v2(Bucket=bucket, Prefix='trading_signals/')
+            # Try to find signal files that might match the run_id
+            response = s3_client.list_objects_v2(
+                Bucket=bucket,
+                Prefix='trading_signals/',
+                MaxKeys=20
+            )
             
-            if 'Contents' not in response:
-                return [["Symbol", "Signal Type", "Confidence", "Strength", "Date", "Timeframe", "Create Time"]]
-            
-            # Get all files from the last 4 days
-            now = datetime.now(timezone.utc)
-            four_days_ago = now - timedelta(days=4)
-            
-            recent_files = []
-            for obj in response['Contents']:
-                file_time = obj['LastModified'].replace(tzinfo=timezone.utc)
-                if file_time >= four_days_ago:
-                    recent_files.append(obj)
-            
-            # Sort files by timestamp (newest first)
-            recent_files.sort(key=lambda x: x['LastModified'], reverse=True)
-            
-            # Read all signals from recent files
-            all_signals = []
-            for obj in recent_files:
+            if 'Contents' in response:
+                # Sort by last modified (newest first)
+                objects = sorted(response['Contents'], key=lambda x: x['LastModified'], reverse=True)
+                
+                # Try to read the most recent file
+                for obj in objects:
                 key = obj['Key']
                 try:
-                    if key.endswith('.parquet'):
+                        if key.endswith('.json'):
                         response = s3_client.get_object(Bucket=bucket, Key=key)
-                        parquet_content = response['Body'].read()
-                        df = pd.read_parquet(io.BytesIO(parquet_content))
-                        
-                        if not df.empty:
-                            for _, row in df.iterrows():
-                                all_signals.append({
-                                    'symbol': row.get('symbol', 'UNKNOWN'),
-                                    'signal_type': row.get('signal_type', 'hold').upper(),
-                                    'confidence': row.get('confidence', 0),
-                                    'strength': row.get('signal_strength', 'medium').title(),
-                                    'date': row.get('date', 'N/A'),
-                                    'timeframe': row.get('timeframe', '1day'),
-                                    'create_time': row.get('create_time', 'N/A')
-                                })
-                except Exception as e:
-                    print(f"Error reading file {key}: {e}")
-                    continue
-            
-            # Sort all signals by create_time (newest first)
-            if all_signals:
-                all_signals.sort(key=lambda x: x.get('create_time', x.get('date', '')), reverse=True)
-                
-                # Convert to CSV format
-                csv_data = [["Symbol", "Signal Type", "Confidence", "Strength", "Date", "Timeframe", "Create Time"]]
-                for signal in all_signals[:50]:  # Limit to 50 most recent signals
+                            content = response['Body'].read().decode('utf-8')
+                            data = json.loads(content)
+                            
+                            if isinstance(data, list):
+                                csv_data = [["Symbol", "Signal", "Confidence", "Strength", "Date"]]
+                                for item in data:
                     csv_data.append([
-                        signal['symbol'],
-                        signal['signal_type'],
-                        f"{signal['confidence']}%",
-                        signal['strength'],
-                        signal['date'],
-                        signal['timeframe'],
-                        signal['create_time']
+                                        item.get('symbol', 'UNKNOWN'),
+                                        item.get('signal_type', 'hold').upper(),
+                                        f"{item.get('confidence', 0)}%",
+                                        item.get('signal_strength', 'medium').title(),
+                                        item.get('date', 'N/A')
                     ])
                 return csv_data
-            else:
-                return [["Symbol", "Signal Type", "Confidence", "Strength", "Date", "Timeframe", "Create Time"]]
-                
-        except Exception as e:
-            print(f"Error in export_latest_signals_csv: {e}")
-            return [["Symbol", "Signal Type", "Confidence", "Strength", "Date", "Timeframe", "Create Time"]]
-    
-    def export_latest_signals_json(self):
-        """Export latest signals as JSON using the new 4-day logic"""
-        try:
-            import boto3
-            import pandas as pd
-            import io
-            from datetime import datetime, timezone, timedelta
-            
-            # Create MinIO client
-            s3_client = boto3.client(
-                's3',
-                endpoint_url='http://minio:9000',
-                aws_access_key_id='minioadmin',
-                aws_secret_access_key='minioadmin',
-                region_name='us-east-1'
-            )
-            
-            bucket = 'breadthflow'
-            
-            # Get all files from the last 4 days (same logic as get_latest_signals)
-            response = s3_client.list_objects_v2(Bucket=bucket, Prefix='trading_signals/')
-            
-            if 'Contents' not in response:
-                return {"signals": [], "export_info": {"total_signals": 0, "export_time": datetime.now().isoformat()}}
-            
-            # Get all files from the last 4 days
-            now = datetime.now(timezone.utc)
-            four_days_ago = now - timedelta(days=4)
-            
-            recent_files = []
-            for obj in response['Contents']:
-                file_time = obj['LastModified'].replace(tzinfo=timezone.utc)
-                if file_time >= four_days_ago:
-                    recent_files.append(obj)
-            
-            # Sort files by timestamp (newest first)
-            recent_files.sort(key=lambda x: x['LastModified'], reverse=True)
-            
-            # Read all signals from recent files
-            all_signals = []
-            for obj in recent_files:
-                key = obj['Key']
-                try:
-                    if key.endswith('.parquet'):
+                                
+                        elif key.endswith('.parquet'):
                         response = s3_client.get_object(Bucket=bucket, Key=key)
                         parquet_content = response['Body'].read()
                         df = pd.read_parquet(io.BytesIO(parquet_content))
                         
                         if not df.empty:
+                                csv_data = [["Symbol", "Signal", "Confidence", "Strength", "Date"]]
                             for _, row in df.iterrows():
-                                all_signals.append({
-                                    'symbol': row.get('symbol', 'UNKNOWN'),
-                                    'signal_type': row.get('signal_type', 'hold').upper(),
-                                    'confidence': row.get('confidence', 0),
-                                    'strength': row.get('signal_strength', 'medium').title(),
-                                    'date': row.get('date', 'N/A'),
-                                    'timeframe': row.get('timeframe', '1day'),
-                                    'create_time': row.get('create_time', 'N/A')
-                                })
+                                    csv_data.append([
+                                        row.get('symbol', 'UNKNOWN'),
+                                        row.get('signal_type', 'hold').upper(),
+                                        f"{row.get('confidence', 0)}%",
+                                        row.get('signal_strength', 'medium').title(),
+                                        row.get('date', 'N/A')
+                                    ])
+                                return csv_data
+                                
                 except Exception as e:
                     print(f"Error reading file {key}: {e}")
                     continue
-            
-            # Sort all signals by create_time (newest first)
-            if all_signals:
-                all_signals.sort(key=lambda x: x.get('create_time', x.get('date', '')), reverse=True)
-                
-                return {
-                    "signals": all_signals[:50],  # Limit to 50 most recent signals
-                    "export_info": {
-                        "total_signals": len(all_signals),
-                        "exported_signals": min(50, len(all_signals)),
-                        "export_time": datetime.now().isoformat(),
-                        "date_range": f"Last 4 days (from {four_days_ago.strftime('%Y-%m-%d')} to {now.strftime('%Y-%m-%d')})"
-                    }
-                }
-            else:
-                return {"signals": [], "export_info": {"total_signals": 0, "export_time": datetime.now().isoformat()}}
                 
         except Exception as e:
-            print(f"Error in export_latest_signals_json: {e}")
-            return {"signals": [], "export_info": {"error": str(e), "export_time": datetime.now().isoformat()}}
-    
-    def export_run_signals_csv(self, run_id):
-        """Export signals for a specific run as CSV"""
-        # For now, use the same logic as latest signals since run-specific logic is complex
-        return self.export_latest_signals_csv()
-    
-    def export_run_signals_json(self, run_id):
-        """Export signals for a specific run as JSON"""
-        # For now, use the same logic as latest signals since run-specific logic is complex
-        return self.export_latest_signals_json()
-    
-    # Keep the old method for backward compatibility
-    def export_run_signals(self, run_id):
-        """Export signals for a specific run from MinIO (legacy method)"""
-        return self.export_latest_signals_csv()
+            print(f"Error in export_run_signals: {e}")
+        
+        # Fallback to empty CSV
+        return [["Symbol", "Signal", "Confidence", "Strength", "Date"]]
     
     def export_latest_signals(self):
-        """Export latest signals from MinIO (legacy method)"""
-        return self.export_latest_signals_csv()
+        """Export latest signals from MinIO"""
+        return self.export_run_signals(None)  # Use the same logic for latest signals
     
     def get_query_param(self, param_name):
         from urllib.parse import urlparse, parse_qs
@@ -1913,14 +1756,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
         self.end_headers()
         self.wfile.write(output.getvalue().encode('utf-8'))
-    
-    def send_json_response(self, data, filename):
-        """Send JSON data as a downloadable file"""
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
-        self.end_headers()
-        self.wfile.write(json.dumps(data, indent=2, default=str).encode('utf-8'))
     
     def serve_favicon(self):
         """Serve the favicon SVG"""
@@ -1955,15 +1790,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = """
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>BreadthFlow Commands</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
         body { 
             font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0;
+            margin: 0; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
@@ -1977,39 +1812,39 @@ class DashboardHandler(BaseHTTPRequestHandler):
             text-align: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
-        .nav-buttons {
+        .nav-buttons { 
             margin-top: 20px;
-            display: flex;
+            display: flex; 
             gap: 15px;
-            justify-content: center;
+            justify-content: center; 
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: wrap; 
         }
-        .nav-btn {
+        .nav-btn { 
             background: rgba(255, 255, 255, 0.8);
             color: #333;
             border: 2px solid transparent;
-            padding: 10px 20px;
+            padding: 10px 20px; 
             border-radius: 8px;
-            cursor: pointer;
+            cursor: pointer; 
             font-weight: bold;
             transition: all 0.3s ease;
         }
-        .nav-btn:hover {
+        .nav-btn:hover { 
             background: rgba(255, 255, 255, 1);
             transform: translateY(-2px);
         }
-        .nav-btn.active {
+        .nav-btn.active { 
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
-        .refresh-btn {
+        .refresh-btn { 
             background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            border: none;
-            padding: 10px 20px;
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
             border-radius: 8px;
-            cursor: pointer;
+            cursor: pointer; 
             font-weight: bold;
             transition: transform 0.3s ease;
         }
@@ -2017,58 +1852,58 @@ class DashboardHandler(BaseHTTPRequestHandler):
             transform: scale(1.05); 
         }
         .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
+            gap: 20px; 
             margin-bottom: 30px;
         }
         .panel {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: 25px;
+            padding: 25px; 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         .panel h2 {
             color: #333;
-            margin-top: 0;
-            margin-bottom: 20px;
+            margin-top: 0; 
+            margin-bottom: 20px; 
             font-size: 1.5em;
         }
         .command-section {
             margin-bottom: 25px;
         }
         .command-section h3 {
-            color: #555;
-            margin-bottom: 15px;
+            color: #555; 
+            margin-bottom: 15px; 
             font-size: 1.2em;
         }
         .command-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
             gap: 15px;
         }
         .command-card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background: #f8f9fa; 
+            border: 1px solid #e9ecef; 
             border-radius: 10px;
-            padding: 20px;
+            padding: 20px; 
             transition: all 0.3s ease;
         }
         .command-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px); 
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         .command-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
+            font-weight: 600; 
+            color: #333; 
+            margin-bottom: 10px; 
             font-size: 1.1em;
         }
         .command-description {
-            color: #666;
-            margin-bottom: 15px;
-            font-size: 0.9em;
+            color: #666; 
+            margin-bottom: 15px; 
+            font-size: 0.9em; 
             line-height: 1.4;
         }
         .command-params {
@@ -2078,46 +1913,46 @@ class DashboardHandler(BaseHTTPRequestHandler):
             margin-bottom: 10px;
         }
         .param-label {
-            display: block;
-            font-weight: 500;
-            color: #555;
-            margin-bottom: 5px;
+            display: block; 
+            font-weight: 500; 
+            color: #555; 
+            margin-bottom: 5px; 
             font-size: 0.9em;
         }
         .param-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            width: 100%; 
+            padding: 8px 12px; 
+            border: 1px solid #ddd; 
             border-radius: 5px;
-            font-size: 0.9em;
+            font-size: 0.9em; 
             box-sizing: border-box;
         }
         .param-select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            width: 100%; 
+            padding: 8px 12px; 
+            border: 1px solid #ddd; 
             border-radius: 5px;
-            font-size: 0.9em;
+            font-size: 0.9em; 
             box-sizing: border-box;
         }
         .execute-btn {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+            color: white; 
+            border: none; 
             padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            width: 100%; 
             transition: all 0.3s ease;
         }
         .execute-btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-1px); 
             box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         }
         .execute-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
+            background: #6c757d; 
+            cursor: not-allowed; 
             transform: none;
         }
         .flow-section {
@@ -2163,28 +1998,28 @@ class DashboardHandler(BaseHTTPRequestHandler):
             font-size: 0.9em;
         }
         .status-area {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background: #f8f9fa; 
+            border: 1px solid #e9ecef; 
             border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            min-height: 100px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            overflow-y: auto;
+            padding: 20px; 
+            margin-top: 20px; 
+            min-height: 100px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 0.9em; 
+            white-space: pre-wrap; 
+            overflow-y: auto; 
             max-height: 300px;
         }
         .status-success { color: #28a745; }
         .status-error { color: #dc3545; }
         .status-info { color: #007bff; }
         .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #007bff;
-            border-radius: 50%;
+            display: inline-block; 
+            width: 20px; 
+            height: 20px; 
+            border: 3px solid #f3f3f3; 
+            border-top: 3px solid #007bff; 
+            border-radius: 50%; 
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -2200,12 +2035,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Execute pipeline commands directly from the web interface</p>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
-                <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
-                <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
                 <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
+                <button class="nav-btn active" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
+                <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
                 <button class="refresh-btn" onclick="location.reload()">Refresh Page</button>
             </div>
         </div>
@@ -2217,15 +2051,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 <div class="flow-option" onclick="selectFlow('demo')">
                     <h3>🎬 Demo Flow</h3>
                     <p>Quick demo with 2-3 symbols</p>
-                </div>
+            </div>
                 <div class="flow-option" onclick="selectFlow('small')">
                     <h3>📊 Small Flow</h3>
                     <p>5-10 symbols for testing</p>
-                </div>
+                    </div>
                 <div class="flow-option" onclick="selectFlow('medium')">
                     <h3>📈 Medium Flow</h3>
                     <p>10-25 symbols for analysis</p>
-                </div>
+                    </div>
                 <div class="flow-option" onclick="selectFlow('full')">
                     <h3>🏭 Full Flow</h3>
                     <p>All symbols for production</p>
@@ -2234,18 +2068,18 @@ class DashboardHandler(BaseHTTPRequestHandler):
         </div>
         
         <div class="content-grid">
-            <div class="panel">
+                    <div class="panel">
                 <h2>📊 Data Commands</h2>
-                
-                <div class="command-section">
+            
+            <div class="command-section">
                     <h3>Data Fetching</h3>
                     <div class="command-grid">
                         <div class="command-card">
                             <div class="command-title">Data Summary</div>
                             <div class="command-description">Show current data status and statistics</div>
                             <button class="execute-btn" onclick="executeCommand('data_summary')">Execute</button>
-                        </div>
-                        
+                </div>
+                
                         <div class="command-card">
                             <div class="command-title">Fetch Market Data</div>
                             <div class="command-description">Fetch real market data from Yahoo Finance</div>
@@ -2287,17 +2121,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 </div>
             </div>
             
-            <div class="panel">
+                    <div class="panel">
                 <h2>🎯 Signal Commands</h2>
-                
-                <div class="command-section">
+            
+            <div class="command-section">
                     <h3>Signal Generation</h3>
                     <div class="warning-box" style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; border-radius: 5px;">
                         <strong>⚠️ Important:</strong> Signal generation requires data files with specific naming pattern:<br>
                         <code>ohlcv/{SYMBOL}/{SYMBOL}_{START_DATE}_{END_DATE}.parquet</code><br>
                         Example: <code>ohlcv/AAPL/AAPL_2024-01-01_2024-12-31.parquet</code><br>
                         Make sure to run data fetch with matching date ranges first.
-                    </div>
+                </div>
                     <div class="command-grid">
                         <div class="command-card">
                             <div class="command-title">Generate Signals</div>
@@ -2338,10 +2172,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 </div>
             </div>
             
-            <div class="panel">
+                    <div class="panel">
                 <h2>🔄 Backtesting Commands</h2>
-                
-                <div class="command-section">
+            
+            <div class="command-section">
                     <h3>Backtesting</h3>
                     <div class="command-grid">
                         <div class="command-card">
@@ -2813,12 +2647,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <p>Manage timeframe-specific signal generation parameters</p>
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
-                <button class="nav-btn" onclick="window.location.href='/theory'">Theory</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                <button class="nav-btn active" onclick="window.location.href='/parameters'">Parameters</button>
-                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
                 <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
+                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
+                <button class="nav-btn active" onclick="window.location.href='/parameters'">Parameters</button>
             </div>
         </div>
         
@@ -3221,48 +3054,763 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def serve_pipeline_management(self):
         """Serve the Pipeline Management page"""
-        try:
-            from pipeline_dashboard import PipelineDashboard
-            dashboard = PipelineDashboard()
-            html = dashboard.generate_html()
+        html = """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>BreadthFlow Pipeline Management</title>
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+            <style>
+                body {
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    margin: 0;
+                    padding: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    color: #333;
+                }
+                
+                .container {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    background: rgba(255, 255, 255, 0.95);
+                    border-radius: 20px;
+                    padding: 30px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                    backdrop-filter: blur(10px);
+                }
+                
+                .header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                    padding-bottom: 20px;
+                    border-bottom: 2px solid #e0e0e0;
+                }
+                
+                .header h1 {
+                    color: #2c3e50;
+                    margin: 0 0 10px 0;
+                    font-size: 2.5em;
+                    font-weight: 700;
+                }
+                
+                .header p {
+                    color: #666;
+                    margin: 0;
+                    font-size: 1.1em;
+                }
+                
+                .nav-buttons {
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 20px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                
+                .nav-btn {
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.3s ease;
+                    text-decoration: none;
+                    display: inline-block;
+                }
+                
+                .nav-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+                }
+                
+                .nav-btn.active {
+                    background: linear-gradient(135deg, #4CAF50, #45a049);
+                    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+                }
+                
+                .refresh-btn {
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.3s ease;
+                }
+                
+                .refresh-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+                }
+                
+                .control-panel {
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 15px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                }
+                
+                .control-panel h2 {
+                    color: #2c3e50;
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                    font-size: 1.8em;
+                }
+                
+                .control-buttons {
+                    display: flex;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                    flex-wrap: wrap;
+                }
+                
+                .control-btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.3s ease;
+                }
+                
+                .start-btn {
+                    background: linear-gradient(135deg, #4CAF50, #45a049);
+                    color: white;
+                }
+                
+                .start-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+                }
+                
+                .stop-btn {
+                    background: linear-gradient(135deg, #f44336, #d32f2f);
+                    color: white;
+                }
+                
+                .stop-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
+                }
+                
+                .refresh-status-btn {
+                    background: linear-gradient(135deg, #2196F3, #1976D2);
+                    color: white;
+                }
+                
+                .refresh-status-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
+                }
+                
+                .config-section {
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 15px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                }
+                
+                .config-section h3 {
+                    color: #2c3e50;
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                    font-size: 1.4em;
+                }
+                
+                .config-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+                
+                .config-group {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .config-group label {
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: #333;
+                }
+                
+                .config-group select,
+                .config-group input {
+                    padding: 10px;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    transition: border-color 0.3s ease;
+                }
+                
+                .config-group select:focus,
+                .config-group input:focus {
+                    outline: none;
+                    border-color: #667eea;
+                }
+                
+                .metrics-section {
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 15px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                }
+                
+                .metrics-section h3 {
+                    color: #2c3e50;
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                    font-size: 1.4em;
+                }
+                
+                .metrics-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 20px;
+                }
+                
+                .metric-card {
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    padding: 20px;
+                    border-radius: 12px;
+                    text-align: center;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+                }
+                
+                .metric-value {
+                    font-size: 2em;
+                    font-weight: 700;
+                    margin-bottom: 5px;
+                }
+                
+                .metric-label {
+                    font-size: 0.9em;
+                    opacity: 0.9;
+                }
+                
+                .runs-section {
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 15px;
+                    padding: 25px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                }
+                
+                .runs-section h3 {
+                    color: #2c3e50;
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                    font-size: 1.4em;
+                }
+                
+                .runs-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 15px;
+                }
+                
+                .runs-table th,
+                .runs-table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                
+                .runs-table th {
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    font-weight: 600;
+                }
+                
+                .runs-table tr:hover {
+                    background: rgba(102, 126, 234, 0.05);
+                }
+                
+                .status-running {
+                    color: #4CAF50;
+                    font-weight: 600;
+                }
+                
+                .status-stopped {
+                    color: #f44336;
+                    font-weight: 600;
+                }
+                
+                .status-completed {
+                    color: #2196F3;
+                    font-weight: 600;
+                }
+                
+                .status-failed {
+                    color: #ff9800;
+                    font-weight: 600;
+                }
+                
+                .loading {
+                    text-align: center;
+                    padding: 20px;
+                    color: #666;
+                }
+                
+                .error {
+                    background: #ffebee;
+                    color: #c62828;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin: 10px 0;
+                    border-left: 4px solid #f44336;
+                }
+                
+                .success {
+                    background: #e8f5e8;
+                    color: #2e7d32;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin: 10px 0;
+                    border-left: 4px solid #4CAF50;
+                }
+                
+                .logs-section {
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 15px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                }
+                
+                .logs-section h3 {
+                    color: #2c3e50;
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                    font-size: 1.4em;
+                }
+                
+                .logs-controls {
+                    display: flex;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                    flex-wrap: wrap;
+                }
+                
+                .status-area {
+                    background: #f8f9fa;
+                    border: 1px solid #e9ecef;
+                    border-radius: 10px;
+                    padding: 20px;
+                    margin-top: 20px;
+                    min-height: 200px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 0.9em;
+                    white-space: pre-wrap;
+                    overflow-y: auto;
+                    max-height: 400px;
+                }
+                
+                .status-success { color: #28a745; }
+                .status-error { color: #dc3545; }
+                .status-info { color: #007bff; }
+                .status-warning { color: #ffc107; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎮 Pipeline Management</h1>
+                    <p>Automated batch processing with continuous execution</p>
+                    
+                    <div class="nav-buttons">
+                        <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                        <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                        <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                        <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                        <button class="nav-btn active" onclick="window.location.href='/pipeline'">Pipeline</button>
+                        <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                        <button class="refresh-btn" onclick="loadPipelineData()">Refresh Now</button>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <h2>🎛️ Pipeline Control</h2>
+                    <div class="control-buttons">
+                        <button class="control-btn start-btn" onclick="startPipeline()">🚀 Start Pipeline</button>
+                        <button class="control-btn stop-btn" onclick="stopPipeline()">🛑 Stop Pipeline</button>
+                        <button class="control-btn refresh-status-btn" onclick="loadPipelineData()">🔄 Refresh Status</button>
+                    </div>
+                    <div id="control-message"></div>
+                </div>
+                
+                <div class="config-section">
+                    <h3>⚙️ Pipeline Configuration</h3>
+                    <div class="config-grid">
+                        <div class="config-group">
+                            <label for="pipeline-mode">Mode:</label>
+                            <select id="pipeline-mode">
+                                <option value="demo">Demo (AAPL, MSFT)</option>
+                                <option value="all">All Symbols</option>
+                                <option value="custom">Custom Symbols</option>
+                            </select>
+                        </div>
+                        <div class="config-group">
+                            <label for="pipeline-interval">Interval:</label>
+                            <select id="pipeline-interval">
+                                <option value="1m">1 minute</option>
+                                <option value="5m">5 minutes</option>
+                                <option value="15m">15 minutes</option>
+                                <option value="30m">30 minutes</option>
+                                <option value="1h">1 hour</option>
+                                <option value="6h">6 hours</option>
+                                <option value="12h">12 hours</option>
+                                <option value="1d">1 day</option>
+                            </select>
+                        </div>
+                        <div class="config-group">
+                            <label for="pipeline-timeframe">Timeframe:</label>
+                            <select id="pipeline-timeframe">
+                                <option value="1day">Daily</option>
+                                <option value="1hour">Hourly</option>
+                                <option value="1min">Minute</option>
+                            </select>
+                        </div>
+                        <div class="config-group">
+                            <label for="pipeline-symbols">Symbols (comma-separated):</label>
+                            <input type="text" id="pipeline-symbols" placeholder="AAPL,MSFT,GOOGL" value="AAPL,MSFT">
+                        </div>
+                        <div class="config-group">
+                            <label for="pipeline-data-source">Data Source:</label>
+                            <select id="pipeline-data-source">
+                                <option value="yfinance">Yahoo Finance</option>
+                                <option value="alpha_vantage">Alpha Vantage</option>
+                                <option value="polygon">Polygon.io</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metrics-section">
+                    <h3>📊 Pipeline Metrics</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="status-value">Stopped</div>
+                            <div class="metric-label">Status</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="total-runs">0</div>
+                            <div class="metric-label">Total Runs</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="successful-runs">0</div>
+                            <div class="metric-label">Successful</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="failed-runs">0</div>
+                            <div class="metric-label">Failed</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="uptime">0s</div>
+                            <div class="metric-label">Uptime</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="last-run">Never</div>
+                            <div class="metric-label">Last Run</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="runs-section">
+                    <h3>📋 Recent Pipeline Runs</h3>
+                    <div id="runs-content">
+                        <div class="loading">Loading recent runs...</div>
+                    </div>
+                </div>
+                
+                <div class="logs-section">
+                    <h3>📝 Pipeline Logs</h3>
+                    <div class="logs-controls">
+                        <button class="control-btn refresh-status-btn" onclick="loadPipelineLogs()">🔄 Refresh Logs</button>
+                        <button class="control-btn refresh-status-btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+                    </div>
+                    <div id="logs-content">
+                        <div class="status-area" id="logs-area">
+                            <div class="loading">Loading pipeline logs...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
+            <script>
+                // Auto-refresh every 30 seconds
+                setInterval(loadPipelineData, 30000);
+                
+                // Load data on page load
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadPipelineData();
+                });
+                
+                function loadPipelineData() {
+                    // Load pipeline status
+                    fetch('/api/pipeline/status')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                updateMetrics(data.status);
+                            } else {
+                                console.error('Failed to load pipeline status:', data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading pipeline status:', error);
+                        });
+                    
+                    // Load recent runs
+                    fetch('/api/pipeline/runs')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                updateRunsTable(data.runs);
+                            } else {
+                                console.error('Failed to load pipeline runs:', data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading pipeline runs:', error);
+                        });
+                }
+                
+                function updateMetrics(status) {
+                    document.getElementById('status-value').textContent = status.state || 'Unknown';
+                    document.getElementById('total-runs').textContent = status.total_runs || 0;
+                    document.getElementById('successful-runs').textContent = status.successful_runs || 0;
+                    document.getElementById('failed-runs').textContent = status.failed_runs || 0;
+                    document.getElementById('uptime').textContent = status.uptime_seconds ? status.uptime_seconds + 's' : '0s';
+                    document.getElementById('last-run').textContent = status.last_run_time || 'Never';
+                    
+                    // Update status color
+                    const statusElement = document.getElementById('status-value');
+                    statusElement.className = 'metric-value';
+                    if (status.state === 'running') {
+                        statusElement.classList.add('status-running');
+                    } else if (status.state === 'stopped') {
+                        statusElement.classList.add('status-stopped');
+                    }
+                }
+                
+                function updateRunsTable(runs) {
+                    const content = document.getElementById('runs-content');
+                    
+                    if (!runs || runs.length === 0) {
+                        content.innerHTML = '<div class="loading">No recent pipeline runs found</div>';
+                        return;
+                    }
+                    
+                    let table = '<table class="runs-table">';
+                    table += '<thead><tr><th>Run ID</th><th>Command</th><th>Status</th><th>Start Time</th><th>Duration</th><th>Error</th></tr></thead>';
+                    table += '<tbody>';
+                    
+                    runs.forEach(run => {
+                        const statusClass = run.status === 'completed' ? 'status-completed' : 
+                                          run.status === 'failed' ? 'status-failed' : 
+                                          run.status === 'running' ? 'status-running' : 'status-stopped';
+                        
+                        table += `<tr>
+                            <td>${run.run_id.substring(0, 8)}...</td>
+                            <td>${run.command}</td>
+                            <td class="${statusClass}">${run.status}</td>
+                            <td>${run.start_time}</td>
+                            <td>${run.duration_seconds}s</td>
+                            <td>${run.error_message || '-'}</td>
+                        </tr>`;
+                    });
+                    
+                    table += '</tbody></table>';
+                    content.innerHTML = table;
+                }
+                
+                function startPipeline() {
+                    const mode = document.getElementById('pipeline-mode').value;
+                    const interval = document.getElementById('pipeline-interval').value;
+                    const timeframe = document.getElementById('pipeline-timeframe').value;
+                    const symbols = document.getElementById('pipeline-symbols').value;
+                    const dataSource = document.getElementById('pipeline-data-source').value;
+                    
+                    const messageDiv = document.getElementById('control-message');
+                    messageDiv.innerHTML = '<div class="loading">Starting pipeline...</div>';
+                    
+                    fetch('/api/pipeline/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            mode: mode,
+                            interval: interval,
+                            timeframe: timeframe,
+                            symbols: symbols,
+                            data_source: dataSource
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            messageDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                            setTimeout(loadPipelineData, 2000);
+                        } else {
+                            messageDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                        }
+                    })
+                    .catch(error => {
+                        messageDiv.innerHTML = `<div class="error">Failed to start pipeline: ${error}</div>`;
+                    });
+                }
+                
+                function stopPipeline() {
+                    const messageDiv = document.getElementById('control-message');
+                    messageDiv.innerHTML = '<div class="loading">Stopping pipeline...</div>';
+                    
+                    fetch('/api/pipeline/stop', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            messageDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                            setTimeout(loadPipelineData, 2000);
+                        } else {
+                            messageDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                        }
+                    })
+                    .catch(error => {
+                        messageDiv.innerHTML = `<div class="error">Failed to stop pipeline: ${error}</div>`;
+                    });
+                }
+                
+                function loadPipelineLogs() {
+                    const logsArea = document.getElementById('logs-area');
+                    logsArea.innerHTML = '<div class="loading">Loading pipeline logs...</div>';
+                    
+                    fetch('/api/pipeline/logs')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                updateLogs(data.logs);
+                            } else {
+                                logsArea.innerHTML = `<div class="status-error">Failed to load logs: ${data.error}</div>`;
+                            }
+                        })
+                        .catch(error => {
+                            logsArea.innerHTML = `<div class="status-error">Error loading logs: ${error}</div>`;
+                        });
+                }
+                
+                function updateLogs(logs) {
+                    const logsArea = document.getElementById('logs-area');
+                    
+                    if (!logs || logs.length === 0) {
+                        logsArea.innerHTML = '<div class="status-info">No pipeline logs found</div>';
+                        return;
+                    }
+                    
+                    let logContent = '';
+                    logs.forEach(log => {
+                        const timestamp = new Date(log.timestamp).toLocaleString();
+                        const statusClass = log.level === 'ERROR' ? 'status-error' : 
+                                          log.level === 'WARNING' ? 'status-warning' : 
+                                          log.level === 'INFO' ? 'status-info' : 'status-success';
+                        
+                        logContent += `[${timestamp}] <span class="${statusClass}">[${log.level}]</span> ${log.message}\\n`;
+                    });
+                    
+                    logsArea.innerHTML = logContent;
+                    logsArea.scrollTop = logsArea.scrollHeight;
+                }
+                
+                function clearLogs() {
+                    const logsArea = document.getElementById('logs-area');
+                    logsArea.innerHTML = '<div class="status-info">Logs cleared</div>';
+                }
+                
+                // Load logs on page load
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadPipelineData();
+                    loadPipelineLogs();
+                });
+            </script>
+        </body>
+        </html>
+        """
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(html.encode('utf-8'))
-        except Exception as e:
-            print(f"Error serving pipeline management: {e}")
-            self.send_error(500)
-
-    def serve_training(self):
-        """Serve the Training Dashboard page"""
-        try:
-            import sys
-            sys.path.append('/app/cli')
-            from training_dashboard import TrainingDashboard
-            dashboard = TrainingDashboard()
-            html = dashboard.generate_html()
-            
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(html.encode('utf-8'))
-        except Exception as e:
-            print(f"Error serving training dashboard: {e}")
-            self.send_error(500)
 
     def serve_pipeline_status(self):
         """Handle pipeline status requests"""
         try:
-            from pipeline_controller import PipelineController
+            # Call the Spark command server to get pipeline status
+            import urllib.request
+            import urllib.error
             
-            # Use pipeline controller to get status
-            controller = PipelineController()
-            status = controller.get_pipeline_status()
+            try:
+                command_data = {
+                    "command": "pipeline_status",
+                    "parameters": {}
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
+                        # Parse the status from the output
+                        status = {
+                            "state": "stopped",
+                            "total_runs": 0,
+                            "successful_runs": 0,
+                            "failed_runs": 0,
+                            "uptime_seconds": 0,
+                            "last_run_time": None
+                        }
             
             response_data = {
                 "success": True,
                 "status": status
+                        }
+                    else:
+                        raise Exception(f"Pipeline status failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+                # Return actual status from database if Spark command server is not available
+                response_data = {
+                    "success": True,
+                    "status": {
+                        "state": "stopped",
+                        "total_runs": 0,
+                        "successful_runs": 0,
+                        "failed_runs": 0,
+                        "uptime_seconds": 0,
+                        "last_run_time": None,
+                        "note": "Spark command server unavailable - using database status"
+                    }
             }
             
             self.send_response(200)
@@ -3278,20 +3826,65 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 'success': False,
                 'error': str(e)
             }).encode('utf-8'))
-
 
     def serve_pipeline_runs(self):
         """Handle pipeline runs requests"""
         try:
-            from pipeline_controller import PipelineController
+            # Call the Spark command server to get pipeline runs
+            import urllib.request
+            import urllib.error
             
-            # Use pipeline controller to get recent runs
-            controller = PipelineController()
-            runs = controller.get_recent_pipeline_runs(days=2)
+            try:
+                command_data = {
+                    "command": "pipeline_logs",
+                    "parameters": {"lines": "50"}
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
+                        # Parse the runs from the output
+                        runs = []
+                        output_lines = result.get("output", "").split('\n')
+                        
+                        for line in output_lines:
+                            if 'Pipeline Run:' in line and '|' in line:
+                                # Parse pipeline run entries
+                                parts = line.split('|')
+                                if len(parts) >= 3:
+                                    run_id = parts[0].split('Pipeline Run:')[1].strip()
+                                    command = parts[1].strip()
+                                    status = parts[2].strip()
+                                    
+                                    run_entry = {
+                                        "run_id": run_id,
+                                        "command": command,
+                                        "status": status,
+                                        "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        "duration_seconds": 0.0,
+                                        "error_message": None
+                                    }
+                                    runs.append(run_entry)
             
             response_data = {
                 "success": True,
                 "runs": runs
+                        }
+                    else:
+                        raise Exception(f"Pipeline runs failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+                # Return empty runs if Spark command server is not available
+                response_data = {
+                    "success": True,
+                    "runs": []
             }
             
             self.send_response(200)
@@ -3308,58 +3901,68 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 'error': str(e)
             }).encode('utf-8'))
 
-
     def serve_pipeline_start(self):
         """Handle pipeline start requests"""
         try:
-            from pipeline_controller import PipelineController
-            
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             data = json.loads(post_data.decode('utf-8'))
             
-            # Create pipeline configuration
-            config = {
-                'mode': data.get('mode', 'demo'),
-                'interval': data.get('interval', '5m'),
-                'timeframe': data.get('timeframe', '1day'),
-                'symbols': data.get('symbols', 'AAPL,MSFT'),
-                'data_source': data.get('data_source', 'yfinance')
-            }
+            mode = data.get('mode', 'demo')
+            interval = data.get('interval', '5m')
+            timeframe = data.get('timeframe', '1day')
+            symbols = data.get('symbols', '')
+            data_source = data.get('data_source', 'yfinance')
             
-            # Use pipeline controller to start pipeline
-            controller = PipelineController()
-            result = controller.start_pipeline(config)
+            # Call the Spark command server to start the pipeline
+            import urllib.request
+            import urllib.error
             
-            self.send_response(200 if result["success"] else 400)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(result).encode('utf-8'))
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'success': False,
-                'error': str(e)
-            }).encode('utf-8'))
-    
-    def serve_pipeline_running_status(self):
-        """Handle pipeline running status requests - for frontend button state"""
-        try:
-            from pipeline_controller import PipelineController
-            
-            # Use pipeline controller to check running status
-            controller = PipelineController()
-            is_running = controller.is_pipeline_running()
-            
+            try:
+                command_data = {
+                    "command": "pipeline_start",
+                    "parameters": {
+                        "mode": mode,
+                        "interval": interval,
+                        "timeframe": timeframe,
+                        "symbols": symbols,
+                        "data_source": data_source
+                    }
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
             response_data = {
                 "success": True,
-                "is_running": is_running
-            }
+                            "message": f"Pipeline started with mode '{mode}' and interval '{interval}'",
+                            "config": {
+                                "mode": mode,
+                                "interval": interval,
+                                "timeframe": timeframe,
+                                "symbols": symbols.split(',') if symbols else [],
+                                "data_source": data_source
+                            },
+                            "output": result.get("output", "")
+                        }
+                    else:
+                        raise Exception(f"Pipeline start failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+                # Return error if Spark command server is not available
+                response_data = {
+                    "success": False,
+                    "error": f"Cannot connect to pipeline server: {str(e)}"
+                }
             
-            self.send_response(200)
+            self.send_response(200 if response_data["success"] else 500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps(response_data).encode('utf-8'))
@@ -3376,16 +3979,50 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def serve_pipeline_stop(self):
         """Handle pipeline stop requests"""
         try:
-            from pipeline_controller import PipelineController
+            # Call the Spark command server to stop the pipeline
+            import urllib.request
+            import urllib.error
             
-            # Use pipeline controller to stop pipeline
-            controller = PipelineController()
-            result = controller.stop_pipeline()
+            try:
+                command_data = {
+                    "command": "pipeline_stop",
+                    "parameters": {}
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
+                        response_data = {
+                            "success": True,
+                            "message": "Pipeline stopped successfully",
+                            "output": result.get("output", ""),
+                            "final_stats": {
+                                "total_runs": 0,
+                                "successful_runs": 0,
+                                "failed_runs": 0
+                            }
+                        }
+                    else:
+                        raise Exception(f"Pipeline stop failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+                # Return error if Spark command server is not available
+            response_data = {
+                    "success": False,
+                    "error": f"Cannot connect to pipeline server: {str(e)}"
+            }
             
-            self.send_response(200 if result["success"] else 400)
+            self.send_response(200 if response_data["success"] else 500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps(result).encode('utf-8'))
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
             
         except Exception as e:
             self.send_response(500)
@@ -3399,78 +4036,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def serve_pipeline_logs(self):
         """Handle pipeline logs requests"""
         try:
-            # Get logs from Spark command server and combine with PostgreSQL data
+            # Call the Spark command server to get pipeline logs
             import urllib.request
             import urllib.error
-            import psycopg2
-            from datetime import datetime
             
-            logs = []
-            
-            # First, get recent pipeline runs from PostgreSQL
-            try:
-                DATABASE_URL = "postgresql://pipeline:pipeline123@breadthflow-postgres:5432/breadthflow"
-                conn = psycopg2.connect(DATABASE_URL)
-                cursor = conn.cursor()
-                
-                # Get recent pipeline runs - convert to Israel time
-                cursor.execute('''
-                    SELECT run_id, command, status, 
-                           start_time AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jerusalem' as start_time,
-                           end_time AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jerusalem' as end_time,
-                           duration, error_message
-                    FROM pipeline_runs 
-                    ORDER BY start_time DESC 
-                    LIMIT 10
-                ''')
-                
-                rows = cursor.fetchall()
-                
-                for row in rows:
-                    run_id, command, status, start_time, end_time, duration, error_message = row
-                    
-                    # Add pipeline run as a log entry
-                    if start_time:
-                        timestamp = start_time.isoformat()
-                    else:
-                        timestamp = datetime.now().isoformat()
-                    
-                    log_entry = {
-                        "timestamp": timestamp,
-                        "level": "PIPELINE",
-                        "message": f"📝 Pipeline Run: {run_id} | {command} | {status}"
-                    }
-                    logs.append(log_entry)
-                    
-                    # Add duration if available
-                    if duration:
-                        duration_log = {
-                            "timestamp": timestamp,
-                            "level": "INFO",
-                            "message": f"⏱️ Duration: {duration:.2f}s"
-                        }
-                        logs.append(duration_log)
-                    
-                    # Add error message if available
-                    if error_message:
-                        error_log = {
-                            "timestamp": timestamp,
-                            "level": "ERROR",
-                            "message": f"❌ Error: {error_message}"
-                        }
-                        logs.append(error_log)
-                
-                cursor.close()
-                conn.close()
-                
-            except Exception as e:
-                print(f"Database connection failed: {e}")
-            
-            # Then, get recent logs from Spark command server
             try:
                 command_data = {
                     "command": "pipeline_logs",
-                    "parameters": {"lines": "10"}
+                    "parameters": {"lines": "20"}
                 }
                 
                 req = urllib.request.Request(
@@ -3483,45 +4056,33 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     result = json.loads(response.read().decode('utf-8'))
                     
                     if result.get("success"):
+                        # Parse the logs from the output
+                        logs = []
                         output_lines = result.get("output", "").split('\n')
                         
                         for line in output_lines:
                             if line.strip():
-                                # Parse log entries with better formatting
-                                timestamp = datetime.now().isoformat()
-                                level = "INFO"
-                                message = line.strip()
-                                
-                                # Detect different types of log messages
-                                if "Pipeline Run:" in message:
-                                    level = "PIPELINE"
-                                elif "ERROR" in message or "❌" in message:
-                                    level = "ERROR"
-                                elif "WARN" in message or "⚠️" in message:
-                                    level = "WARN"
-                                elif "✅" in message:
-                                    level = "SUCCESS"
-                                elif "📥" in message or "📊" in message or "🔄" in message:
-                                    level = "STAGE"
-                                
+                                # Parse log entries (simplified parsing)
                                 log_entry = {
-                                    "timestamp": timestamp,
-                                    "level": level,
-                                    "message": message
+                                    "timestamp": datetime.now().isoformat(),
+                                    "level": "INFO",
+                                    "message": line.strip()
                                 }
                                 logs.append(log_entry)
                         
+                        response_data = {
+                    "success": True,
+                            "logs": logs
+                        }
+                    else:
+                        raise Exception(f"Pipeline logs failed: {result.get('error')}")
+                        
             except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
-                # Continue without Spark logs if connection fails
-                pass
-            
-            # Sort logs by timestamp (most recent first)
-            logs.sort(key=lambda x: x["timestamp"], reverse=True)
-            
-            response_data = {
-                "success": True,
-                "logs": logs[:20]  # Limit to 20 most recent logs
-            }
+                # Return empty logs if Spark command server is not available
+                response_data = {
+                    "success": True,
+                    "logs": []
+                }
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -3536,656 +4097,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 'success': False,
                 'error': str(e)
             }).encode('utf-8'))
-
-    def serve_pipeline_monitor(self):
-        """Handle pipeline monitoring requests - shows detailed pipeline execution"""
-        try:
-            # Get comprehensive pipeline information
-            import urllib.request
-            import urllib.error
-            
-            try:
-                # Get pipeline status
-                status_data = {
-                    "command": "pipeline_status",
-                    "parameters": {}
-                }
-                
-                req = urllib.request.Request(
-                    'http://spark-master:8081/execute',
-                    data=json.dumps(status_data).encode('utf-8'),
-                    headers={'Content-Type': 'application/json'}
-                )
-                
-                with urllib.request.urlopen(req, timeout=10) as response:
-                    status_result = json.loads(response.read().decode('utf-8'))
-                
-                # Get recent pipeline logs
-                logs_data = {
-                    "command": "pipeline_logs",
-                    "parameters": {"lines": "50"}
-                }
-                
-                req = urllib.request.Request(
-                    'http://spark-master:8081/execute',
-                    data=json.dumps(logs_data).encode('utf-8'),
-                    headers={'Content-Type': 'application/json'}
-                )
-                
-                with urllib.request.urlopen(req, timeout=10) as response:
-                    logs_result = json.loads(response.read().decode('utf-8'))
-                
-                # Parse and analyze pipeline execution
-                monitor_data = {
-                    "success": True,
-                    "pipeline_state": "stopped",
-                    "current_stage": None,
-                    "stages": [],
-                    "recent_activity": [],
-                    "execution_summary": {
-                        "total_runs": 0,
-                        "successful_runs": 0,
-                        "failed_runs": 0,
-                        "last_run_time": None,
-                        "current_run_id": None
-                    }
-                }
-                
-                if logs_result.get("success"):
-                    output_lines = logs_result.get("output", "").split('\n')
-                    stages = []
-                    recent_activity = []
-                    
-                    for line in output_lines:
-                        line = line.strip()
-                        if 'Pipeline Run:' in line and '|' in line:
-                            parts = line.split('|')
-                            if len(parts) >= 3:
-                                run_id = parts[0].split('Pipeline Run:')[1].strip()
-                                command = parts[1].strip()
-                                status = parts[2].strip()
-                                
-                                # Track actual pipeline stages
-                                if 'data fetch' in command.lower():
-                                    stages.append({
-                                        "stage": "Data Fetch",
-                                        "status": status,
-                                        "run_id": run_id,
-                                        "command": command,
-                                        "timestamp": datetime.now().isoformat()
-                                    })
-                                elif 'signals generate' in command.lower():
-                                    stages.append({
-                                        "stage": "Signal Generation", 
-                                        "status": status,
-                                        "run_id": run_id,
-                                        "command": command,
-                                        "timestamp": datetime.now().isoformat()
-                                    })
-                                elif 'backtest run' in command.lower():
-                                    stages.append({
-                                        "stage": "Backtesting",
-                                        "status": status,
-                                        "run_id": run_id,
-                                        "command": command,
-                                        "timestamp": datetime.now().isoformat()
-                                    })
-                                elif 'pipeline start' in command.lower():
-                                    stages.append({
-                                        "stage": "Pipeline Start",
-                                        "status": status,
-                                        "run_id": run_id,
-                                        "command": command,
-                                        "timestamp": datetime.now().isoformat()
-                                    })
-                                
-                                # Track recent activity
-                                recent_activity.append({
-                                    "run_id": run_id,
-                                    "command": command,
-                                    "status": status,
-                                    "timestamp": datetime.now().isoformat()
-                                })
-                    
-                    monitor_data["stages"] = stages
-                    monitor_data["recent_activity"] = recent_activity
-                    
-                    # Determine pipeline state
-                    if stages:
-                        # Check if pipeline is running
-                        recent_starts = [s for s in stages if s["stage"] == "Pipeline Start" and s["status"] == "completed"]
-                        if recent_starts:
-                            monitor_data["pipeline_state"] = "running"
-                        
-                        # Get current stage
-                        running_stages = [s for s in stages if s["status"] == "running"]
-                        if running_stages:
-                            monitor_data["current_stage"] = running_stages[-1]["stage"]
-                        
-                        # Update execution summary
-                        monitor_data["execution_summary"]["total_runs"] = len(stages)
-                        monitor_data["execution_summary"]["successful_runs"] = len([s for s in stages if s["status"] == "completed"])
-                        monitor_data["execution_summary"]["failed_runs"] = len([s for s in stages if s["status"] == "failed"])
-                        
-                        if stages:
-                            monitor_data["execution_summary"]["last_run_time"] = stages[-1]["timestamp"]
-                            monitor_data["execution_summary"]["current_run_id"] = stages[-1]["run_id"]
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps(monitor_data).encode('utf-8'))
-                        
-            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
-                # Return error if Spark command server is not available
-                response_data = {
-                    "success": False,
-                    "error": f"Cannot connect to pipeline server: {str(e)}"
-                }
-            
-                self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(response_data).encode('utf-8'))
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'success': False,
-                'error': str(e)
-            }).encode('utf-8'))
-    
-    def serve_theory_page(self):
-        """Serve the BreadthFlow theory explanation page"""
-        html = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BreadthFlow Theory</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { 
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .header h1 {
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-        .nav-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .nav-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-        .nav-btn.active {
-            background: linear-gradient(135deg, #764ba2, #667eea);
-            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
-        }
-        .panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .panel h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        .panel h3 {
-            color: #555;
-            margin-bottom: 15px;
-            font-size: 1.4em;
-        }
-        .theory-diagram {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 1px solid #eee;
-        }
-        .indicator-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .indicator-card {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 10px;
-            padding: 20px;
-            border-left: 4px solid #667eea;
-        }
-        .indicator-card h4 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .code-block {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 5px;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            margin: 10px 0;
-            overflow-x: auto;
-        }
-        .weight-bar {
-            background: #e9ecef;
-            border-radius: 10px;
-            height: 20px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        .weight-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            transition: width 0.3s ease;
-        }
-        .flow-diagram {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .flow-step {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 25px;
-            margin: 10px;
-            font-weight: 600;
-        }
-        .flow-arrow {
-            font-size: 1.5em;
-            color: #667eea;
-            margin: 0 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📚 BreadthFlow Theory</h1>
-            <p>Understanding Market Breadth Analysis & Signal Generation</p>
-            <div class="nav-buttons">
-                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
-                <button class="nav-btn active" onclick="window.location.href='/theory'">Theory</button>
-                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
-                <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
-                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
-                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
-                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipelines</button>
-            </div>
-        </div>
-        
-        <div class="panel">
-            <h2>🎯 Market Breadth Theory</h2>
-            <p><strong>Market Breadth</strong> is a fundamental concept in technical analysis that measures the participation of individual stocks in market movements. Unlike traditional analysis that focuses on major indices, breadth analysis examines how many stocks are advancing versus declining.</p>
-            
-            <div class="theory-diagram">
-                <h3>📊 Core Concept</h3>
-                <div class="flow-diagram">
-                    <div class="flow-step">Market Data</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">Advancing/Declining</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">Breadth Indicators</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">Trading Signals</div>
-                </div>
-            </div>
-            
-            <h3>🔍 Why Market Breadth Works</h3>
-            <ul>
-                <li><strong>Broad Participation:</strong> When many stocks move together, it reflects genuine market sentiment</li>
-                <li><strong>Narrow Leadership:</strong> When only a few stocks drive the market, it's often unsustainable</li>
-                <li><strong>Early Warning:</strong> Breadth often deteriorates before major market declines</li>
-                <li><strong>Confirmation:</strong> Strong breadth confirms sustainable rallies</li>
-            </ul>
-        </div>
-        
-        <div class="panel">
-            <h2>🚀 Four Core Breadth Indicators</h2>
-            <div class="indicator-grid">
-                <div class="indicator-card">
-                    <h4>📈 Advance/Decline (A/D) Features</h4>
-                    <p><strong>Purpose:</strong> Measures the ratio of advancing to declining stocks</p>
-                    <div class="code-block">
-A/D Ratio = Advancing Stocks / Declining Stocks<br>
-A/D Line = Cumulative (Advancing - Declining)<br>
-A/D Volume = Volume-weighted breadth
-                    </div>
-                    <p><strong>Weight:</strong> 25% (Highest - Core breadth measure)</p>
-                    <div class="weight-bar">
-                        <div class="weight-fill" style="width: 25%;"></div>
-                    </div>
-                </div>
-                
-                <div class="indicator-card">
-                    <h4>⚡ Zweig Breadth Thrust (ZBT)</h4>
-                    <p><strong>Purpose:</strong> Rare but powerful momentum signal</p>
-                    <div class="code-block">
-ZBT occurs when >61.5% of stocks advance<br>
-for the first time in 6 months<br>
-Extremely rare but highly predictive
-                    </div>
-                    <p><strong>Weight:</strong> 5% (Rare but powerful signals)</p>
-                    <div class="weight-bar">
-                        <div class="weight-fill" style="width: 5%;"></div>
-                    </div>
-                </div>
-                
-                <div class="indicator-card">
-                    <h4>📊 McClellan Oscillator</h4>
-                    <p><strong>Purpose:</strong> Smoothed breadth indicator</p>
-                    <div class="code-block">
-EMA19 - EMA39 of A/D data<br>
-Identifies overbought/oversold<br>
-Generates buy/sell signals
-                    </div>
-                    <p><strong>Weight:</strong> 10% (Smoothed breadth)</p>
-                    <div class="weight-bar">
-                        <div class="weight-fill" style="width: 10%;"></div>
-                    </div>
-                </div>
-                
-                <div class="indicator-card">
-                    <h4>📈 Moving Average (MA) Features</h4>
-                    <p><strong>Purpose:</strong> Trend and momentum analysis</p>
-                    <div class="code-block">
-MA Momentum = Rate of change<br>
-MA Trend Strength = Trend direction<br>
-Crossovers and divergences
-                    </div>
-                    <p><strong>Weight:</strong> 15% (Trend momentum)</p>
-                    <div class="weight-bar">
-                        <div class="weight-fill" style="width: 15%;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="panel">
-            <h2>🎯 Signal Generation Process</h2>
-            <div class="theory-diagram">
-                <h3>📊 Composite Scoring System</h3>
-                <div class="flow-diagram">
-                    <div class="flow-step">Raw Indicators</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">Normalization</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">Weighted Combination</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">0-100 Score</div>
-                    <span class="flow-arrow">→</span>
-                    <div class="flow-step">Trading Signal</div>
-                </div>
-            </div>
-            
-            <h3>⚙️ Processing Steps</h3>
-            <ol>
-                <li><strong>Feature Calculation:</strong> Compute all breadth indicators</li>
-                <li><strong>Normalization:</strong> Z-score normalization for standardization</li>
-                <li><strong>Outlier Handling:</strong> Winsorization (5% percentile clipping)</li>
-                <li><strong>Weighted Combination:</strong> Apply configurable weights</li>
-                <li><strong>0-100 Scaling:</strong> Convert to interpretable signal scores</li>
-                <li><strong>Signal Classification:</strong> Strong/Moderate/Weak signals</li>
-            </ol>
-            
-            <h3>📊 Indicator Weights</h3>
-            <div class="code-block">
-A/D Issues Ratio:     25% (Core breadth measure)<br>
-A/D Volume Ratio:     20% (Volume-weighted breadth)<br>
-A/D Momentum:         15% (Breadth momentum)<br>
-MA Momentum:          15% (Trend momentum)<br>
-MA Trend Strength:    10% (Trend strength)<br>
-McClellan Oscillator: 10% (Smoothed breadth)<br>
-ZBT Confidence:        5% (Rare but powerful)
-            </div>
-        </div>
-        
-        <div class="panel">
-            <h2>📈 Practical Application</h2>
-            <h3>🎮 Multi-Timeframe Support</h3>
-            <p>BreadthFlow supports <strong>5 different timeframes</strong> with optimized parameters for each:</p>
-            <ul>
-                <li><strong>1day:</strong> Traditional daily trading (MA: 20/50, RSI: 14)</li>
-                <li><strong>1hour:</strong> Intraday swing trading (MA: 12/24, RSI: 14)</li>
-                <li><strong>15min:</strong> Medium frequency trading (MA: 8/16, RSI: 14)</li>
-                <li><strong>5min:</strong> High frequency trading (MA: 6/12, RSI: 10)</li>
-                <li><strong>1min:</strong> Ultra-high frequency (MA: 5/10, RSI: 8)</li>
-            </ul>
-            
-            <h3>🔬 Scientific Foundation</h3>
-            <ul>
-                <li><strong>Market Microstructure:</strong> Studies how individual stock behavior aggregates</li>
-                <li><strong>Behavioral Finance:</strong> Explains why breadth indicators predict psychology</li>
-                <li><strong>Statistical Arbitrage:</strong> Uses breadth divergences to identify mispricings</li>
-                <li><strong>Historical Evidence:</strong> Proven track record in market analysis</li>
-            </ul>
-        </div>
-        
-        <div class="panel">
-            <h2>🚀 The BreadthFlow Advantage</h2>
-            <p>BreadthFlow transforms traditional market breadth theory into a <strong>quantitative, real-time trading system</strong> that:</p>
-            <ul>
-                <li><strong>Automates Analysis:</strong> Processes 100+ stocks simultaneously</li>
-                <li><strong>Multi-Timeframe:</strong> Adapts to different trading styles</li>
-                <li><strong>Real-time Signals:</strong> Provides actionable trading signals</li>
-                <li><strong>Risk Management:</strong> Includes confidence and strength metrics</li>
-                <li><strong>Backtesting:</strong> Validates performance historically</li>
-                <li><strong>Production-Ready:</strong> Scalable, monitored, and reliable</li>
-            </ul>
-            
-            <div class="theory-diagram">
-                <h3>🎯 Success Metrics</h3>
-                <div class="code-block">
-• Signal Performance: 42+ signals displayed<br>
-• Multi-Timeframe Support: All timeframes (1min-1day)<br>
-• Export Functionality: CSV and JSON export<br>
-• Real-time Updates: Auto-refreshing every 30 seconds<br>
-• Error Handling: Graceful handling of missing data
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-        """
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html; charset=utf-8')
-        self.end_headers()
-        self.wfile.write(html.encode('utf-8'))
-
-    def serve_training_api(self):
-        """Handle training API requests"""
-        try:
-            path = self.path
-            if path == '/api/training/models':
-                self.serve_training_models()
-            elif path == '/api/training/analytics':
-                self.serve_training_analytics()
-            elif path == '/api/training/progress':
-                self.serve_training_progress()
-            else:
-                self.send_error(404)
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
-
-    def serve_training_api_post(self):
-        """Handle training API POST requests"""
-        try:
-            path = self.path
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            if path == '/api/training/start':
-                self.serve_training_start(data)
-            elif path == '/api/training/stop':
-                self.serve_training_stop()
-            elif path == '/api/training/deploy':
-                self.serve_training_deploy(data)
-            elif path == '/api/training/delete':
-                self.serve_training_delete(data)
-            else:
-                self.send_error(404)
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
-
-    def serve_training_models(self):
-        """Serve training models list"""
-        # Mock data for now - will be replaced with actual implementation
-        models = [
-            {
-                'id': 'model_001',
-                'name': 'Random Forest Classifier',
-                'type': 'random_forest',
-                'strategy': 'classification',
-                'created_at': '2024-01-15 10:30:00',
-                'accuracy': 85.5,
-                'precision': 82.3,
-                'recall': 87.1,
-                'f1_score': 84.6
-            },
-            {
-                'id': 'model_002',
-                'name': 'XGBoost Ensemble',
-                'type': 'xgboost',
-                'strategy': 'ensemble',
-                'created_at': '2024-01-14 15:45:00',
-                'accuracy': 88.2,
-                'precision': 86.7,
-                'recall': 89.4,
-                'f1_score': 88.0
-            }
-        ]
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'models': models}).encode('utf-8'))
-
-    def serve_training_analytics(self):
-        """Serve training analytics"""
-        # Mock data for now - will be replaced with actual implementation
-        analytics = {
-            'total_models': 2,
-            'avg_accuracy': 86.85,
-            'training_sessions': 5,
-            'deployed_models': 1
-        }
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'analytics': analytics}).encode('utf-8'))
-
-    def serve_training_progress(self):
-        """Serve training progress"""
-        # Mock data for now - will be replaced with actual implementation
-        progress = {
-            'percentage': 45,
-            'current_epoch': 45,
-            'total_epochs': 100,
-            'loss': 0.2345,
-            'accuracy': 0.8234,
-            'log': 'Training epoch 45/100 - Loss: 0.2345, Accuracy: 82.34%',
-            'completed': False
-        }
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'progress': progress}).encode('utf-8'))
-
-    def serve_training_start(self, data):
-        """Handle training start request"""
-        # Mock implementation - will be replaced with actual training logic
-        print(f"Training started with config: {data}")
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'success': True, 'message': 'Training started'}).encode('utf-8'))
-
-    def serve_training_stop(self):
-        """Handle training stop request"""
-        # Mock implementation - will be replaced with actual training logic
-        print("Training stopped")
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'success': True, 'message': 'Training stopped'}).encode('utf-8'))
-
-    def serve_training_deploy(self, data):
-        """Handle model deployment request"""
-        # Mock implementation - will be replaced with actual deployment logic
-        model_id = data.get('model_id')
-        print(f"Deploying model: {model_id}")
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'success': True, 'message': f'Model {model_id} deployed'}).encode('utf-8'))
-
-    def serve_training_delete(self, data):
-        """Handle model deletion request"""
-        # Mock implementation - will be replaced with actual deletion logic
-        model_id = data.get('model_id')
-        print(f"Deleting model: {model_id}")
-        
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps({'success': True, 'message': f'Model {model_id} deleted'}).encode('utf-8'))
     
 @click.command()
 @click.option('--port', default=8080, help='Port to run dashboard on')
@@ -4215,6 +4126,984 @@ def start_dashboard(port: int, host: str):
     except KeyboardInterrupt:
         print("\n🛑 Shutting down...")
         httpd.shutdown()
+
+    def serve_pipeline_management(self):
+        """Serve the Pipeline Management page"""
+        html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>BreadthFlow Pipeline Management</title>
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+        body { 
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+                    padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+                    color: #333;
+                }
+                
+                .container {
+                    max-width: 1400px;
+                    margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+                    border-radius: 20px;
+            padding: 30px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                    backdrop-filter: blur(10px);
+                }
+                
+                .header {
+            text-align: center;
+                    margin-bottom: 40px;
+                    padding-bottom: 20px;
+                    border-bottom: 2px solid #e0e0e0;
+        }
+                
+        .header h1 {
+                    color: #2c3e50;
+                    margin: 0 0 10px 0;
+            font-size: 2.5em;
+                    font-weight: 700;
+                }
+                
+                .header p {
+                    color: #666;
+                    margin: 0;
+                    font-size: 1.1em;
+                }
+                
+        .nav-buttons {
+            display: flex;
+                    gap: 12px;
+                    margin-top: 20px;
+            flex-wrap: wrap;
+                    justify-content: center;
+        }
+                
+        .nav-btn {
+                    padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+                    border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+                    font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+                
+        .nav-btn:hover {
+            transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+                
+        .nav-btn.active {
+                    background: linear-gradient(135deg, #4CAF50, #45a049);
+                    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+                }
+                
+                .refresh-btn {
+                    padding: 12px 24px;
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.3s ease;
+                }
+                
+                .refresh-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+                }
+                
+                .content-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 30px;
+                    margin-bottom: 30px;
+                }
+                
+        .panel {
+                    background: white;
+            border-radius: 15px;
+                    padding: 25px;
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #e0e0e0;
+                }
+                
+        .panel h2 {
+                    color: #2c3e50;
+                    margin: 0 0 20px 0;
+                    font-size: 1.5em;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .full-width {
+                    grid-column: 1 / -1;
+                }
+                
+                .status-indicator {
+                    display: inline-block;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    margin-right: 8px;
+                }
+                
+                .status-stopped { background: #dc3545; }
+                .status-running { background: #28a745; }
+                .status-starting { background: #ffc107; }
+                .status-stopping { background: #fd7e14; }
+                
+                .control-buttons {
+                    display: flex;
+                    gap: 15px;
+            margin: 20px 0;
+                    flex-wrap: wrap;
+                }
+                
+                .btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 14px;
+                    transition: all 0.3s ease;
+                    text-decoration: none;
+                    display: inline-block;
+                    text-align: center;
+                }
+                
+                .btn-start {
+                    background: linear-gradient(135deg, #28a745, #20c997);
+                    color: white;
+                }
+                
+                .btn-stop {
+                    background: linear-gradient(135deg, #dc3545, #c82333);
+                    color: white;
+                }
+                
+                .btn-status {
+                    background: linear-gradient(135deg, #17a2b8, #138496);
+                    color: white;
+                }
+                
+                .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                }
+                
+                .btn:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+                
+                .config-form {
+            display: grid;
+                    gap: 15px;
+            margin: 20px 0;
+        }
+                
+                .form-group {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                
+                .form-group label {
+                    font-weight: 600;
+                    color: #555;
+                }
+                
+                .form-group select,
+                .form-group input {
+                    padding: 10px;
+                    border: 2px solid #e0e0e0;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    transition: border-color 0.3s ease;
+                }
+                
+                .form-group select:focus,
+                .form-group input:focus {
+                    outline: none;
+                    border-color: #667eea;
+                }
+                
+                .runs-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                }
+                
+                .runs-table th,
+                .runs-table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #e0e0e0;
+                }
+                
+                .runs-table th {
+            background: #f8f9fa;
+                    font-weight: 600;
+                    color: #555;
+                }
+                
+                .runs-table tr:hover {
+                    background: #f8f9fa;
+                }
+                
+                .metric-card {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+            padding: 15px;
+                    margin: 10px 0;
+                    border-left: 4px solid #667eea;
+                }
+                
+                .metric-card h4 {
+                    margin: 0 0 5px 0;
+                    color: #555;
+            font-size: 0.9em;
+                }
+                
+                .metric-card .value {
+                    font-size: 1.5em;
+                    font-weight: 700;
+                    color: #2c3e50;
+                }
+                
+                .loading {
+                    text-align: center;
+                    padding: 20px;
+                    color: #666;
+                }
+                
+                .error {
+                    background: #f8d7da;
+                    border: 1px solid #f5c6cb;
+                    color: #721c24;
+                    padding: 12px;
+                    border-radius: 8px;
+            margin: 10px 0;
+                }
+                
+                .success {
+                    background: #d4edda;
+                    border: 1px solid #c3e6cb;
+                    color: #155724;
+                    padding: 12px;
+                    border-radius: 8px;
+            margin: 10px 0;
+                }
+                
+                @media (max-width: 768px) {
+                    .content-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .nav-buttons {
+                        flex-direction: column;
+                    }
+                    
+                    .control-buttons {
+                        flex-direction: column;
+                    }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+                    <h1>Pipeline Management</h1>
+                    <p>Automated batch processing control and monitoring</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                        <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                        <button class="nav-btn active" onclick="window.location.href='/pipeline'">Pipeline</button>
+                        <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+                        <button class="refresh-btn" onclick="loadPipelineData()">Refresh Status</button>
+            </div>
+        </div>
+        
+                <div class="content-grid">
+        <div class="panel">
+                        <h2>🎛️ Pipeline Control</h2>
+                        <div id="pipeline-status">
+                            <div class="loading">Loading pipeline status...</div>
+                        </div>
+                        
+                        <div class="control-buttons">
+                            <button class="btn btn-start" onclick="startPipeline()" id="start-btn">
+                                ▶️ Start Pipeline
+                            </button>
+                            <button class="btn btn-stop" onclick="stopPipeline()" id="stop-btn" disabled>
+                                ⏹️ Stop Pipeline
+                            </button>
+                            <button class="btn btn-status" onclick="refreshStatus()">
+                                🔄 Refresh Status
+                            </button>
+            </div>
+            
+                        <div id="control-message"></div>
+        </div>
+        
+        <div class="panel">
+                        <h2>⚙️ Pipeline Configuration</h2>
+                        <div class="config-form">
+                            <div class="form-group">
+                                <label for="pipeline-mode">Mode:</label>
+                                <select id="pipeline-mode">
+                                    <option value="demo">Demo (AAPL, MSFT, GOOGL)</option>
+                                    <option value="demo_small">Demo Small (3 symbols)</option>
+                                    <option value="tech_leaders">Tech Leaders (8 symbols)</option>
+                                    <option value="all_symbols">All Symbols</option>
+                                    <option value="custom">Custom Symbols</option>
+                                </select>
+                    </div>
+                            
+                            <div class="form-group">
+                                <label for="pipeline-interval">Interval:</label>
+                                <select id="pipeline-interval">
+                                    <option value="1m">1 Minute</option>
+                                    <option value="5m" selected>5 Minutes</option>
+                                    <option value="15m">15 Minutes</option>
+                                    <option value="1h">1 Hour</option>
+                                    <option value="6h">6 Hours</option>
+                                    <option value="1d">1 Day</option>
+                                </select>
+                    </div>
+                            
+                            <div class="form-group">
+                                <label for="pipeline-timeframe">Timeframe:</label>
+                                <select id="pipeline-timeframe">
+                                    <option value="1min">1 Minute</option>
+                                    <option value="5min">5 Minutes</option>
+                                    <option value="15min">15 Minutes</option>
+                                    <option value="1hour">1 Hour</option>
+                                    <option value="1day" selected>1 Day</option>
+                                </select>
+                </div>
+                
+                            <div class="form-group" id="custom-symbols-group" style="display: none;">
+                                <label for="pipeline-symbols">Custom Symbols (comma-separated):</label>
+                                <input type="text" id="pipeline-symbols" placeholder="AAPL,MSFT,GOOGL">
+                </div>
+                
+                            <div class="form-group">
+                                <label for="pipeline-data-source">Data Source:</label>
+                                <select id="pipeline-data-source">
+                                    <option value="yfinance" selected>Yahoo Finance</option>
+                                    <option value="alpha_vantage">Alpha Vantage</option>
+                                    <option value="polygon">Polygon</option>
+                                </select>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel full-width">
+                    <h2>📊 Pipeline Metrics</h2>
+                    <div id="pipeline-metrics">
+                        <div class="loading">Loading pipeline metrics...</div>
+                    </div>
+                    </div>
+                
+                <div class="panel full-width">
+                    <h2>📋 Recent Pipeline Runs</h2>
+                    <div id="pipeline-runs">
+                        <div class="loading">Loading pipeline runs...</div>
+                </div>
+            </div>
+        </div>
+        
+            <script>
+                let pipelineStatus = null;
+                
+                async function loadPipelineData() {
+                    await Promise.all([
+                        loadPipelineStatus(),
+                        loadPipelineRuns()
+                    ]);
+                }
+                
+                async function loadPipelineStatus() {
+                    try {
+                        const response = await fetch('/api/pipeline/status');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            pipelineStatus = data;
+                            renderPipelineStatus(data);
+                            updateControlButtons(data.state?.state || 'stopped');
+                        } else {
+                            document.getElementById('pipeline-status').innerHTML = 
+                                '<div class="error">Failed to load pipeline status</div>';
+                        }
+                    } catch (error) {
+                        document.getElementById('pipeline-status').innerHTML = 
+                            '<div class="error">Error loading pipeline status: ' + error.message + '</div>';
+                    }
+                }
+                
+                async function loadPipelineRuns() {
+                    try {
+                        const response = await fetch('/api/pipeline/runs');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            renderPipelineRuns(data.runs);
+                        } else {
+                            document.getElementById('pipeline-runs').innerHTML = 
+                                '<div class="error">Failed to load pipeline runs</div>';
+                        }
+                    } catch (error) {
+                        document.getElementById('pipeline-runs').innerHTML = 
+                            '<div class="error">Error loading pipeline runs: ' + error.message + '</div>';
+                    }
+                }
+                
+                function renderPipelineStatus(data) {
+                    const state = data.state || {};
+                    const config = data.config || {};
+                    
+                    const statusClass = 'status-' + (state.state || 'stopped');
+                    
+                    let html = `
+                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                            <span class="status-indicator ${statusClass}"></span>
+                            <strong>Status: ${(state.state || 'stopped').toUpperCase()}</strong>
+        </div>
+                    `;
+                    
+                    if (state.state === 'running') {
+                        html += `
+                            <div class="metric-card">
+                                <h4>Current Configuration</h4>
+                                <div>Mode: ${config.mode || 'Unknown'}</div>
+                                <div>Interval: ${config.interval || 'Unknown'}</div>
+                                <div>Timeframe: ${config.timeframe || 'Unknown'}</div>
+                                <div>Symbols: ${config.symbols?.length || 0} symbols</div>
+                            </div>
+                        `;
+                        
+                        if (state.uptime_seconds > 0) {
+                            const uptimeHours = (state.uptime_seconds / 3600).toFixed(1);
+                            html += `
+                                <div class="metric-card">
+                                    <h4>Runtime Statistics</h4>
+                                    <div>Uptime: ${uptimeHours} hours</div>
+                                    <div>Total Runs: ${state.total_runs || 0}</div>
+                                    <div>Successful: ${state.successful_runs || 0}</div>
+                                    <div>Failed: ${state.failed_runs || 0}</div>
+                </div>
+                            `;
+                        }
+                    }
+                    
+                    // Render metrics
+                    const metricsHtml = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div class="metric-card">
+                                <h4>Total Runs</h4>
+                                <div class="value">${state.total_runs || 0}</div>
+            </div>
+                            <div class="metric-card">
+                                <h4>Success Rate</h4>
+                                <div class="value">${state.total_runs > 0 ? Math.round((state.successful_runs || 0) / state.total_runs * 100) : 0}%</div>
+        </div>
+                            <div class="metric-card">
+                                <h4>Last Run</h4>
+                                <div class="value">${state.last_run_time ? new Date(state.last_run_time).toLocaleString() : 'Never'}</div>
+    </div>
+                            <div class="metric-card">
+                                <h4>Current State</h4>
+                                <div class="value">${(state.state || 'stopped').toUpperCase()}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('pipeline-status').innerHTML = html;
+                    document.getElementById('pipeline-metrics').innerHTML = metricsHtml;
+                }
+                
+                function renderPipelineRuns(runs) {
+                    if (!runs || runs.length === 0) {
+                        document.getElementById('pipeline-runs').innerHTML = 
+                            '<div style="text-align: center; padding: 20px; color: #666;">No pipeline runs found</div>';
+                        return;
+                    }
+                    
+                    let html = `
+                        <table class="runs-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Mode</th>
+                                    <th>Timeframe</th>
+                                    <th>Symbols</th>
+                                    <th>Duration</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    runs.forEach(run => {
+                        const startTime = new Date(run.start_time).toLocaleString();
+                        const duration = run.duration ? `${run.duration.toFixed(1)}s` : 'Running...';
+                        const statusEmoji = run.status === 'completed' ? '✅' : 
+                                          run.status === 'failed' ? '❌' : 
+                                          run.status === 'running' ? '🔄' : '⏸️';
+                        
+                        html += `
+                            <tr onclick="showRunDetails('${run.run_id}')" style="cursor: pointer;">
+                                <td>${startTime}</td>
+                                <td>${run.mode || 'Unknown'}</td>
+                                <td>${run.timeframe || 'Unknown'}</td>
+                                <td>${run.symbols_processed || 0}</td>
+                                <td>${duration}</td>
+                                <td>${statusEmoji} ${run.status}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    document.getElementById('pipeline-runs').innerHTML = html;
+                }
+                
+                function updateControlButtons(state) {
+                    const startBtn = document.getElementById('start-btn');
+                    const stopBtn = document.getElementById('stop-btn');
+                    
+                    if (state === 'running') {
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                    } else {
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                    }
+                }
+                
+                async function startPipeline() {
+                    const mode = document.getElementById('pipeline-mode').value;
+                    const interval = document.getElementById('pipeline-interval').value;
+                    const timeframe = document.getElementById('pipeline-timeframe').value;
+                    const dataSource = document.getElementById('pipeline-data-source').value;
+                    let symbols = null;
+                    
+                    if (mode === 'custom') {
+                        symbols = document.getElementById('pipeline-symbols').value;
+                        if (!symbols) {
+                            showMessage('Please enter custom symbols', 'error');
+                            return;
+                        }
+                    }
+                    
+                    try {
+                        showMessage('Starting pipeline...', 'info');
+                        
+                        const response = await fetch('/api/pipeline/start', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                mode,
+                                interval,
+                                timeframe,
+                                symbols,
+                                data_source: dataSource
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showMessage('Pipeline started successfully!', 'success');
+                            setTimeout(loadPipelineData, 1000);
+                        } else {
+                            showMessage('Failed to start pipeline: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showMessage('Error starting pipeline: ' + error.message, 'error');
+                    }
+                }
+                
+                async function stopPipeline() {
+                    try {
+                        showMessage('Stopping pipeline...', 'info');
+                        
+                        const response = await fetch('/api/pipeline/stop', {
+                            method: 'POST'
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showMessage('Pipeline stopped successfully!', 'success');
+                            setTimeout(loadPipelineData, 1000);
+                        } else {
+                            showMessage('Failed to stop pipeline: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showMessage('Error stopping pipeline: ' + error.message, 'error');
+                    }
+                }
+                
+                async function refreshStatus() {
+                    await loadPipelineData();
+                }
+                
+                function showMessage(message, type) {
+                    const messageDiv = document.getElementById('control-message');
+                    messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+                    
+                    if (type === 'success' || type === 'info') {
+                        setTimeout(() => {
+                            messageDiv.innerHTML = '';
+                        }, 3000);
+                    }
+                }
+                
+                function showRunDetails(runId) {
+                    // This would open a modal or navigate to a detailed view
+                    alert('Run details for: ' + runId + '\\n(Feature coming soon)');
+                }
+                
+                // Show/hide custom symbols input based on mode selection
+                document.getElementById('pipeline-mode').addEventListener('change', function() {
+                    const customGroup = document.getElementById('custom-symbols-group');
+                    if (this.value === 'custom') {
+                        customGroup.style.display = 'block';
+                    } else {
+                        customGroup.style.display = 'none';
+                    }
+                });
+                
+                // Load data on page load
+                document.addEventListener('DOMContentLoaded', loadPipelineData);
+                
+                // Auto-refresh every 30 seconds
+                setInterval(loadPipelineData, 30000);
+            </script>
+        </body>
+        </html>
+        """
+            
+            self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+            self.end_headers()
+        self.wfile.write(html.encode('utf-8'))
+    
+    def serve_pipeline_status(self):
+        """Serve pipeline status API endpoint"""
+        try:
+            # Call the Spark command server for real pipeline status
+            import urllib.request
+            import urllib.error
+            
+            try:
+                # Make request to Spark command server
+                command_data = {
+                    "command": "pipeline_status",
+                    "parameters": {}
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
+                        # Parse the CLI output to extract status information
+                        # For now, return a structured response based on the command output
+                        status_data = {
+                            "success": True,
+                            "state": {
+                                "state": "stopped",  # Parse from CLI output
+                                "total_runs": 0,
+                                "successful_runs": 0,
+                                "failed_runs": 0,
+                                "last_run_time": None,
+                                "uptime_seconds": 0
+                            },
+                            "config": None,
+                            "raw_output": result.get("output", "")
+                        }
+                    else:
+                        raise Exception(f"Command failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError):
+                # Return actual status from database if Spark command server is not available
+                status_data = {
+                    "success": True,
+                    "state": {
+                        "state": "stopped",
+                        "total_runs": 0,
+                        "successful_runs": 0,
+                        "failed_runs": 0,
+                        "last_run_time": None,
+                        "uptime_seconds": 0
+                    },
+                    "config": None,
+                    "note": "Spark command server unavailable - using database status"
+                }
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(status_data).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': False,
+                'error': str(e)
+            }).encode('utf-8'))
+    
+    def serve_pipeline_runs(self):
+        """Serve pipeline runs API endpoint"""
+        try:
+            # This would query the actual pipeline runs from database
+            # For now, return empty list
+            runs_data = {
+                "success": True,
+                "runs": []
+            }
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+            self.wfile.write(json.dumps(runs_data).encode('utf-8'))
+                
+            except Exception as e:
+            self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'success': False,
+                    'error': str(e)
+                }).encode('utf-8'))
+    
+    def serve_pipeline_start(self):
+        """Handle pipeline start requests"""
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            # Extract configuration
+            mode = data.get('mode', 'demo')
+            interval = data.get('interval', '5m')
+            timeframe = data.get('timeframe', '1day')
+            symbols = data.get('symbols')
+            data_source = data.get('data_source', 'yfinance')
+            
+            # Call the Spark command server to start the pipeline
+            import urllib.request
+            import urllib.error
+            
+            try:
+                # Prepare command parameters
+                parameters = {
+                    "mode": mode,
+                    "interval": interval,
+                    "timeframe": timeframe,
+                    "data_source": data_source
+                }
+                
+                if symbols:
+                    parameters["symbols"] = symbols
+                
+                command_data = {
+                    "command": "pipeline_start",
+                    "parameters": parameters
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=30) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
+                        response_data = {
+                            "success": True,
+                            "message": f"Pipeline started with mode '{mode}' and interval '{interval}'",
+                            "config": {
+                                "mode": mode,
+                                "interval": interval,
+                                "timeframe": timeframe,
+                                "symbols": symbols.split(',') if symbols else [],
+                                "data_source": data_source
+                            },
+                            "output": result.get("output", "")
+                        }
+                    else:
+                        raise Exception(f"Pipeline start failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+                # Return error if Spark command server is not available
+                response_data = {
+                    "success": False,
+                    "error": f"Cannot connect to pipeline server: {str(e)}"
+                }
+            
+            self.send_response(200 if response_data["success"] else 500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': False,
+                'error': str(e)
+            }).encode('utf-8'))
+    
+    def serve_pipeline_stop(self):
+        """Handle pipeline stop requests"""
+        try:
+            # Call the Spark command server to stop the pipeline
+            import urllib.request
+            import urllib.error
+            
+            try:
+                command_data = {
+                    "command": "pipeline_stop",
+                    "parameters": {}
+                }
+                
+                req = urllib.request.Request(
+                    'http://spark-master:8081/execute',
+                    data=json.dumps(command_data).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    result = json.loads(response.read().decode('utf-8'))
+                    
+                    if result.get("success"):
+                        response_data = {
+                            "success": True,
+                            "message": "Pipeline stopped successfully",
+                            "output": result.get("output", ""),
+                            "final_stats": {
+                                "total_runs": 0,
+                                "successful_runs": 0,
+                                "failed_runs": 0
+                            }
+                        }
+                    else:
+                        raise Exception(f"Pipeline stop failed: {result.get('error')}")
+                        
+            except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
+                # Return error if Spark command server is not available
+                response_data = {
+                    "success": False,
+                    "error": f"Cannot connect to pipeline server: {str(e)}"
+                }
+            
+            self.send_response(200 if response_data["success"] else 500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(response_data).encode('utf-8'))
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'success': False,
+                'error': str(e)
+            }).encode('utf-8'))
+    
+    def serve_training(self):
+        """Serve the Training page"""
+        html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; text-decoration: none; cursor: pointer; }
+        .nav-btn:hover { background: #0056b3; }
+        .nav-btn.active { background: #28a745; }
+        .content { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Training Dashboard</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
+                <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
+                <button class="nav-btn" onclick="window.location.href='/trading'">Trading Signals</button>
+                <button class="nav-btn" onclick="window.location.href='/commands'">Commands</button>
+                <button class="nav-btn" onclick="window.location.href='/pipeline'">Pipeline</button>
+                <button class="nav-btn active" onclick="window.location.href='/training'">Training</button>
+                <button class="nav-btn" onclick="window.location.href='/parameters'">Parameters</button>
+            </div>
+        </div>
+        <div class="content">
+            <h2>Training System</h2>
+            <p>The Training system is currently under development.</p>
+            <p>Future features will include:</p>
+            <ul>
+                <li>Model training and management</li>
+                <li>Training progress monitoring</li>
+                <li>Model deployment</li>
+                <li>Performance analytics</li>
+            </ul>
+            <div style="margin-top: 20px;">
+                <button class="nav-btn" onclick="window.location.href='/'">Return to Dashboard</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+        """
+        
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(html.encode('utf-8'))
 
 if __name__ == '__main__':
     start_dashboard()

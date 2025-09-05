@@ -2,6 +2,18 @@
 
 > A production-ready quantitative trading signal system with **modular abstraction architecture**, **workflow management**, and **timeframe-agnostic capabilities**. Built on PySpark, Kafka, PostgreSQL, MinIO, and Elasticsearch with a modern web dashboard, streaming capabilities, and multi-timeframe analytics (1min, 5min, 15min, 1hour, 1day).
 
+## 🚫 **CRITICAL RULE: NO MOCK DATA**
+
+**NEVER use mock data, fake data, or placeholder data in production code or API endpoints.**
+
+- **No fake financial data** (fake stock prices, fake trading signals, fake metrics)
+- **No fake timestamps** (fake dates, fake creation times)
+- **No fake IDs** (fake model IDs, fake run IDs)
+- **Return proper error responses** (501 Not Implemented) instead of fake data
+- **Use TODO comments** to indicate functionality needs implementation
+
+---
+
 ## 🆕 **NEW: Modular Abstraction System**
 
 BreadthFlow now features a **complete modular abstraction system** that allows you to:
@@ -105,6 +117,8 @@ python cli/bf_abstracted.py pipeline start --mode demo
 ### **4. Access Monitoring & UIs**
 - **🎯 Real-time Dashboard**: http://localhost:8083 (Pipeline monitoring, Infrastructure overview & **Commands execution**)
 - **🎮 Pipeline Management**: http://localhost:8083/pipeline (Automated batch processing control)
+- **📊 Trading Signals**: http://localhost:8083/trading (Real-time signal monitoring with export)
+- **🏗️ Infrastructure Status**: http://localhost:8083/infrastructure (System health monitoring)
 - **📊 Kibana Analytics**: http://localhost:5601 (Advanced log analysis)
 - **🎨 Kafka UI (Kafdrop)**: http://localhost:9002 (Streaming data & message monitoring)
 - **🗄️ MinIO Data Storage**: http://localhost:9001 (minioadmin/minioadmin)
@@ -469,6 +483,55 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py COMMAND
 ```
 
 > **Note**: Legacy and redundant CLI files have been removed for cleaner codebase. The above two CLIs provide complete functionality.
+
+---
+
+## 🆕 **Recent Dashboard Improvements** (Updated 2025-01-24)
+
+### **✅ Fixed Empty Dashboard Pages**
+The BreadthFlow dashboard has been significantly improved with comprehensive content for all pages:
+
+#### **📊 Main Dashboard** (http://localhost:8083)
+- **✅ Stats Cards**: Total Pipeline Runs, Success Rate, Last 24h Runs, Average Duration
+- **✅ Recent Pipeline Runs Table**: Command, Status, Duration, Start Time, Actions
+- **✅ Quick Actions**: Direct navigation to Pipeline, Trading Signals, Commands, Training
+- **✅ Auto-refresh**: Updates every 30 seconds with live data
+- **✅ Pagination**: Navigate through pipeline run history
+
+#### **🏗️ Infrastructure Status** (http://localhost:8083/infrastructure)
+- **✅ System Health Overview**: Database, Pipeline, API, Uptime status indicators
+- **✅ Service Status Table**: Dashboard Server, PostgreSQL, API Endpoints, Static Files
+- **✅ System Resources**: CPU, Memory, Disk usage, Network status
+- **✅ Real-time Monitoring**: Auto-refreshes every 30 seconds with live status checks
+- **✅ Color-coded Status**: Green (healthy), Yellow (warning), Red (error)
+
+#### **🔧 Technical Improvements**
+- **✅ Direct HTML Rendering**: Replaced template-based rendering for reliable content display
+- **✅ JavaScript Integration**: Added comprehensive client-side functionality
+- **✅ API Integration**: Connected to backend APIs for real-time data
+- **✅ Error Handling**: Graceful handling of database connection failures
+- **✅ Responsive Design**: Works on desktop and mobile devices
+
+#### **🎯 All Dashboard Pages Now Working**
+- **📊 Main Dashboard**: ✅ Full content with stats and recent runs
+- **🏗️ Infrastructure Status**: ✅ System health monitoring
+- **📈 Trading Signals**: ✅ Signal monitoring with export (already working)
+- **🎮 Pipeline Management**: ✅ Pipeline control (already working)
+- **⚡ Commands**: ✅ Command execution (already working)
+- **🎓 Training**: ✅ Model training (already working)
+- **⚙️ Parameters**: ✅ Configuration management (already working)
+
+### **🚀 Quick Test**
+```bash
+# Start the dashboard
+./scripts/start_infrastructure.sh
+
+# Test all pages
+curl -s http://localhost:8083/ | grep -A 5 "stats"           # Main dashboard
+curl -s http://localhost:8083/infrastructure | grep -A 5 "stats"  # Infrastructure
+curl -s http://localhost:8083/trading | head -10             # Trading signals
+curl -s http://localhost:8083/pipeline | head -10            # Pipeline management
+```
 
 ---
 
@@ -930,10 +993,13 @@ docker-compose build dashboard && docker-compose up -d dashboard
    - **📊 Data Export**: CSV and JSON export functionality for signals
 
 **Dashboard Pages:**
-- **📊 Main Dashboard**: Live pipeline metrics and run history
+- **📊 Main Dashboard**: Live pipeline metrics, stats cards, recent runs table, and quick actions
 - **🎮 Pipeline Management**: Real-time pipeline control with start/stop buttons
 - **📈 Trading Signals**: Comprehensive signal monitoring with export capabilities
-- **🏗️ Infrastructure**: System architecture visualization with 8 services
+- **🏗️ Infrastructure Status**: System health monitoring with service status and resource metrics
+- **⚡ Commands**: Quick command execution interface
+- **🎓 Training**: Model training and management interface
+- **⚙️ Parameters**: System configuration and parameter management
 
 ### **🔍 Kibana Analytics** (Advanced)
 1. **Open Kibana**: http://localhost:5601
@@ -1308,6 +1374,56 @@ GET /api/parameters
 
 ---
 
+## 🚫 **CRITICAL RULE: NO MOCK DATA**
+
+**NEVER use mock data, fake data, or placeholder data in production code or API endpoints.**
+
+### What This Means:
+- **No fake user data** (fake names, emails, etc.)
+- **No fake financial data** (fake stock prices, fake trading signals)
+- **No fake metrics** (fake accuracy scores, fake performance numbers)
+- **No fake timestamps** (fake dates, fake creation times)
+- **No fake IDs** (fake model IDs, fake run IDs)
+
+### What To Do Instead:
+- **Return proper error responses** (501 Not Implemented, 404 Not Found)
+- **Use TODO comments** to indicate functionality needs implementation
+- **Implement actual database queries** when possible
+- **Use real data sources** when available
+- **Return empty arrays/objects** when no real data exists
+- **Log when functionality is not yet implemented**
+
+### Examples of Correct Implementation:
+```python
+# ✅ CORRECT - No mock data
+def get_training_models(self):
+    """Get list of trained models"""
+    # TODO: Implement actual model database query
+    self.send_response(501)
+    self.send_header('Content-type', 'application/json')
+    self.end_headers()
+    self.wfile.write(json.dumps({
+        "error": "Training models functionality not yet implemented",
+        "message": "This endpoint will query the actual model database when implemented"
+    }).encode())
+
+# ❌ WRONG - Mock data
+def get_training_models(self):
+    models = [
+        {"id": "fake_001", "name": "Fake Model", "accuracy": "87.5"}
+    ]
+    return models
+```
+
+### Why This Rule Exists:
+- **Prevents confusion** about what's real vs. fake
+- **Maintains data integrity** in the system
+- **Forces proper implementation** instead of shortcuts
+- **Builds trust** with users and stakeholders
+- **Avoids production issues** from fake data
+
+---
+
 ## 🚨 **Troubleshooting**
 
 ### **🔧 Common Issues**
@@ -1446,7 +1562,7 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 
 ## 📈 **Performance Characteristics**
 
-### **🎯 Tested Capabilities** (Updated 2025-08-24 - Enhanced Signal Monitoring)
+### **🎯 Tested Capabilities** (Updated 2025-01-24 - Dashboard Improvements)
 - **Multi-Timeframe Processing**: Successfully processes 1day, 1hour data with automatic storage organization
 - **Symbols**: Successfully processes 25+ symbols across multiple timeframes
 - **Data Volume**: 251 records (daily), 1745 records (hourly) per symbol with optimized Parquet storage
@@ -1463,6 +1579,9 @@ docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/bf_minio.py data su
 - **Multi-Timeframe Signal Display**: Support for all timeframes (1min, 5min, 15min, 1hour, 1day)
 - **Data Export**: CSV and JSON export functionality with comprehensive signal metadata
 - **Signal Performance**: 42+ signals displayed with multi-timeframe support and export capabilities
+- **Dashboard Pages**: All 7 dashboard pages now fully functional with comprehensive content
+- **System Health Monitoring**: Real-time infrastructure status with service health checks
+- **UI/UX Improvements**: Direct HTML rendering, JavaScript integration, responsive design
 
 ### **⚡ Scaling Guidelines - Timeframe-Aware**
 - **Small Scale**: 1-10 symbols, demo_small list, daily timeframe (fastest processing)

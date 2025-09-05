@@ -566,57 +566,9 @@ def generate(symbols, symbol_list, start_date, end_date):
         if not data_available:
             click.echo("⚠️  No market data found in MinIO for the specified period")
             click.echo("💡 Run 'data fetch' first to get market data")
-            
-            # Generate mock signals for demo
-            click.echo("🔄 Generating mock signals for demo...")
-            
-            # Create mock signal data - only for the end date (today)
-            import json
-            from datetime import datetime, timedelta
-            
-            signal_data = []
-            # Only generate signals for the end date (today), not the entire range
-            target_date = pd.to_datetime(end_date)
-            
-            np.random.seed(42)  # For reproducible results
-            
-            # Skip weekends
-            if target_date.weekday() < 5:
-                # Generate signal for each symbol for today only
-                for symbol in symbols_to_process:
-                    signal_strength = np.random.choice(['weak', 'medium', 'strong'], p=[0.3, 0.5, 0.2])
-                    confidence = np.random.uniform(60, 95)
-                    signal_type = np.random.choice(['buy', 'sell', 'hold'], p=[0.3, 0.2, 0.5])
-                    
-                    signal_data.append({
-                        'symbol': symbol,
-                        'date': target_date.strftime('%Y-%m-%d'),
-                        'signal_type': signal_type,
-                        'signal_strength': signal_strength,
-                        'confidence': round(confidence, 1),
-                        'composite_score': round(np.random.uniform(30, 80), 1),
-                        'generated_at': datetime.now().isoformat()
-                    })
-            
-            # Save signals to MinIO
-            signals_df = pd.DataFrame(signal_data)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
-            # Save as JSON
-            json_key = f"trading_signals/signals_{timestamp}.json"
-            s3_client.put_object(
-                Bucket=bucket,
-                Key=json_key,
-                Body=json.dumps(signal_data, indent=2),
-                ContentType='application/json'
-            )
-            
-            # Save as Parquet
-            parquet_key = f"trading_signals/signals_{timestamp}.parquet"
-            save_parquet_to_minio(s3_client, signals_df, bucket, parquet_key)
-            
-            click.echo(f"📁 Mock signals saved to trading_signals/signals_{timestamp}.parquet")
-            click.echo(f"📊 Generated {len(signal_data)} signal records")
+            click.echo("❌ Cannot generate signals without market data")
+            click.echo("🔧 Please ensure market data is available before running signal generation")
+            return
             
         else:
             click.echo(f"✅ Market data found for {len(available_symbols)} symbols!")
@@ -838,47 +790,9 @@ def run(symbols, symbol_list, from_date, to_date, initial_capital, save_results)
         if not data_available:
             click.echo("⚠️  No market data found in MinIO for the specified period")
             click.echo("💡 Run 'data fetch' first to get market data")
-            
-            # For demo purposes, create some mock data and run simplified backtest
-            click.echo("🔄 Running simplified backtest with mock data...")
-            
-            # Create mock backtest results that are realistic
-            np.random.seed(42)  # For reproducible results
-            
-            # More realistic simulation
-            trading_days = pd.bdate_range(start=from_date, end=to_date)
-            num_days = len(trading_days)
-            
-            # Simulate daily returns (slightly positive bias)
-            daily_returns = np.random.normal(0.0008, 0.015, num_days)  # 0.08% avg daily return, 1.5% volatility
-            
-            # Calculate portfolio evolution
-            portfolio_values = [initial_capital]
-            for daily_return in daily_returns:
-                new_value = portfolio_values[-1] * (1 + daily_return)
-                portfolio_values.append(new_value)
-            
-            # Calculate metrics
-            final_value = portfolio_values[-1]
-            total_return = (final_value - initial_capital) / initial_capital
-            
-            # Calculate volatility and Sharpe ratio
-            volatility = np.std(daily_returns) * np.sqrt(252)
-            annualized_return = total_return * (252 / num_days)
-            sharpe_ratio = (annualized_return - 0.02) / volatility  # Assume 2% risk-free rate
-            
-            # Calculate max drawdown
-            peak = initial_capital
-            max_drawdown = 0.0
-            for value in portfolio_values:
-                if value > peak:
-                    peak = value
-                drawdown = (peak - value) / peak
-                max_drawdown = max(max_drawdown, drawdown)
-            
-            # Simulate trading stats
-            total_trades = np.random.randint(25, 75)
-            win_rate = 0.55 + np.random.random() * 0.15  # 55-70% win rate
+            click.echo("❌ Cannot run backtest without market data")
+            click.echo("🔧 Please ensure market data is available before running backtest")
+            return
             
         else:
             click.echo("✅ Market data found! Running REAL backtest simulation...")

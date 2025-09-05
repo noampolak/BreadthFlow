@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  dashboard-simple:
+    build:
+      context: ./cli
+      dockerfile: Dockerfile.simple
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./cli:/app:ro
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://breadthflow:breadthflow@postgres:5432/breadthflow
+    networks:
+      - breadthflow-network
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: breadthflow
+      POSTGRES_USER: breadthflow
+      POSTGRES_PASSWORD: breadthflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - breadthflow-network
+
+volumes:
+  postgres_data:
+
+networks:
+  breadthflow-network:
+    external: true
