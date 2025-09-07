@@ -251,7 +251,7 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # BreadthFlow Web Dashboard
+  # BreadthFlow Web Dashboard (Legacy)
   dashboard:
     build:
       context: ..
@@ -276,6 +276,52 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
+
+  # FastAPI Backend (New)
+  breadthflow-api:
+    build:
+      context: ../fastapi_app
+      dockerfile: Dockerfile
+    container_name: breadthflow-api
+    ports:
+      - "8005:8005"
+    environment:
+      - DATABASE_URL=postgresql://pipeline:pipeline123@postgres:5432/breadthflow
+      - REDIS_URL=redis://redis:6379
+      - SPARK_COMMAND_SERVER_URL=http://spark-master:8081
+      - DEBUG=true
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../fastapi_app:/app
+    restart: unless-stopped
+
+  # React Frontend (New)
+  breadthflow-frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: breadthflow-frontend
+    ports:
+      - "3005:3005"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8005
+      - REACT_APP_WS_URL=ws://localhost:8005/ws
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # Redis for caching and WebSocket
+  redis:
+    image: redis:7-alpine
+    container_name: breadthflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     restart: unless-stopped
 
   # Zookeeper (for Kafka)
@@ -303,6 +349,7 @@ volumes:
   zookeeper-data:
   dashboard-data:
   postgres-data:
+  redis_data:
 
 networks:
   default:
