@@ -1,3 +1,2 @@
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+# Import Base from core.database to ensure all models use the same Base
+from core.database import Base

@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # Test Database
+  postgres-test:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: breadthflow_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d breadthflow_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test Redis
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-test-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test MinIO
+  minio-test:
+    image: minio/minio:latest
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    environment:
+      MINIO_ROOT_USER: test
+      MINIO_ROOT_PASSWORD: test123
+    volumes:
+      - minio-test-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Test API
+  api-test:
+    build:
+      context: .
+      dockerfile: fastapi_app/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/breadthflow_test
+      - REDIS_URL=redis://redis-test:6379
+      - MINIO_ENDPOINT=minio-test:9000
+      - MINIO_ACCESS_KEY=test
+      - MINIO_SECRET_KEY=test123
+      - ENVIRONMENT=test
+    ports:
+      - "8006:8000"
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      minio-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Test Frontend
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - REACT_APP_API_URL=http://localhost:8006
+      - REACT_APP_WS_URL=ws://localhost:8006/ws
+      - NODE_ENV=test
+    ports:
+      - "3006:3000"
+    depends_on:
+      api-test:
+        condition: service_healthy
+
+  # Test Runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - DATABASE_URL=postgresql://test_user:test_password@postgres-test:5432/breadthflow_test
+      - REDIS_URL=redis://redis-test:6379
+      - MINIO_ENDPOINT=minio-test:9000
+      - MINIO_ACCESS_KEY=test
+      - MINIO_SECRET_KEY=test123
+    volumes:
+      - ./tests:/app/tests
+      - ./test-results:/app/test-results
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      minio-test:
+        condition: service_healthy
+      api-test:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo 'Waiting for services to be ready...' &&
+        sleep 10 &&
+        echo 'Running tests...' &&
+        pytest tests/ -v --cov=. --cov-report=html --cov-report=xml --junitxml=test-results/junit.xml
+      "
+
+volumes:
+  postgres-test-data:
+  redis-test-data:
+  minio-test-data:

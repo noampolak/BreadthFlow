@@ -14,6 +14,17 @@ from apps.dashboard.routes import router as dashboard_router
 from apps.pipeline.routes import router as pipeline_router
 from apps.signals.routes import router as signals_router
 from apps.infrastructure.routes import router as infrastructure_router
+from apps.commands.routes import router as commands_router
+from apps.training.routes import router as training_router
+from apps.parameters.routes import router as parameters_router
+
+# Import all models to ensure tables are created
+from apps.dashboard.models import *
+from apps.pipeline.models import *
+from apps.signals.models import *
+from apps.commands.models import *
+from apps.training.models import *
+from apps.parameters.models import *
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.log_level))
@@ -68,6 +79,9 @@ app.include_router(dashboard_router, prefix="/api")
 app.include_router(pipeline_router, prefix="/api")
 app.include_router(signals_router, prefix="/api")
 app.include_router(infrastructure_router, prefix="/api")
+app.include_router(commands_router, prefix="/api")
+app.include_router(training_router, prefix="/api")
+app.include_router(parameters_router, prefix="/api")
 
 # WebSocket endpoint for real-time updates
 @app.websocket("/ws")

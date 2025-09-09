@@ -1,0 +1,36 @@
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY pyproject.toml poetry.lock ./
+
+# Install Python dependencies
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-dev
+
+# Install test dependencies
+RUN pip install pytest pytest-cov pytest-asyncio pytest-mock \
+    pytest-postgresql pytest-redis factory-boy faker \
+    httpx pytest-httpx selenium
+
+# Copy application code
+COPY . .
+
+# Create test results directory
+RUN mkdir -p test-results
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV ENVIRONMENT=test
+
+# Default command
+CMD ["pytest", "tests/", "-v", "--cov=.", "--cov-report=html", "--cov-report=xml"]

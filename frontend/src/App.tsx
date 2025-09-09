@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard';
 import Pipeline from './pages/Pipeline';
 import Signals from './pages/Signals';
 import Infrastructure from './pages/Infrastructure';
+import Commands from './pages/Commands';
+import Training from './pages/Training';
+import Parameters from './pages/Parameters';
 
 const theme = createTheme({
   palette: {
@@ -49,6 +52,9 @@ const Navigation: React.FC = () => {
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/pipeline', label: 'Pipeline', icon: '🎮' },
     { path: '/signals', label: 'Signals', icon: '📈' },
+    { path: '/commands', label: 'Commands', icon: '🎯' },
+    { path: '/training', label: 'Training', icon: '🤖' },
+    { path: '/parameters', label: 'Parameters', icon: '⚙️' },
     { path: '/infrastructure', label: 'Infrastructure', icon: '🏗️' },
   ];
 
@@ -90,13 +96,16 @@ const App: React.FC = () => {
           <Navigation />
           
           <Container maxWidth={false} sx={{ mt: 0 }}>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/pipeline" element={<Pipeline />} />
-              <Route path="/signals" element={<Signals />} />
-              <Route path="/infrastructure" element={<Infrastructure />} />
-            </Routes>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/pipeline" element={<Pipeline />} />
+                      <Route path="/signals" element={<Signals />} />
+                      <Route path="/commands" element={<Commands />} />
+                      <Route path="/training" element={<Training />} />
+                      <Route path="/parameters" element={<Parameters />} />
+                      <Route path="/infrastructure" element={<Infrastructure />} />
+                    </Routes>
           </Container>
         </Box>
       </Router>
