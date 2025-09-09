@@ -251,68 +251,52 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # BreadthFlow Web Dashboard (Legacy)
-  dashboard:
-    build:
-      context: ..
-      dockerfile: infra/Dockerfile.dashboard
-    container_name: breadthflow-dashboard
-    environment:
-      - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - DATABASE_URL=postgresql://pipeline:pipeline123@postgres:5432/breadthflow
-    ports:
-      - "8083:8080"  # Dashboard on port 8083
-    volumes:
-      - ../cli:/app/cli:ro
-    depends_on:
-      - postgres
-      - elasticsearch
-      - minio
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  # FastAPI Backend (New)
+  # BreadthFlow FastAPI Backend
   breadthflow-api:
     build:
       context: ../fastapi_app
       dockerfile: Dockerfile
     container_name: breadthflow-api
-    ports:
-      - "8005:8005"
     environment:
       - DATABASE_URL=postgresql://pipeline:pipeline123@postgres:5432/breadthflow
       - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
       - SPARK_COMMAND_SERVER_URL=http://spark-master:8081
-      - DEBUG=true
+    ports:
+      - "8005:8005"  # FastAPI on port 8005
+    volumes:
+      - ../cli:/app/cli:ro
     depends_on:
       - postgres
       - redis
-    volumes:
-      - ../fastapi_app:/app
+      - elasticsearch
+      - minio
+      - spark-master
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
 
-  # React Frontend (New)
+  # BreadthFlow React Frontend
   breadthflow-frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
     container_name: breadthflow-frontend
-    ports:
-      - "3005:3005"
     environment:
       - REACT_APP_API_URL=http://localhost:8005
       - REACT_APP_WS_URL=ws://localhost:8005/ws
-    volumes:
-      - ../frontend:/app
-      - /app/node_modules
+    ports:
+      - "3005:3005"  # React on port 3005
+    depends_on:
+      - breadthflow-api
     restart: unless-stopped
+
 
   # Redis for caching and WebSocket
   redis:
@@ -347,7 +331,6 @@ volumes:
   minio-data:
   elasticsearch-data:
   zookeeper-data:
-  dashboard-data:
   postgres-data:
   redis_data:
 

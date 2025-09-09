@@ -50,7 +50,8 @@ from cli.dashboard_integration import (
 )
 
 # Import logging system
-from cli.elasticsearch_logger import es_logger
+import logging
+es_logger = logging.getLogger(__name__)
 
 # Simple pipeline run tracking (same as kibana_enhanced_bf.py)
 import sqlite3

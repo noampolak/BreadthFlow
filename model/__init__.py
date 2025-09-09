@@ -4,7 +4,8 @@ Signal generation and ML module for Breadth/Thrust Signals POC.
 Handles composite scoring, signal generation, and ML-ready interfaces.
 """
 
-from .scoring import SignalScoring
-from .signal_generator import SignalGenerator
+# Import from new modular system
+from .signals.composite_signal_generator import CompositeSignalGenerator
+from .backtesting.analytics.performance_analyzer import PerformanceAnalyzer
 
-__all__ = ['SignalScoring', 'SignalGenerator']
+__all__ = ['CompositeSignalGenerator', 'PerformanceAnalyzer']

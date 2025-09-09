@@ -182,14 +182,14 @@ class InfrastructureService:
         try:
             import requests
             start_time = time.time()
-            response = requests.get("http://spark-command-server:8081/health", timeout=5)
+            response = requests.get("http://spark-master:8081/health", timeout=5)
             response_time = (time.time() - start_time) * 1000
             
             if response.status_code == 200:
                 return ServiceStatus(
                     name="Spark Command Server",
                     status="healthy",
-                    url="http://spark-command-server:8081",
+                    url="http://spark-master:8081",
                     response_time=round(response_time, 2),
                     last_check=datetime.now().isoformat(),
                     details="Command execution service active"
@@ -198,7 +198,7 @@ class InfrastructureService:
                 return ServiceStatus(
                     name="Spark Command Server",
                     status="warning",
-                    url="http://spark-command-server:8081",
+                    url="http://spark-master:8081",
                     response_time=round(response_time, 2),
                     last_check=datetime.now().isoformat(),
                     details=f"Service returned status {response.status_code}"
@@ -207,7 +207,7 @@ class InfrastructureService:
             return ServiceStatus(
                 name="Spark Command Server",
                 status="error",
-                url="http://spark-command-server:8081",
+                url="http://spark-master:8081",
                 response_time=None,
                 last_check=datetime.now().isoformat(),
                 details=f"Command service failed: {str(e)}"
