@@ -81,6 +81,45 @@ services:
 
 ---
 
+## 🔧 **Phase 1.5: Data Orchestration with Apache Airflow (Week 2.5)**
+
+### 🚀 **Open Source Data Pipeline**
+
+#### **1.5.1 Apache Airflow Integration**
+```yaml
+  airflow:
+    image: apache/airflow:2.7.0
+    ports:
+      - "8081:8080"  # Airflow UI
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      - postgres
+      - minio
+```
+
+#### **1.5.2 Data Pipeline Features**
+- **Apache Airflow** for workflow orchestration
+- **Great Expectations** for data quality validation
+- **Smart caching** with Airflow XComs
+- **Incremental updates** using Airflow sensors
+- **Multi-source aggregation** with Airflow operators
+
+### 📈 **Deliverables**
+- [ ] Airflow DAGs for data fetching workflows
+- [ ] Great Expectations data validation suite
+- [ ] Airflow sensors for smart data monitoring
+- [ ] Data quality dashboard integration
+
+---
+
 ## 🔧 **Phase 2: Feature Engineering & Preprocessing (Weeks 3-4)**
 
 ### 🛠️ **Feature Engineering Stack**
@@ -117,6 +156,69 @@ services:
 - [ ] Feature store implementation
 - [ ] Data validation framework
 - [ ] Automated feature selection
+
+---
+
+## 🧠 **Phase 2.5: Automated Feature Engineering (Week 3.5)**
+
+### 🎯 **Open Source Feature Engineering**
+
+#### **2.5.1 Featuretools + Tsfresh Integration**
+```yaml
+  featuretools:
+    image: python:3.9-slim
+    ports:
+      - "8001:8001"  # Feature Engineering API
+    environment:
+      - FEATURE_TOOLS_MODE=auto
+    volumes:
+      - ./features:/features
+      - ./data:/data
+    command: pip install featuretools tsfresh feature-engine && python features/feature_service.py
+    depends_on:
+      - minio
+```
+
+#### **2.5.2 Automated Feature Engineering Stack**
+- **Featuretools** - Automated feature engineering from relational data
+- **Tsfresh** - Time series feature extraction
+- **Feature-engine** - Feature engineering for ML pipelines
+- **AutoFeat** - Automated feature engineering and selection
+
+#### **2.5.3 Feature Engineering Templates**
+```python
+# Integration with open source tools
+import featuretools as ft
+import tsfresh
+from feature_engine import selection
+
+class AutomatedFeatureEngineering:
+    def __init__(self):
+        self.featuretools_es = None
+        self.tsfresh_features = None
+    
+    def create_technical_features(self, df):
+        """Use Tsfresh for time series features"""
+        return tsfresh.extract_features(df, column_id="symbol", column_sort="timestamp")
+    
+    def create_relational_features(self, df):
+        """Use Featuretools for relational features"""
+        es = ft.EntitySet(id="trading_data")
+        es = es.add_dataframe(df, index="timestamp")
+        features, feature_defs = ft.dfs(entityset=es, target_dataframe_name="trading_data")
+        return features
+    
+    def select_best_features(self, X, y):
+        """Use Feature-engine for feature selection"""
+        selector = selection.SelectKBestFeatures(k=50)
+        return selector.fit_transform(X, y)
+```
+
+### 📈 **Deliverables**
+- [ ] Featuretools integration for automated feature engineering
+- [ ] Tsfresh integration for time series features
+- [ ] Feature-engine integration for feature selection
+- [ ] Automated feature drift detection with open source tools
 
 ---
 
@@ -167,6 +269,92 @@ services:
 - [ ] Automated training pipeline
 - [ ] Hyperparameter optimization framework
 - [ ] Model validation and backtesting
+
+---
+
+## 🚀 **Phase 3.5: AutoML Integration (Week 5.5)**
+
+### 🧠 **Open Source AutoML Stack**
+
+#### **3.5.1 AutoML Services Integration**
+```yaml
+  automl:
+    image: python:3.9-slim
+    ports:
+      - "8002:8002"  # AutoML API
+    environment:
+      - AUTOML_MODE=auto
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./automl:/automl
+      - ./data:/data
+    command: pip install auto-sklearn tpot h2o optuna && python automl/automl_service.py
+    depends_on:
+      - mlflow
+```
+
+#### **3.5.2 AutoML Stack**
+- **Auto-sklearn** - Automated machine learning with scikit-learn
+- **TPOT** - Tree-based optimization for automated ML
+- **H2O AutoML** - Automated machine learning platform
+- **Optuna** - Hyperparameter optimization framework
+- **MLflow** - Experiment tracking and model registry
+
+#### **3.5.3 Smart Training Integration**
+```python
+# Integration with open source AutoML tools
+import autosklearn.classification
+import tpot
+import h2o
+from h2o.automl import H2OAutoML
+import optuna
+import mlflow
+
+class AutoMLTrainingManager:
+    def __init__(self):
+        self.autosklearn = autosklearn.classification.AutoSklearnClassifier()
+        self.tpot = tpot.TPOTClassifier(generations=5, population_size=20)
+        self.h2o_aml = None
+    
+    def train_with_autosklearn(self, X, y):
+        """Use Auto-sklearn for automated model selection"""
+        self.autosklearn.fit(X, y)
+        return self.autosklearn
+    
+    def train_with_tpot(self, X, y):
+        """Use TPOT for automated pipeline optimization"""
+        self.tpot.fit(X, y)
+        return self.tpot
+    
+    def train_with_h2o(self, df, target_col):
+        """Use H2O AutoML for automated model training"""
+        h2o.init()
+        hf = h2o.H2OFrame(df)
+        aml = H2OAutoML(max_models=20, seed=1)
+        aml.train(x=list(df.columns), y=target_col, training_frame=hf)
+        return aml
+    
+    def optimize_with_optuna(self, X, y, model_class):
+        """Use Optuna for hyperparameter optimization"""
+        def objective(trial):
+            params = {
+                'n_estimators': trial.suggest_int('n_estimators', 50, 200),
+                'max_depth': trial.suggest_int('max_depth', 3, 10)
+            }
+            model = model_class(**params)
+            return model.fit(X, y).score(X, y)
+        
+        study = optuna.create_study()
+        study.optimize(objective, n_trials=100)
+        return study.best_params
+```
+
+### 📈 **Deliverables**
+- [ ] Auto-sklearn integration for automated model selection
+- [ ] TPOT integration for pipeline optimization
+- [ ] H2O AutoML integration for comprehensive AutoML
+- [ ] Optuna integration for hyperparameter optimization
+- [ ] MLflow integration for experiment tracking
 
 ---
 
@@ -236,6 +424,100 @@ services:
 
 ---
 
+## 🚀 **Phase 4.5: Model Serving with Seldon Core (Week 7.5)**
+
+### 🎯 **Open Source Model Serving**
+
+#### **4.5.1 Seldon Core Integration**
+```yaml
+  seldon-core:
+    image: seldonio/seldon-core-operator:latest
+    ports:
+      - "8003:8000"  # Seldon API Gateway
+    environment:
+      - SELDON_CORE_NAMESPACE=seldon-system
+    volumes:
+      - ./seldon:/seldon
+    depends_on:
+      - mlflow
+      - postgres
+
+  seldon-deployment:
+    image: seldonio/seldon-core-s2i-python3:1.14.0
+    ports:
+      - "8004:8000"  # Model serving endpoint
+    environment:
+      - SELDON_MODEL_NAME=breadthflow-model
+    volumes:
+      - ./models:/models
+    depends_on:
+      - seldon-core
+```
+
+#### **4.5.2 Model Serving Stack**
+- **Seldon Core** - Model serving and A/B testing platform
+- **MLflow Model Registry** - Model versioning and lifecycle management
+- **Prometheus** - Model performance monitoring
+- **Grafana** - Model serving dashboards
+
+#### **4.5.3 Seldon Integration**
+```python
+# Seldon Core model wrapper
+from seldon_core import SeldonClient
+import mlflow
+import mlflow.sklearn
+
+class BreadthFlowModel:
+    def __init__(self):
+        self.model = None
+        self.load_model()
+    
+    def load_model(self):
+        """Load model from MLflow Model Registry"""
+        model_uri = "models:/breadthflow-trading/Production"
+        self.model = mlflow.sklearn.load_model(model_uri)
+    
+    def predict(self, X, feature_names=None):
+        """Seldon Core prediction interface"""
+        predictions = self.model.predict(X)
+        return predictions.tolist()
+    
+    def predict_proba(self, X, feature_names=None):
+        """Seldon Core probability prediction interface"""
+        probabilities = self.model.predict_proba(X)
+        return probabilities.tolist()
+
+# Seldon deployment configuration
+seldon_deployment = {
+    "apiVersion": "machinelearning.seldon.io/v1",
+    "kind": "SeldonDeployment",
+    "metadata": {"name": "breadthflow-trading"},
+    "spec": {
+        "predictors": [{
+            "name": "default",
+            "replicas": 3,
+            "componentSpecs": [{
+                "spec": {
+                    "containers": [{
+                        "name": "model",
+                        "image": "breadthflow-model:latest"
+                    }]
+                }
+            }]
+        }]
+    }
+}
+```
+
+### 📈 **Deliverables**
+- [ ] Seldon Core integration for model serving
+- [ ] A/B testing framework with Seldon
+- [ ] Model versioning with MLflow Model Registry
+- [ ] Production monitoring with Prometheus/Grafana
+- [ ] Automatic scaling and load balancing
+
+---
+
 ## 🚀 **Implementation Timeline**
 
 ### **Week 1-2: Foundation**
@@ -244,11 +526,23 @@ services:
 - [ ] Set up MinIO for object storage
 - [ ] Create basic data validation
 
+### **Week 2.5: Data Orchestration with Airflow**
+- [ ] Set up Apache Airflow for workflow orchestration
+- [ ] Create Airflow DAGs for data fetching
+- [ ] Integrate Great Expectations for data validation
+- [ ] Set up Airflow sensors for smart monitoring
+
 ### **Week 3-4: Feature Engineering**
 - [ ] Implement feature engineering pipeline
 - [ ] Set up Feast feature store
 - [ ] Create data preprocessing workflows
 - [ ] Implement feature selection
+
+### **Week 3.5: Automated Feature Engineering**
+- [ ] Integrate Featuretools for automated feature engineering
+- [ ] Set up Tsfresh for time series features
+- [ ] Integrate Feature-engine for feature selection
+- [ ] Set up automated feature drift detection
 
 ### **Week 5-6: Model Training**
 - [ ] Set up MLflow for experiment tracking
@@ -256,11 +550,23 @@ services:
 - [ ] Create hyperparameter optimization
 - [ ] Implement model validation
 
+### **Week 5.5: AutoML Integration**
+- [ ] Integrate Auto-sklearn for automated model selection
+- [ ] Set up TPOT for pipeline optimization
+- [ ] Integrate H2O AutoML for comprehensive AutoML
+- [ ] Set up Optuna for hyperparameter optimization
+
 ### **Week 7-8: Monitoring**
 - [ ] Set up Grafana dashboards
 - [ ] Implement monitoring infrastructure
 - [ ] Create visualization components
 - [ ] Set up alerting system
+
+### **Week 7.5: Model Serving with Seldon**
+- [ ] Integrate Seldon Core for model serving
+- [ ] Set up A/B testing framework with Seldon
+- [ ] Integrate MLflow Model Registry for versioning
+- [ ] Set up production monitoring with Prometheus/Grafana
 
 ---
 
@@ -321,16 +627,26 @@ services:
 ## 🎯 **Success Metrics**
 
 ### **Technical Metrics**
-- [ ] Data pipeline processes 1M+ records/hour
-- [ ] Feature engineering pipeline runs in <5 minutes
-- [ ] Model training completes in <30 minutes
-- [ ] Monitoring dashboard updates in real-time
+- [ ] Airflow DAGs process 1M+ records/hour
+- [ ] Featuretools feature engineering runs in <5 minutes
+- [ ] AutoML training completes in <30 minutes
+- [ ] Seldon model serving latency <100ms
+- [ ] New idea testing completes in <10 minutes (end-to-end)
+- [ ] Seldon deployment takes <2 minutes
 
 ### **Business Metrics**
-- [ ] Model accuracy >85%
-- [ ] Feature drift detection <1 hour
+- [ ] Model accuracy >85% (using AutoML)
+- [ ] Feature drift detection <1 hour (using Featuretools)
 - [ ] System uptime >99.9%
 - [ ] Training pipeline success rate >95%
+- [ ] New idea validation success rate >70%
+- [ ] Seldon deployment success rate >95%
+
+### **User Experience Metrics**
+- [ ] Time from idea to first model: <15 minutes (using AutoML)
+- [ ] Time from model to production: <5 minutes (using Seldon)
+- [ ] Number of clicks to test new idea: <3 clicks
+- [ ] Number of clicks to deploy model: <1 click (using Seldon)
 
 ---
 

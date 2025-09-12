@@ -4,7 +4,7 @@
 
 ### **1. Start ML Services**
 ```bash
-# Start all ML services
+# Start all ML services (including new enhanced services)
 docker-compose -f docker-compose.ml.yml up -d
 
 # Check status
@@ -12,14 +12,18 @@ docker-compose -f docker-compose.ml.yml ps
 ```
 
 ### **2. Access Services**
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **Jupyter** | http://localhost:8888 | Token: `breadthflow123` |
-| **MLflow** | http://localhost:5000 | No auth |
-| **Grafana** | http://localhost:3000 | admin/admin |
-| **Spark UI** | http://localhost:8080 | No auth |
-| **MinIO** | http://localhost:9001 | admin/password123 |
-| **Kibana** | http://localhost:5601 | No auth |
+| Service | URL | Credentials | Purpose |
+|---------|-----|-------------|---------|
+| **Jupyter** | http://localhost:8888 | Token: `breadthflow123` | Interactive development |
+| **MLflow** | http://localhost:5000 | No auth | Experiment tracking |
+| **Grafana** | http://localhost:3000 | admin/admin | Monitoring dashboards |
+| **Spark UI** | http://localhost:8080 | No auth | Data processing |
+| **MinIO** | http://localhost:9001 | admin/password123 | Object storage |
+| **Kibana** | http://localhost:5601 | No auth | Log analysis |
+| **Airflow** | http://localhost:8081 | admin/admin | Data orchestration |
+| **Featuretools** | http://localhost:8001 | No auth | Automated feature engineering |
+| **AutoML** | http://localhost:8002 | No auth | Automated model training |
+| **Seldon Core** | http://localhost:8003 | No auth | Model serving & A/B testing |
 
 ### **3. Test Setup**
 ```bash
@@ -31,7 +35,56 @@ curl http://localhost:8080
 
 # Test MinIO
 curl http://localhost:9000/minio/health/live
+
+# Test Airflow
+curl http://localhost:8081/health
+
+# Test Featuretools
+curl http://localhost:8001/health
+
+# Test AutoML
+curl http://localhost:8002/health
+
+# Test Seldon Core
+curl http://localhost:8003/health
 ```
+
+## 🚀 **Ultra-Simple New Idea Testing (After Full Implementation)**
+
+### **The One-Line Workflow**
+```python
+# After all phases are complete, testing a new idea becomes this simple:
+
+from model.training.automl_training_manager import AutoMLTrainingManager
+
+# Initialize the AutoML training manager
+training_manager = AutoMLTrainingManager()
+
+# Test your new idea in ONE line
+results = training_manager.train_new_idea({
+    "symbols": ["AAPL", "MSFT", "GOOGL"],
+    "strategy": "momentum",  # Pre-built strategy template
+    "timeframe": "1day",
+    "auto_deploy": True  # Deploy if performance > threshold
+})
+
+# That's it! Everything else is automatic:
+# ✅ Airflow fetches data
+# ✅ Featuretools engineers features  
+# ✅ AutoML trains multiple models
+# ✅ MLflow tracks experiments
+# ✅ Seldon deploys best model
+```
+
+### **What Happens Automatically**
+1. **Airflow** fetches data for new symbols
+2. **Featuretools** engineers features automatically
+3. **AutoML** trains multiple models in parallel
+4. **MLflow** tracks all experiments
+5. **Seldon** compares and ranks models
+6. **Seldon** deploys best model if performance threshold met
+
+---
 
 ## 📊 **Phase 1: Data Pipeline (Week 1)**
 
@@ -46,6 +99,8 @@ docker-compose -f docker-compose.ml.yml up -d postgres redis minio spark-master 
 mkdir -p data/{raw,processed,features,models}
 mkdir -p notebooks
 mkdir -p mlflow
+mkdir -p pipelines
+mkdir -p deployment
 ```
 
 ### **Test Data Ingestion**
@@ -57,6 +112,10 @@ import requests
 # Test API connection
 response = requests.get('http://localhost:8005/api/dashboard/summary')
 print(response.json())
+
+# Test new data pipeline
+response = requests.get('http://localhost:8001/health')
+print("Data Pipeline:", response.json())
 ```
 
 ## 🔧 **Phase 2: Feature Engineering (Week 2)**
@@ -73,6 +132,9 @@ feast==0.34.0
 great-expectations==0.17.0
 plotly==5.15.0
 jupyter==1.0.0
+optuna==3.3.0
+xgboost==1.7.6
+lightgbm==4.0.0
 EOF
 ```
 
@@ -80,6 +142,37 @@ EOF
 ```bash
 # Add MLflow and Jupyter
 docker-compose -f docker-compose.ml.yml up -d mlflow jupyter
+
+# Add new data pipeline service
+docker-compose -f docker-compose.ml.yml up -d data-pipeline
+```
+
+### **Test Open Source Feature Engineering**
+```python
+# In Jupyter notebook - test open source feature engineering
+import featuretools as ft
+import tsfresh
+from feature_engine import selection
+import pandas as pd
+
+# Load sample data
+df = pd.read_csv('data/processed/sample_data.csv')
+
+# Test Featuretools
+es = ft.EntitySet(id="trading_data")
+es = es.add_dataframe(df, index="timestamp")
+featuretools_features, feature_defs = ft.dfs(entityset=es, target_dataframe_name="trading_data")
+
+# Test Tsfresh
+tsfresh_features = tsfresh.extract_features(df, column_id="symbol", column_sort="timestamp")
+
+# Test Feature-engine
+selector = selection.SelectKBestFeatures(k=50)
+selected_features = selector.fit_transform(featuretools_features, df['target'])
+
+print(f"Featuretools features: {len(featuretools_features.columns)}")
+print(f"Tsfresh features: {len(tsfresh_features.columns)}")
+print(f"Selected features: {len(selected_features.columns)}")
 ```
 
 ## 🤖 **Phase 3: Model Training (Week 3)**
@@ -98,9 +191,41 @@ mlflow.create_experiment("breadthflow_training")
 mlflow.set_experiment("breadthflow_training")
 ```
 
-### **Test Model Training**
+### **Test AutoML Integration**
 ```python
-# Simple training example
+# Test the AutoML training manager
+from model.training.automl_training_manager import AutoMLTrainingManager
+import autosklearn.classification
+import tpot
+import h2o
+from h2o.automl import H2OAutoML
+
+# Initialize AutoML training manager
+training_manager = AutoMLTrainingManager()
+
+# Test with a simple configuration
+config = {
+    "symbols": ["AAPL"],
+    "strategy": "momentum",
+    "timeframe": "1day",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31",
+    "auto_deploy": False  # Don't deploy for testing
+}
+
+# Run training with AutoML (this will take a few minutes)
+results = training_manager.train_new_idea(config)
+
+print(f"AutoML training completed!")
+print(f"Best model accuracy: {results.best_accuracy}")
+print(f"Models trained: {results.models_trained}")
+print(f"Best algorithm: {results.best_algorithm}")
+print(f"Backtest Sharpe: {results.sharpe_ratio}")
+```
+
+### **Test Traditional Training (Fallback)**
+```python
+# Simple training example (if smart training not ready)
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -127,6 +252,9 @@ with mlflow.start_run():
 ```bash
 # Add monitoring stack
 docker-compose -f docker-compose.ml.yml up -d grafana prometheus elasticsearch kibana
+
+# Add model deployment service
+docker-compose -f docker-compose.ml.yml up -d model-deployment
 ```
 
 ### **Configure Grafana**
@@ -134,6 +262,45 @@ docker-compose -f docker-compose.ml.yml up -d grafana prometheus elasticsearch k
 2. Login with admin/admin
 3. Add Prometheus data source: http://prometheus:9090
 4. Import ML dashboard
+
+### **Test Seldon Core Deployment**
+```python
+# Test Seldon Core model serving
+from seldon_core import SeldonClient
+import mlflow
+import mlflow.sklearn
+
+# Load model from MLflow
+model_uri = "models:/breadthflow-trading/Production"
+model = mlflow.sklearn.load_model(model_uri)
+
+# Deploy with Seldon Core
+seldon_client = SeldonClient()
+deployment_result = seldon_client.deploy(
+    name="breadthflow-trading",
+    model=model,
+    replicas=3
+)
+
+print(f"Seldon deployment status: {deployment_result.status}")
+print(f"Endpoint: {deployment_result.endpoint}")
+print(f"Replicas: {deployment_result.replicas}")
+```
+
+### **Test A/B Testing with Seldon**
+```python
+# Test A/B testing between models with Seldon
+ab_test_result = seldon_client.create_ab_test(
+    name="breadthflow-ab-test",
+    model_a="breadthflow-model-v1",
+    model_b="breadthflow-model-v2",
+    traffic_split=0.5,  # 50/50 split
+    duration_hours=24
+)
+
+print(f"A/B test started: {ab_test_result.test_id}")
+print(f"Monitor at: http://localhost:8003/ab-tests/{ab_test_result.test_id}")
+```
 
 ## 🛠️ **Development Workflow**
 
@@ -150,6 +317,47 @@ docker-compose -f docker-compose.ml.yml up -d
 
 # Monitor in Grafana
 # http://localhost:3000
+
+# Manage data orchestration
+# http://localhost:8081
+
+# Manage feature engineering
+# http://localhost:8001
+
+# Manage AutoML
+# http://localhost:8002
+
+# Manage model serving
+# http://localhost:8003
+```
+
+### **Testing New Ideas (After Full Implementation)**
+```python
+# The ultimate simple workflow for testing new ideas:
+
+# 1. Start everything (30 seconds)
+# docker-compose -f docker-compose.ml.yml up -d
+
+# 2. Open Jupyter (http://localhost:8888)
+# 3. Run this ONE cell:
+
+from model.training.automl_training_manager import AutoMLTrainingManager
+
+training_manager = AutoMLTrainingManager()
+
+# Test your new idea
+results = training_manager.train_new_idea({
+    "symbols": ["AAPL", "MSFT", "GOOGL"],
+    "strategy": "momentum",  # or "mean_reversion", "ensemble"
+    "timeframe": "1day",
+    "auto_deploy": True
+})
+
+# 4. Check results in MLflow: http://localhost:5000
+# 5. Monitor in Grafana: http://localhost:3000
+# 6. Deploy if good: http://localhost:8003
+
+# That's it! From idea to production in minutes.
 ```
 
 ### **Data Pipeline Development**
@@ -233,9 +441,30 @@ deploy:
 ## 📚 **Next Steps**
 
 1. **Week 1**: Set up basic data pipeline
-2. **Week 2**: Implement feature engineering
-3. **Week 3**: Create model training pipeline
-4. **Week 4**: Add monitoring and visualization
+2. **Week 2.5**: Integrate Apache Airflow for data orchestration
+3. **Week 2**: Implement feature engineering
+4. **Week 3.5**: Integrate Featuretools and Tsfresh for automated feature engineering
+5. **Week 3**: Create model training pipeline
+6. **Week 5.5**: Integrate AutoML tools (auto-sklearn, TPOT, H2O)
+7. **Week 4**: Add monitoring and visualization
+8. **Week 7.5**: Integrate Seldon Core for model serving and A/B testing
+
+## 🎯 **The Ultimate Goal**
+
+After all phases are complete, testing a new trading idea becomes:
+
+```python
+# ONE LINE to test any new idea
+results = training_manager.train_new_idea({
+    "symbols": ["YOUR_SYMBOLS"],
+    "strategy": "YOUR_STRATEGY", 
+    "auto_deploy": True
+})
+```
+
+**Time from idea to production: <15 minutes**
+**Number of clicks: <3 clicks**
+**Everything automated: Airflow → Featuretools → AutoML → MLflow → Seldon**
 
 ## 🆘 **Getting Help**
 
