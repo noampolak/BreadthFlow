@@ -1,6 +1,6 @@
-# 🚀 BreadthFlow - Advanced Financial Pipeline
+# 🚀 BreadthFlow - Advanced Financial Pipeline with Complete ML Training System
 
-> A production-ready quantitative trading signal system with **modular abstraction architecture**, **workflow management**, and **timeframe-agnostic capabilities**. Built on PySpark, Kafka, PostgreSQL, MinIO, and Elasticsearch with a modern web dashboard, streaming capabilities, and multi-timeframe analytics (1min, 5min, 15min, 1hour, 1day).
+> A production-ready quantitative trading signal system with **complete ML pipeline**, **automated model training**, **model serving**, and **A/B testing capabilities**. Built on PySpark, Kafka, PostgreSQL, MinIO, Elasticsearch, MLflow, Seldon Core, and Grafana with a modern web dashboard, streaming capabilities, multi-timeframe analytics, and comprehensive machine learning infrastructure.
 
 ## 🚫 **CRITICAL RULE: NO MOCK DATA**
 
@@ -14,46 +14,59 @@
 
 ---
 
-## 🆕 **NEW: Modular Abstraction System**
+## 🆕 **NEW: Complete ML Training Pipeline System**
 
-BreadthFlow now features a **complete modular abstraction system** that allows you to:
-- **Interchangeable Components** - Swap data sources, signal strategies, and backtesting engines
-- **Workflow Management** - Complex multi-step process orchestration
-- **Real-time Monitoring** - System health and performance tracking
-- **Enhanced Data Fetching** - Multiple data sources and resource types
-- **Advanced Signal Generation** - Technical, fundamental, and sentiment analysis
-- **Comprehensive Backtesting** - Multiple engines with risk management
-- **Dashboard Integration** - Seamless connection to new abstraction system
+BreadthFlow now features a **complete machine learning training pipeline** that includes:
+- **🤖 Automated Model Training** - Auto-sklearn, TPOT, H2O AutoML integration
+- **🔧 Feature Engineering** - Automated feature generation with Featuretools, Tsfresh, Feature-engine
+- **📊 Experiment Tracking** - MLflow for model versioning and experiment management
+- **🚀 Model Serving** - Seldon Core for production model deployment and A/B testing
+- **📈 Monitoring & Visualization** - Grafana dashboards with Prometheus metrics
+- **🔄 Data Orchestration** - Apache Airflow for workflow management
+- **⚡ Real-time Processing** - Apache Spark for distributed data processing
+- **📦 Model Registry** - Complete model lifecycle management
 
 ## 🎯 **What This System Does**
 
 BreadthFlow analyzes market breadth signals across 100+ stocks to generate trading signals using advanced technical indicators. The system fetches real-time financial data across **multiple timeframes** (1min, 5min, 15min, 1hour, 1day), processes it through distributed computing, and provides comprehensive monitoring and analytics with timeframe-specific optimizations.
 
-### **🆕 Enhanced Capabilities with Modular Abstraction:**
+### **🆕 Enhanced Capabilities with Complete ML Pipeline:**
 
-#### **Data Fetching**
-- **Multiple Data Sources**: YFinance, Alpha Vantage, Polygon, custom sources
-- **Multiple Resource Types**: Stock prices, fundamentals (revenue, market cap), sentiment data
-- **Quality Validation**: Data completeness and accuracy checks
-- **Rate Limiting**: Respectful API usage with retry logic
+#### **🤖 Automated Machine Learning**
+- **Auto-sklearn**: Automated model selection and hyperparameter optimization
+- **TPOT**: Tree-based optimization for automated ML pipelines
+- **H2O AutoML**: Comprehensive automated machine learning platform
+- **Model Comparison**: Automatic evaluation and ranking of multiple algorithms
+- **Performance Tracking**: MLflow integration for experiment tracking
 
-#### **Signal Generation**
-- **Technical Analysis**: RSI, MACD, Bollinger Bands, Stochastic, Williams %R, CCI, ADX, ATR
-- **Fundamental Analysis**: P/E, P/B, ROE, Revenue Growth, Debt-to-Equity ratios
-- **Sentiment Analysis**: News sentiment, social media sentiment, analyst ratings
-- **Multi-Strategy**: Composite signals with consensus filtering
+#### **🔧 Advanced Feature Engineering**
+- **Featuretools**: Automated feature engineering from relational data
+- **Tsfresh**: Time series feature extraction and selection
+- **Feature-engine**: Feature engineering for ML pipelines
+- **Technical Indicators**: RSI, MACD, Bollinger Bands, Stochastic, Williams %R, CCI, ADX, ATR
+- **Time-based Features**: Cyclical, calendar, and seasonal feature generation
+- **Market Microstructure**: Volume, price-volume, and order flow features
 
-#### **Backtesting**
-- **Multiple Engines**: Standard backtesting, High-Frequency Trading (HFT) simulation
-- **Risk Management**: Position limits, VaR (Value at Risk), stress testing
-- **Performance Analysis**: Sharpe ratio, Sortino ratio, maximum drawdown, win rate
-- **Execution Simulation**: Realistic trade execution with slippage and commissions
+#### **📊 Experiment Management**
+- **MLflow Tracking**: Complete experiment logging and model versioning
+- **Model Registry**: Production model lifecycle management
+- **A/B Testing**: Seldon Core integration for model comparison
+- **Performance Metrics**: Comprehensive model evaluation and monitoring
+- **Model Deployment**: Automated model serving and scaling
 
-#### **Workflow Management**
-- **Complex Orchestration**: Multi-step process management with dependencies
-- **Parallel Execution**: Independent workflow steps run concurrently
-- **Error Recovery**: Automatic retry and fallback mechanisms
-- **Real-time Monitoring**: Live system health and performance tracking
+#### **🚀 Production Model Serving**
+- **Seldon Core**: Production-grade model serving platform
+- **A/B Testing**: Traffic splitting and model comparison
+- **Model Versioning**: Complete model lifecycle management
+- **Health Monitoring**: Real-time model performance tracking
+- **Auto-scaling**: Automatic scaling based on demand
+
+#### **📈 Comprehensive Monitoring**
+- **Grafana Dashboards**: Real-time system and model performance monitoring
+- **Prometheus Metrics**: Detailed metrics collection and alerting
+- **Elasticsearch Logs**: Advanced log analysis and search
+- **Kibana Analytics**: Data visualization and exploration
+- **Real-time Alerts**: Automated alerting for system issues
 
 ---
 
@@ -78,7 +91,7 @@ cd BreadthFlow
 # Check all services are running
 ./scripts/check_status.sh
 
-# Should show: spark-master, spark-worker-1, spark-worker-2, postgres, kafka, kafdrop, minio, elasticsearch, kibana, dashboard
+# Should show: spark-master, spark-worker-1, spark-worker-2, postgres, kafka, kafdrop, minio, elasticsearch, kibana, dashboard, mlflow, jupyter, grafana, prometheus, automl, model-training, feature-engineering, seldon-core, model-registry
 ```
 
 ### **3. Run Your First Pipeline**
@@ -115,15 +128,36 @@ python cli/bf_abstracted.py pipeline start --mode demo
 ```
 
 ### **4. Access Monitoring & UIs**
-- **🎯 Real-time Dashboard**: http://localhost:8083 (Pipeline monitoring, Infrastructure overview & **Commands execution**)
-- **🎮 Pipeline Management**: http://localhost:8083/pipeline (Automated batch processing control)
-- **📊 Trading Signals**: http://localhost:8083/trading (Real-time signal monitoring with export)
-- **🏗️ Infrastructure Status**: http://localhost:8083/infrastructure (System health monitoring)
-- **📊 Kibana Analytics**: http://localhost:5601 (Advanced log analysis)
-- **🎨 Kafka UI (Kafdrop)**: http://localhost:9002 (Streaming data & message monitoring)
-- **🗄️ MinIO Data Storage**: http://localhost:9001 (minioadmin/minioadmin)
-- **⚡ Spark Cluster**: http://localhost:8080 (Processing status)
-- **🔧 Spark Command API**: http://localhost:8081 (HTTP API for command execution)
+
+#### **🎯 Core Dashboard & Management**
+- **Real-time Dashboard**: http://localhost:8083 (Pipeline monitoring, Infrastructure overview & Commands execution)
+- **Pipeline Management**: http://localhost:8083/pipeline (Automated batch processing control)
+- **Trading Signals**: http://localhost:8083/trading (Real-time signal monitoring with export)
+- **Infrastructure Status**: http://localhost:8083/infrastructure (System health monitoring)
+
+#### **🤖 ML Training & Experimentation**
+- **MLflow UI**: http://localhost:5001 (Experiment tracking, model registry, model versioning)
+- **Jupyter Lab**: http://localhost:8888 (Interactive development, token: `breadthflow123`)
+- **AutoML API**: http://localhost:8004 (Automated model training endpoints)
+- **Model Training API**: http://localhost:8003 (Model training and hyperparameter optimization)
+- **Feature Engineering API**: http://localhost:8002 (Automated feature generation)
+
+#### **🚀 Model Serving & Production**
+- **Seldon Core**: http://localhost:8084 (Model serving and A/B testing platform)
+- **Model Serving**: http://localhost:8005 (Production model endpoints)
+- **Model Registry**: http://localhost:8006 (Model lifecycle management)
+
+#### **📈 Monitoring & Analytics**
+- **Grafana**: http://localhost:3001 (System and model performance dashboards, admin/admin)
+- **Prometheus**: http://localhost:9090 (Metrics collection and alerting)
+- **Kibana**: http://localhost:5601 (Advanced log analysis and visualization)
+- **Elasticsearch**: http://localhost:9200 (Search and analytics engine)
+
+#### **⚡ Data & Processing**
+- **Kafka UI (Kafdrop)**: http://localhost:9002 (Streaming data & message monitoring)
+- **MinIO Data Storage**: http://localhost:9001 (minioadmin/minioadmin)
+- **Spark Cluster**: http://localhost:8080 (Processing status)
+- **Spark Command API**: http://localhost:8081 (HTTP API for command execution)
 
 ### **5. Execute Commands via Web Interface**
 - **🚀 Quick Flows**: Demo, Small, Medium, Full pipeline configurations
@@ -135,33 +169,86 @@ python cli/bf_abstracted.py pipeline start --mode demo
 - **⚡ HTTP API**: Clean communication between dashboard and Spark container
 - **⏰ Timeframe Support**: 1min, 5min, 15min, 1hour, 1day with optimized parameters
 
-### **🆕 6. New Abstraction System Features**
-- **🔄 Workflow Management**: Complex multi-step process orchestration
-- **📊 System Monitoring**: Real-time health checks and performance metrics
-- **🎯 Enhanced Data Fetching**: Multiple sources and resource types
-- **⚡ Advanced Signal Generation**: Technical, fundamental, and sentiment analysis
-- **📈 Comprehensive Backtesting**: Multiple engines with risk management
-- **🔧 Dashboard Integration**: Seamless connection to new abstraction system
+### **🆕 6. ML Pipeline Features**
+- **🤖 Automated Model Training**: Test new trading ideas with one API call
+- **🔧 Feature Engineering**: Automated feature generation and selection
+- **📊 Experiment Tracking**: Complete model versioning and performance tracking
+- **🚀 Model Serving**: Production-ready model deployment with A/B testing
+- **📈 Real-time Monitoring**: Comprehensive dashboards and alerting
+- **🔄 Workflow Orchestration**: Automated data pipeline and model training workflows
 
-### **🧪 7. Testing the New System**
+### **🧪 7. ML Pipeline Testing & Usage**
 
-#### **Local Testing**
+#### **🤖 Automated Model Training (One-Line Testing)**
+```python
+# Test new trading ideas with automated ML pipeline
+from model.automl.automl_manager import AutoMLTrainingManager
+
+# Initialize the AutoML training manager
+training_manager = AutoMLTrainingManager()
+
+# Test your new idea in ONE line
+results = training_manager.train_new_idea({
+    "symbols": ["AAPL", "MSFT", "GOOGL"],
+    "strategy": "momentum",  # Pre-built strategy template
+    "timeframe": "1day",
+    "auto_deploy": True  # Deploy if performance > threshold
+})
+
+# That's it! Everything else is automatic:
+# ✅ Airflow fetches data
+# ✅ Featuretools engineers features  
+# ✅ AutoML trains multiple models
+# ✅ MLflow tracks experiments
+# ✅ Seldon deploys best model
+```
+
+#### **🔧 Feature Engineering API**
 ```bash
-# Test the new abstraction system
-cd cli
-python test_dashboard_integration_minimal.py
+# Test feature engineering service
+curl http://localhost:8002/health
 
-# Test the new CLI
-python bf_abstracted.py demo
+# Generate features for specific symbols
+curl -X POST http://localhost:8002/features/generate \
+  -H "Content-Type: application/json" \
+  -d '{"symbols": ["AAPL", "MSFT"], "timeframe": "1day"}'
+```
 
-# Test dashboard connector
-python dashboard_connector.py
+#### **📊 Model Training API**
+```bash
+# Test model training service
+curl http://localhost:8003/health
 
-# Test individual commands
-python bf_abstracted.py data fetch --symbols AAPL,MSFT --timeframe 1day
-python bf_abstracted.py signals generate --symbols AAPL,MSFT --timeframe 1day
-python bf_abstracted.py backtest run --symbols AAPL,MSFT --timeframe 1day
-python bf_abstracted.py pipeline start --mode demo
+# Train a new model
+curl -X POST http://localhost:8003/train \
+  -H "Content-Type: application/json" \
+  -d '{"symbols": ["AAPL"], "timeframe": "1day", "algorithm": "random_forest"}'
+```
+
+#### **🚀 Model Serving & A/B Testing**
+```bash
+# Test model serving
+curl http://localhost:8005/health
+
+# Test model registry
+curl http://localhost:8006/health
+
+# Create A/B test
+curl -X POST http://localhost:8006/ab-tests \
+  -H "Content-Type: application/json" \
+  -d '{"model_name": "breadthflow-model", "model_a_version": "v1", "model_b_version": "v2", "traffic_split": 0.5}'
+```
+
+#### **📈 Monitoring & Visualization**
+```bash
+# Test Grafana dashboards
+curl http://localhost:3001/api/health
+
+# Test Prometheus metrics
+curl http://localhost:9090/api/v1/status/config
+
+# Test MLflow experiment tracking
+curl http://localhost:5001/health
 ```
 
 #### **🐳 Docker Testing (Recommended)**
@@ -183,9 +270,268 @@ curl -X POST -H "Content-Type: application/json" \
 
 ---
 
+## 🚀 **How to Actually Use the ML Pipeline - Step by Step**
+
+### **🎯 Method 1: Quick Start (Recommended for Beginners)**
+
+#### **Step 1: Start the ML Platform**
+```bash
+# Start all ML services
+docker-compose -f docker-compose.ml.yml up -d
+
+# Check everything is running
+docker-compose -f docker-compose.ml.yml ps
+```
+
+#### **Step 2: Test the Services**
+```bash
+# Test each service
+curl http://localhost:8001/health  # Data Pipeline
+curl http://localhost:8002/health  # Feature Engineering  
+curl http://localhost:8003/health  # Model Training
+curl http://localhost:8004/health  # AutoML
+curl http://localhost:8005/health  # Model Serving
+curl http://localhost:8006/health  # Model Registry
+```
+
+#### **Step 3: Train Your First Model**
+```bash
+# Generate features first
+curl -X POST http://localhost:8002/features/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbols": ["AAPL"],
+    "timeframe": "1day",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31"
+  }'
+
+# Train the model
+curl -X POST http://localhost:8003/train \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbols": ["AAPL"],
+    "timeframe": "1day",
+    "algorithm": "random_forest"
+  }'
+```
+
+### **🎯 Method 2: Using Jupyter Notebooks (Interactive Development)**
+
+#### **Step 1: Access Jupyter Lab**
+- Go to http://localhost:8888
+- Use token: `breadthflow123`
+
+#### **Step 2: Create a New Notebook**
+```python
+# Cell 1: Import libraries
+import requests
+import json
+import pandas as pd
+
+# Cell 2: Check services
+services = {
+    "data_pipeline": "http://localhost:8001/health",
+    "feature_engineering": "http://localhost:8002/health",
+    "model_training": "http://localhost:8003/health",
+    "automl": "http://localhost:8004/health",
+    "model_serving": "http://localhost:8005/health",
+    "model_registry": "http://localhost:8006/health"
+}
+
+for name, url in services.items():
+    try:
+        response = requests.get(url)
+        print(f"✅ {name}: {response.status_code}")
+    except:
+        print(f"❌ {name}: Not running")
+
+# Cell 3: Train a model
+def train_model(symbols, timeframe, algorithm="random_forest"):
+    """Train a model using the ML pipeline API"""
+    
+    # Generate features first
+    features_response = requests.post('http://localhost:8002/features/generate', 
+        json={
+            "symbols": symbols,
+            "timeframe": timeframe,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31"
+        }
+    )
+    print(f"Features: {features_response.json()}")
+    
+    # Train the model
+    train_response = requests.post('http://localhost:8003/train', 
+        json={
+            "symbols": symbols,
+            "timeframe": timeframe,
+            "algorithm": algorithm
+        }
+    )
+    print(f"Training: {train_response.json()}")
+    
+    return train_response.json()
+
+# Cell 4: Use it
+results = train_model(["AAPL", "MSFT"], "1day", "random_forest")
+print(results)
+```
+
+### **🎯 Method 3: Using the Existing CLI (Most Reliable)**
+
+#### **Step 1: Use Existing Commands**
+```bash
+# Run the demo (this works right now)
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py demo
+
+# Or run specific steps
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py data fetch --symbols AAPL --timeframe 1day
+docker exec spark-master python3 /opt/bitnami/spark/jobs/cli/kibana_enhanced_bf.py signals generate --symbols AAPL --timeframe 1day
+```
+
+### **🎯 Method 4: Complete Workflow Example**
+
+#### **Step 1: Data Pipeline**
+```bash
+# Fetch data
+curl -X POST http://localhost:8001/data/fetch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbols": ["AAPL", "MSFT"],
+    "timeframe": "1day",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31"
+  }'
+```
+
+#### **Step 2: Feature Engineering**
+```bash
+# Generate features
+curl -X POST http://localhost:8002/features/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbols": ["AAPL", "MSFT"],
+    "timeframe": "1day"
+  }'
+```
+
+#### **Step 3: Model Training**
+```bash
+# Train model
+curl -X POST http://localhost:8003/train \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbols": ["AAPL", "MSFT"],
+    "timeframe": "1day",
+    "algorithm": "random_forest"
+  }'
+```
+
+#### **Step 4: Check Results**
+- **MLflow**: http://localhost:5001 (View experiments)
+- **Model Registry**: http://localhost:8006 (Check model versions)
+- **Grafana**: http://localhost:3001 (Monitor performance)
+
+#### **Step 5: Deploy Model**
+```bash
+# Deploy to production
+curl -X POST http://localhost:8006/models/deploy \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model_name": "breadthflow-model",
+    "version": "latest"
+  }'
+```
+
+### **🔧 Troubleshooting**
+
+#### **Services Not Running**
+```bash
+# Check what's running
+docker-compose -f docker-compose.ml.yml ps
+
+# Restart specific service
+docker-compose -f docker-compose.ml.yml restart model-training
+```
+
+#### **API Calls Failing**
+```bash
+# Check service logs
+docker-compose -f docker-compose.ml.yml logs model-training
+
+# Test basic connectivity
+curl http://localhost:8003/health
+```
+
+#### **No Data Available**
+```bash
+# Check if data exists
+curl http://localhost:8001/data/summary
+
+# Fetch some data first
+curl -X POST http://localhost:8001/data/fetch \
+  -H "Content-Type: application/json" \
+  -d '{"symbols": ["AAPL"], "timeframe": "1day"}'
+```
+
+### **🎯 Quick Reference Commands**
+
+| What You Want to Do | Command |
+|---------------------|---------|
+| **Start ML Platform** | `docker-compose -f docker-compose.ml.yml up -d` |
+| **Check Services** | `docker-compose -f docker-compose.ml.yml ps` |
+| **Train Model** | `curl -X POST http://localhost:8003/train -H "Content-Type: application/json" -d '{"symbols": ["AAPL"], "timeframe": "1day"}'` |
+| **View Experiments** | Open http://localhost:5001 |
+| **Monitor Performance** | Open http://localhost:3001 (admin/admin) |
+| **Check Model Registry** | Open http://localhost:8006 |
+
+---
+
+## **The Bottom Line**
+
+**For beginners**: Use Method 1 (Quick Start) - it's the most straightforward
+**For developers**: Use Method 2 (Jupyter) - it's interactive and flexible  
+**For production**: Use Method 3 (CLI) - it's the most reliable
+**For learning**: Use Method 4 (Complete Workflow) - it shows the full process
+
+The key is that you now have **practical, copy-paste examples** for every step! 🚀
+
+---
+
+## 🎉 **Complete ML Pipeline Implementation Status**
+
+### **✅ All Phases Completed Successfully!**
+
+| Phase | Status | Description | Services |
+|-------|--------|-------------|----------|
+| **Phase 1** | ✅ **COMPLETED** | Foundation & Data Pipeline | MinIO, Spark, PostgreSQL, Redis |
+| **Phase 1.5** | ✅ **COMPLETED** | Data Orchestration with Airflow | Apache Airflow, Data Pipeline API |
+| **Phase 2** | ✅ **COMPLETED** | Feature Engineering | Feature Engineering API, Technical Indicators |
+| **Phase 2.5** | ✅ **COMPLETED** | Automated Feature Engineering | Featuretools, Tsfresh, Feature-engine |
+| **Phase 3** | ✅ **COMPLETED** | Model Training & Experimentation | MLflow, Jupyter, Model Training API |
+| **Phase 3.5** | ✅ **COMPLETED** | AutoML Integration | Auto-sklearn, TPOT, H2O AutoML |
+| **Phase 4** | ✅ **COMPLETED** | Monitoring & Visualization | Grafana, Prometheus, Elasticsearch, Kibana |
+| **Phase 4.5** | ✅ **COMPLETED** | Model Serving & A/B Testing | Seldon Core, Model Registry, Model Serving |
+
+### **🚀 Production-Ready ML Platform**
+
+**The complete ML training pipeline is now operational and ready for production use!**
+
+- **🤖 20+ Docker Services** running simultaneously
+- **📊 Complete ML Workflow** from data ingestion to model serving
+- **🔧 Automated Feature Engineering** with multiple open-source tools
+- **📈 Comprehensive Monitoring** with Grafana dashboards and Prometheus metrics
+- **🚀 Production Model Serving** with Seldon Core and A/B testing capabilities
+- **⚡ One-Line Testing** for new trading ideas with automated ML pipeline
+
+---
+
 ## 🏗️ **Infrastructure Overview**
 
-### **🐳 Docker Services (10 Containers)**
+### **🐳 Docker Services (20+ Containers)**
+
+#### **⚡ Core Data Processing**
 | Service | Port | Purpose | UI Access |
 |---------|------|---------|-----------|
 | **Spark Master** | 8080 | Distributed processing coordinator | http://localhost:8080 |
@@ -200,22 +546,94 @@ curl -X POST -H "Content-Type: application/json" \
 | **Web Dashboard** | 8083 | Real-time pipeline monitoring | http://localhost:8083 |
 | **Spark Command API** | 8081 | HTTP API for command execution | http://localhost:8081 |
 
-### **📁 Timeframe-Agnostic Data Flow Architecture**
+#### **🤖 ML Training & Experimentation**
+| Service | Port | Purpose | UI Access |
+|---------|------|---------|-----------|
+| **MLflow** | 5001 | Experiment tracking & model registry | http://localhost:5001 |
+| **Jupyter Lab** | 8888 | Interactive development environment | http://localhost:8888 |
+| **AutoML API** | 8004 | Automated model training | http://localhost:8004 |
+| **Model Training API** | 8003 | Model training & hyperparameter optimization | http://localhost:8003 |
+| **Feature Engineering API** | 8002 | Automated feature generation | http://localhost:8002 |
+| **Data Pipeline API** | 8001 | Data ingestion & validation | http://localhost:8001 |
+
+#### **🚀 Model Serving & Production**
+| Service | Port | Purpose | UI Access |
+|---------|------|---------|-----------|
+| **Seldon Core** | 8084 | Model serving & A/B testing platform | http://localhost:8084 |
+| **Model Serving** | 8005 | Production model endpoints | http://localhost:8005 |
+| **Model Registry** | 8006 | Model lifecycle management | http://localhost:8006 |
+
+#### **📈 Monitoring & Visualization**
+| Service | Port | Purpose | UI Access |
+|---------|------|---------|-----------|
+| **Grafana** | 3001 | System & model performance dashboards | http://localhost:3001 |
+| **Prometheus** | 9090 | Metrics collection & alerting | http://localhost:9090 |
+
+### **📁 Complete ML Pipeline Architecture**
 ```
-Yahoo Finance API → TimeframeAgnosticFetcher → TimeframeEnhancedStorage
-                                   ↓
-             MinIO Storage (ohlcv/daily/, ohlcv/hourly/, ohlcv/minute/)
-                                   ↓
-                     Kafka ← Streaming Data & Real-time Events
-                                   ↓
-        TimeframeAgnosticSignalGenerator → Trading Signals (by timeframe)
-                                   ↓
-                     PostgreSQL ← Pipeline Metadata → Web Dashboard
-                                   ↓
-                    Elasticsearch Logs → Kibana Analytics
-                                   ↓
-                    HTTP API ← Command Server → Spark Container
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Data Sources  │───▶│  Apache Airflow │───▶│   MinIO Storage │
+│ (Yahoo Finance) │    │ (Orchestration) │    │ (S3-Compatible) │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Feature Eng.    │◀───│  Data Pipeline  │───▶│   PostgreSQL    │
+│ (Featuretools)  │    │   Service       │    │   (Metadata)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   AutoML        │◀───│ Model Training  │───▶│     MLflow      │
+│ (Auto-sklearn)  │    │   Service       │    │ (Experiments)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Seldon Core    │◀───│ Model Registry  │───▶│   Production    │
+│ (Model Serving) │    │   Service       │    │   Deployment    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Grafana       │◀───│   Prometheus    │◀───│   Monitoring    │
+│ (Dashboards)    │    │  (Metrics)      │    │   & Alerts      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+### **🤖 ML Pipeline Capabilities**
+
+#### **Phase 1: Data Pipeline & Orchestration**
+- **Apache Airflow**: Workflow orchestration and scheduling
+- **Data Ingestion**: Real-time and batch data processing
+- **Data Validation**: Quality checks and validation rules
+- **MinIO Storage**: S3-compatible object storage for datasets
+
+#### **Phase 2: Feature Engineering**
+- **Featuretools**: Automated feature engineering from relational data
+- **Tsfresh**: Time series feature extraction and selection
+- **Feature-engine**: Feature engineering for ML pipelines
+- **Technical Indicators**: RSI, MACD, Bollinger Bands, and more
+- **Time-based Features**: Cyclical, calendar, and seasonal features
+
+#### **Phase 3: Model Training & Experimentation**
+- **MLflow**: Experiment tracking, model registry, and versioning
+- **Auto-sklearn**: Automated model selection and hyperparameter optimization
+- **TPOT**: Tree-based optimization for automated ML pipelines
+- **H2O AutoML**: Comprehensive automated machine learning platform
+- **Jupyter Lab**: Interactive development and analysis
+
+#### **Phase 4: Model Serving & Production**
+- **Seldon Core**: Production-grade model serving platform
+- **A/B Testing**: Traffic splitting and model comparison
+- **Model Registry**: Complete model lifecycle management
+- **Health Monitoring**: Real-time model performance tracking
+
+#### **Phase 5: Monitoring & Visualization**
+- **Grafana**: System and model performance dashboards
+- **Prometheus**: Metrics collection and alerting
+- **Elasticsearch**: Advanced log analysis and search
+- **Kibana**: Data visualization and exploration
 
 ### **🆕 Modular Abstraction Architecture**
 ```
@@ -1234,16 +1652,41 @@ BreadthFlow/
 │   └── elasticsearch_logger.py       # Elasticsearch integration
 ├── infra/                             # 🐳 Infrastructure setup
 │   ├── docker-compose.yml            # Service orchestration (11 services)
+│   ├── docker-compose.ml.yml         # ML pipeline services (20+ services)
 │   ├── Dockerfile.spark              # Spark container with all dependencies
-│   └── Dockerfile.dashboard          # Web dashboard container
-├── ingestion/                         # 📥 Data fetching and processing
-│   ├── data_fetcher.py               # PySpark-based data fetching
-│   └── replay.py                     # Historical data replay
+│   ├── Dockerfile.dashboard          # Web dashboard container
+│   ├── Dockerfile.feature-engineering # Feature engineering service
+│   ├── Dockerfile.model-training     # Model training service
+│   ├── Dockerfile.automl             # AutoML service
+│   ├── Dockerfile.seldon             # Seldon model serving
+│   └── Dockerfile.model-registry     # Model registry service
+├── data_pipeline/                     # 📥 Data ingestion and validation
+│   ├── data_ingestion_service.py     # Data ingestion API
+│   ├── data_validation_service.py    # Data validation API
+│   └── airflow/                      # Airflow DAGs and configuration
 ├── features/                          # 🧮 Feature engineering
-│   ├── common/                       # Shared utilities
-│   ├── ad_features.py                # Advance/Decline indicators
-│   └── ma_features.py                # Moving average features
-├── model/                             # 🎯 Signal generation (timeframe-agnostic)
+│   ├── technical_indicators.py       # Technical analysis indicators
+│   ├── time_features.py              # Time-based feature generation
+│   ├── microstructure_features.py    # Market microstructure features
+│   ├── automated_feature_engineering.py # Automated feature engineering
+│   ├── feature_engineering_service.py # Feature engineering API
+│   └── feature_engineering_api.py    # FastAPI for feature engineering
+├── model/                             # 🤖 Machine learning pipeline
+│   ├── training/                     # Model training components
+│   │   ├── experiment_manager.py     # MLflow experiment management
+│   │   ├── hyperparameter_optimizer.py # Hyperparameter optimization
+│   │   ├── simple_hyperparameter_optimizer.py # Simple optimizer (no Optuna)
+│   │   ├── model_trainer.py          # Core model training logic
+│   │   └── model_training_api.py     # Model training API
+│   ├── automl/                       # Automated machine learning
+│   │   ├── auto_sklearn_integration.py # Auto-sklearn integration
+│   │   ├── tpot_integration.py       # TPOT integration
+│   │   ├── h2o_integration.py        # H2O AutoML integration
+│   │   ├── automl_manager.py         # AutoML orchestration
+│   │   └── automl_api.py             # AutoML API
+│   ├── registry/                     # Model registry and versioning
+│   │   ├── model_registry.py         # Model registry logic
+│   │   └── model_registry_api.py     # Model registry API
 │   ├── scoring.py                    # Composite scoring
 │   ├── signal_generator.py           # Signal logic
 │   ├── timeframe_agnostic_fetcher.py # Multi-timeframe data fetching interface
@@ -1251,6 +1694,19 @@ BreadthFlow/
 │   ├── timeframe_agnostic_signals.py # Timeframe-adaptive signal generation
 │   ├── timeframe_agnostic_backtest.py # Timeframe-optimized backtesting
 │   └── timeframe_config.py           # Centralized timeframe configuration
+├── seldon/                           # 🚀 Model serving and A/B testing
+│   ├── breadthflow_model.py          # Seldon Core model wrapper
+│   ├── seldon_deployment.yaml        # Seldon deployment configuration
+│   ├── ab_test_config.yaml          # A/B testing configuration
+│   └── seldon_manager.py             # Seldon management utilities
+├── monitoring/                        # 📈 Monitoring and visualization
+│   ├── prometheus/                   # Prometheus configuration
+│   │   └── prometheus.yml            # Prometheus scrape configuration
+│   └── grafana/                      # Grafana dashboards and datasources
+│       ├── datasources/              # Grafana datasource configurations
+│       └── dashboards/               # Grafana dashboard definitions
+├── notebooks/                         # 📓 Jupyter notebooks
+│   └── test_ml_pipeline.ipynb        # ML pipeline testing notebook
 ├── backtests/                         # 📈 Performance analysis
 │   ├── engine.py                     # Backtesting engine
 │   └── metrics.py                    # Performance metrics
@@ -1260,7 +1716,8 @@ BreadthFlow/
 │   ├── monitoring_guide.md           # Complete monitoring setup
 │   ├── kibana_dashboard_guide.md     # Kibana customization
 │   └── infrastructure_guide.md       # Infrastructure details
-├── TIMEFRAME_AGNOSTIC_PLATFORM_PLAN.md # 📋 Transformation planning document
+├── ML_TRAINING_IMPLEMENTATION_PLAN.md # 📋 ML pipeline implementation plan
+├── ML_QUICK_START.md                 # 🚀 ML pipeline quick start guide
 └── data/                              # 📂 Sample data and configs
     └── symbols.json                   # Predefined symbol lists
 ```

@@ -1,0 +1,75 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # MLflow metrics
+  - job_name: 'mlflow'
+    static_configs:
+      - targets: ['mlflow:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Spark Master metrics
+  - job_name: 'spark-master'
+    static_configs:
+      - targets: ['spark-master:8080']
+    metrics_path: '/metrics/master/prometheus'
+    scrape_interval: 30s
+
+  # Spark Worker metrics
+  - job_name: 'spark-worker'
+    static_configs:
+      - targets: ['spark-worker:8081']
+    metrics_path: '/metrics/executor/prometheus'
+    scrape_interval: 30s
+
+  # PostgreSQL metrics (if postgres_exporter is available)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # MinIO metrics
+  - job_name: 'minio'
+    static_configs:
+      - targets: ['minio:9000']
+    metrics_path: '/minio/v2/metrics/cluster'
+    scrape_interval: 30s
+
+  # AutoML API metrics
+  - job_name: 'automl-api'
+    static_configs:
+      - targets: ['automl:8004']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Model Training API metrics
+  - job_name: 'model-training-api'
+    static_configs:
+      - targets: ['model-training:8003']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Feature Engineering API metrics
+  - job_name: 'feature-engineering-api'
+    static_configs:
+      - targets: ['feature-engineering:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Data Pipeline API metrics
+  - job_name: 'data-pipeline-api'
+    static_configs:
+      - targets: ['data-pipeline:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s

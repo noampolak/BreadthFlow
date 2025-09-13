@@ -1,0 +1,40 @@
+FROM python:3.9-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies including Java
+RUN apt-get update && apt-get install -y \
+    curl \
+    default-jdk \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Java environment
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PATH=$JAVA_HOME/bin:$PATH
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    fastapi==0.104.1 \
+    uvicorn==0.24.0 \
+    pyspark==3.5.0 \
+    pandas==2.0.3 \
+    numpy==1.24.3 \
+    yfinance==0.2.18 \
+    minio==7.2.0 \
+    pyarrow==12.0.1 \
+    pydantic==2.5.0
+
+# Copy data pipeline code
+COPY data_pipeline/ /app/data_pipeline/
+COPY data/ /data/
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Expose port
+EXPOSE 8001
+
+# Run the data pipeline API
+CMD ["python", "-m", "data_pipeline.data_pipeline_api"]

@@ -1,11 +1,19 @@
 """
-Feature computation module for Breadth/Thrust Signals POC.
+Feature Engineering Module for BreadthFlow ML Pipeline
 
-Handles feature engineering and data processing utilities.
+This module provides comprehensive feature engineering capabilities
+for financial time series data including technical indicators,
+time-based features, and market microstructure analysis.
 """
 
-from .common.io import write_delta, read_delta
+from .technical_indicators import TechnicalIndicators
+from .time_features import TimeFeatures
+from .microstructure_features import MicrostructureFeatures
+from .feature_engineering_service import FeatureEngineeringService
 
 __all__ = [
-    'write_delta', 'read_delta'
+    'TechnicalIndicators',
+    'TimeFeatures', 
+    'MicrostructureFeatures',
+    'FeatureEngineeringService'
 ]

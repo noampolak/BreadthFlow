@@ -15,20 +15,29 @@ docker-compose -f docker-compose.ml.yml ps
 | Service | URL | Credentials | Purpose |
 |---------|-----|-------------|---------|
 | **Jupyter** | http://localhost:8888 | Token: `breadthflow123` | Interactive development |
-| **MLflow** | http://localhost:5000 | No auth | Experiment tracking |
-| **Grafana** | http://localhost:3000 | admin/admin | Monitoring dashboards |
+| **MLflow** | http://localhost:5001 | No auth | Experiment tracking |
+| **Grafana** | http://localhost:3001 | admin/admin | Monitoring dashboards |
+| **Prometheus** | http://localhost:9090 | No auth | Metrics collection |
 | **Spark UI** | http://localhost:8080 | No auth | Data processing |
 | **MinIO** | http://localhost:9001 | admin/password123 | Object storage |
 | **Kibana** | http://localhost:5601 | No auth | Log analysis |
+| **Elasticsearch** | http://localhost:9200 | No auth | Search & analytics |
 | **Airflow** | http://localhost:8081 | admin/admin | Data orchestration |
-| **Featuretools** | http://localhost:8001 | No auth | Automated feature engineering |
-| **AutoML** | http://localhost:8002 | No auth | Automated model training |
-| **Seldon Core** | http://localhost:8003 | No auth | Model serving & A/B testing |
+| **Data Pipeline** | http://localhost:8001 | No auth | Data ingestion API |
+| **Feature Engineering** | http://localhost:8002 | No auth | Automated feature engineering |
+| **Model Training** | http://localhost:8003 | No auth | Model training API |
+| **AutoML** | http://localhost:8004 | No auth | Automated model training |
 
 ### **3. Test Setup**
 ```bash
 # Test MLflow
-curl http://localhost:5000
+curl http://localhost:5001
+
+# Test Grafana
+curl http://localhost:3001/api/health
+
+# Test Prometheus
+curl http://localhost:9090/api/v1/status/config
 
 # Test Spark
 curl http://localhost:8080
@@ -36,17 +45,26 @@ curl http://localhost:8080
 # Test MinIO
 curl http://localhost:9000/minio/health/live
 
+# Test Elasticsearch
+curl http://localhost:9200
+
+# Test Kibana
+curl http://localhost:5601
+
 # Test Airflow
 curl http://localhost:8081/health
 
-# Test Featuretools
+# Test Data Pipeline
 curl http://localhost:8001/health
 
-# Test AutoML
+# Test Feature Engineering
 curl http://localhost:8002/health
 
-# Test Seldon Core
+# Test Model Training
 curl http://localhost:8003/health
+
+# Test AutoML
+curl http://localhost:8004/health
 ```
 
 ## 🚀 **Ultra-Simple New Idea Testing (After Full Implementation)**
