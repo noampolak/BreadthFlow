@@ -6,11 +6,13 @@ authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [
     {include = "ingestion"},
-    {include = "streaming"},
     {include = "features"},
     {include = "model"},
     {include = "backtests"},
     {include = "cli"},
+    {include = "data_pipeline"},
+    {include = "fastapi_app"},
+    {include = "seldon"},
 ]
 keywords = ["trading", "signals", "pyspark", "kafka", "delta-lake", "elasticsearch"]
 classifiers = [
