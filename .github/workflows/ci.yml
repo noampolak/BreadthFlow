@@ -25,7 +25,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry lock --no-update
         poetry install
     
     - name: Run code formatting check
@@ -82,7 +81,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry lock --no-update
         poetry install
     
     - name: Run unit tests
@@ -156,7 +154,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry lock --no-update
         poetry install
     
     - name: Start services
@@ -192,7 +189,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry lock --no-update
         poetry install
         pip install locust
     
@@ -232,7 +228,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry lock --no-update
         poetry install
         pip install safety bandit
     
