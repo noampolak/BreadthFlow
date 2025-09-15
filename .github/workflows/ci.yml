@@ -29,12 +29,15 @@ jobs:
     
     - name: Run code formatting check
       run: |
-        poetry run black --check .
-        poetry run isort --check-only .
+        poetry run black --version
+        poetry run black --check . --config pyproject.toml
+        poetry run isort --version
+        poetry run isort --check-only . --settings pyproject.toml
     
     - name: Run linting
       run: |
-        poetry run flake8 .
+        poetry run flake8 --version
+        poetry run flake8 . --config .flake8
     
     - name: Run security check
       run: |
