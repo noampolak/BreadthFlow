@@ -8,7 +8,6 @@ packages = [
     {include = "ingestion"},
     {include = "features"},
     {include = "model"},
-    {include = "backtests"},
     {include = "cli"},
     {include = "data_pipeline"},
     {include = "fastapi_app"},
