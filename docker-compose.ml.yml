@@ -95,6 +95,8 @@ services:
       - ./notebooks:/home/jovyan/work
       - ./data:/data
       - ./mlflow:/mlflow
+      - ./features:/home/jovyan/work/features
+      - ./experiments:/home/jovyan/work/experiments
 
 
   data-pipeline:
@@ -274,7 +276,7 @@ services:
       context: .
       dockerfile: Dockerfile.seldon
     ports:
-      - "8005:8000"  # Model serving endpoint
+      - "8005:9000"  # Model serving endpoint (Seldon runs on port 9000 internally)
     environment:
       - SELDON_MODEL_NAME=breadthflow-model
       - MLFLOW_TRACKING_URI=http://mlflow:5000

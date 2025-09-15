@@ -1,0 +1,208 @@
+# Multi-Source Analysis Experiment Configuration
+# This configuration defines which features to use for this specific experiment
+
+experiment_name: "multi_source_analysis"
+description: "Combines technical indicators, financial fundamentals, and time features for comprehensive market analysis"
+
+# Data Configuration
+data:
+  symbols: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
+  timeframe: "1day"
+  start_date: "2023-01-01"
+  end_date: "2024-12-31"
+  train_test_split: 0.8
+
+# Feature Configuration
+features:
+  technical:
+    enabled: true
+    indicators:
+      - "rsi"
+      - "macd"
+      - "macd_signal"
+      - "macd_histogram"
+      - "bb_upper"
+      - "bb_middle"
+      - "bb_lower"
+      - "bb_width"
+      - "bb_position"
+    periods:
+      rsi: 14
+      macd_fast: 12
+      macd_slow: 26
+      macd_signal: 9
+      bollinger_period: 20
+      bollinger_std: 2.0
+
+  financial:
+    enabled: true
+    indicators:
+      - "pe_ratio"
+      - "pb_ratio"
+      - "ps_ratio"
+      - "net_margin"
+      - "roa"
+      - "roe"
+      - "debt_to_assets"
+      - "debt_to_equity"
+      - "equity_ratio"
+      - "revenue_growth"
+      - "earnings_growth"
+    data_sources:
+      - "yahoo_finance"
+      - "alpha_vantage"
+      - "financial_modeling_prep"
+
+  market_microstructure:
+    enabled: true
+    indicators:
+      - "volume_ma"
+      - "volume_roc"
+      - "pvt"
+      - "obv"
+      - "true_range"
+      - "atr"
+      - "price_impact"
+      - "volatility"
+      - "parkinson_vol"
+      - "gk_vol"
+    periods:
+      volume_ma: 20
+      volume_roc: 20
+      volatility: 20
+
+  time_features:
+    enabled: true
+    indicators:
+      - "hour"
+      - "day_of_week"
+      - "day_of_month"
+      - "month"
+      - "quarter"
+      - "year"
+      - "hour_sin"
+      - "hour_cos"
+      - "day_sin"
+      - "day_cos"
+      - "month_sin"
+      - "month_cos"
+      - "is_weekend"
+      - "is_month_start"
+      - "is_month_end"
+      - "is_quarter_start"
+      - "is_quarter_end"
+      - "is_year_start"
+      - "is_year_end"
+      - "day_of_year"
+      - "week_of_year"
+      - "season"
+      - "day_of_year_sin"
+      - "day_of_year_cos"
+      - "week_of_year_sin"
+      - "week_of_year_cos"
+      - "is_premarket"
+      - "is_regular_hours"
+      - "is_afterhours"
+      - "is_overnight"
+      - "minutes_to_open"
+      - "minutes_to_close"
+
+# Feature Engineering Configuration
+feature_engineering:
+  missing_values:
+    method: "forward_fill"
+    limit: 5
+  
+  outliers:
+    method: "iqr"
+    threshold: 1.5
+  
+  scaling:
+    method: "standard"
+    columns: "auto"  # Will auto-detect numeric columns
+  
+  lag_features:
+    enabled: true
+    lags: [1, 2, 3, 5, 10]
+    columns: ["Close", "Volume", "rsi", "macd"]
+  
+  rolling_features:
+    enabled: true
+    windows: [5, 10, 20]
+    functions: ["mean", "std", "min", "max"]
+    columns: ["Close", "Volume", "rsi"]
+  
+  interaction_features:
+    enabled: true
+    feature_pairs:
+      - ["rsi", "macd"]
+      - ["bb_position", "volume_roc"]
+      - ["pe_ratio", "revenue_growth"]
+    operations: ["multiply", "divide"]
+  
+  polynomial_features:
+    enabled: true
+    degree: 2
+    columns: ["rsi", "pe_ratio", "revenue_growth"]
+
+# Model Configuration
+models:
+  algorithms:
+    - "random_forest"
+    - "xgboost"
+    - "lightgbm"
+    - "logistic_regression"
+    - "svm"
+  
+  hyperparameter_optimization:
+    enabled: true
+    method: "optuna"
+    n_trials: 100
+    timeout: 3600  # 1 hour
+  
+  cross_validation:
+    method: "time_series_split"
+    n_splits: 5
+  
+  evaluation_metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "roc_auc"
+    - "log_loss"
+
+# Target Configuration
+target:
+  type: "classification"  # or "regression"
+  column: "target"
+  definition: "price_change_1day"
+  threshold: 0.02  # 2% price change threshold for classification
+
+# Output Configuration
+output:
+  save_models: true
+  save_predictions: true
+  save_feature_importance: true
+  save_model_metrics: true
+  results_directory: "experiments/multi_source_analysis/results"
+
+# MLflow Configuration
+mlflow:
+  experiment_name: "multi_source_analysis"
+  tracking_uri: "http://localhost:5001"
+  log_models: true
+  log_artifacts: true
+
+# Seldon Configuration (for model serving)
+seldon:
+  enabled: true
+  deployment_name: "multi-source-model"
+  replicas: 2
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "0.5"
+    limits:
+      memory: "1Gi"
+      cpu: "1"

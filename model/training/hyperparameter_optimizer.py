@@ -431,7 +431,7 @@ class HyperparameterOptimizer:
             self.logger.error(f"Error in multi-objective optimization: {str(e)}")
             raise
     
-    def save_study(self, study: optuna.Study, filepath: str) -> None:
+    def save_study(self, study, filepath: str) -> None:
         """
         Save optimization study to file.
         
@@ -446,7 +446,7 @@ class HyperparameterOptimizer:
             self.logger.error(f"Error saving study: {str(e)}")
             raise
     
-    def load_study(self, filepath: str) -> optuna.Study:
+    def load_study(self, filepath: str):
         """
         Load optimization study from file.
         

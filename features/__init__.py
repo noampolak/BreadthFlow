@@ -1,19 +1,25 @@
 """
-Feature Engineering Module for BreadthFlow ML Pipeline
+BreadthFlow Feature Engineering Module
 
-This module provides comprehensive feature engineering capabilities
-for financial time series data including technical indicators,
-time-based features, and market microstructure analysis.
+This module provides generic, reusable feature engineering components
+that can be used across multiple experiments and models.
+
+Industry Standard Structure:
+- Generic modules for maximum reusability
+- Experiment-specific configurations
+- Consistent calculations across all experiments
 """
 
 from .technical_indicators import TechnicalIndicators
+from .financial_fundamentals import FinancialFundamentals
+from .market_microstructure import MarketMicrostructure
 from .time_features import TimeFeatures
-from .microstructure_features import MicrostructureFeatures
-from .feature_engineering_service import FeatureEngineeringService
+from .feature_utils import FeatureUtils
 
 __all__ = [
     'TechnicalIndicators',
-    'TimeFeatures', 
-    'MicrostructureFeatures',
-    'FeatureEngineeringService'
+    'FinancialFundamentals', 
+    'MarketMicrostructure',
+    'TimeFeatures',
+    'FeatureUtils'
 ]
