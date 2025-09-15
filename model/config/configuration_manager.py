@@ -180,7 +180,7 @@ class ConfigurationManager:
         """Register configuration schema for validation"""
         self.schemas[config_name] = schema
 
-    def _validate_config(self, config_data: Dict[str, Any], schema: Dict[str, ConfigSchema]):
+    def _validate_config(self, config_data: Dict[str, Any], schema: Dict[str, ConfigSchema], config_name: str):
         """Internal validation method"""
         if not self.validate_config(config_data, schema):
             raise ValueError(f"Configuration validation failed for {config_name}")

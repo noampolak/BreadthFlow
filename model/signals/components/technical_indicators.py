@@ -152,26 +152,26 @@ class TechnicalIndicators:
             try:
                 if indicator == "macd":
                     macd_data = self.moving_average_convergence_divergence(data, **parameters.get("macd", {}))
-                    signals[f"macd_line"] = macd_data["macd"]
-                    signals[f"macd_signal"] = macd_data["signal"]
-                    signals[f"macd_histogram"] = macd_data["histogram"]
+                    signals["macd_line"] = macd_data["macd"]
+                    signals["macd_signal"] = macd_data["signal"]
+                    signals["macd_histogram"] = macd_data["histogram"]
 
                 elif indicator == "bollinger_bands":
                     bb_data = self.bollinger_bands(data, **parameters.get("bollinger_bands", {}))
-                    signals[f"bb_upper"] = bb_data["upper"]
-                    signals[f"bb_middle"] = bb_data["middle"]
-                    signals[f"bb_lower"] = bb_data["lower"]
+                    signals["bb_upper"] = bb_data["upper"]
+                    signals["bb_middle"] = bb_data["middle"]
+                    signals["bb_lower"] = bb_data["lower"]
 
                 elif indicator == "stochastic":
                     stoch_data = self.stochastic_oscillator(data, **parameters.get("stochastic", {}))
-                    signals[f"stoch_k"] = stoch_data["k_percent"]
-                    signals[f"stoch_d"] = stoch_data["d_percent"]
+                    signals["stoch_k"] = stoch_data["k_percent"]
+                    signals["stoch_d"] = stoch_data["d_percent"]
 
                 elif indicator == "adx":
                     adx_data = self.average_directional_index(data, **parameters.get("adx", {}))
-                    signals[f"adx"] = adx_data["adx"]
-                    signals[f"plus_di"] = adx_data["plus_di"]
-                    signals[f"minus_di"] = adx_data["minus_di"]
+                    signals["adx"] = adx_data["adx"]
+                    signals["plus_di"] = adx_data["plus_di"]
+                    signals["minus_di"] = adx_data["minus_di"]
 
                 else:
                     # Single value indicators

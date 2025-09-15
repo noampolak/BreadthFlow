@@ -46,7 +46,7 @@ class HighFrequencyBacktestEngine(BaseBacktestEngine):
         # Performance tracking
         self.tick_returns = []
         self.millisecond_metrics = {}
-        self.latency_stats = {"min_latency": float("inf"), "max_latency": 0.0, "avg_latency": 0.0, "latency_count": 0}
+        self.latency_stats = {"min_latency": float("in"), "max_latency": 0.0, "avg_latency": 0.0, "latency_count": 0}
 
         logger.info(f"High-frequency backtest engine initialized: {name}")
 
@@ -352,7 +352,7 @@ class HighFrequencyBacktestEngine(BaseBacktestEngine):
         """Get available liquidity from order book"""
 
         if symbol not in self.order_book:
-            return float("inf")
+            return float("in")
 
         if trade_type == "BUY":
             # Available ask liquidity
@@ -374,7 +374,7 @@ class HighFrequencyBacktestEngine(BaseBacktestEngine):
 
         # Find closest tick to timestamp
         closest_tick = None
-        min_diff = float("inf")
+        min_diff = float("in")
 
         for tick in self.tick_data[symbol]:
             diff = abs((tick["timestamp"] - timestamp).total_seconds())

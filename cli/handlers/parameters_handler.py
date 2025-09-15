@@ -25,7 +25,7 @@ class ParametersHandler:
             min-height: 100vh;
             color: #333;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -35,27 +35,27 @@ class ParametersHandler:
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
             border-bottom: 2px solid #e0e0e0;
         }
-        
+
         .header h1 {
             color: #2c3e50;
             margin: 0 0 10px 0;
             font-size: 2.5em;
             font-weight: 700;
         }
-        
+
         .header p {
             color: #666;
             margin: 0;
             font-size: 1.1em;
         }
-        
+
         .nav-buttons {
             display: flex;
             gap: 12px;
@@ -63,7 +63,7 @@ class ParametersHandler:
             flex-wrap: wrap;
             justify-content: center;
         }
-        
+
         .nav-btn {
             padding: 12px 24px;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -77,17 +77,17 @@ class ParametersHandler:
             text-decoration: none;
             display: inline-block;
         }
-        
+
         .nav-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
-        
+
         .nav-btn.active {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
-        
+
         .refresh-btn {
             padding: 12px 24px;
             background: linear-gradient(135deg, #ff6b6b, #ee5a52);
@@ -99,12 +99,12 @@ class ParametersHandler:
             font-size: 14px;
             transition: all 0.3s ease;
         }
-        
+
         .refresh-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
         }
-        
+
         .timeframe-tabs {
             display: flex;
             gap: 10px;
@@ -112,7 +112,7 @@ class ParametersHandler:
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         .timeframe-tab {
             padding: 12px 24px;
             background: rgba(255, 255, 255, 0.8);
@@ -124,18 +124,18 @@ class ParametersHandler:
             font-size: 14px;
             transition: all 0.3s ease;
         }
-        
+
         .timeframe-tab:hover {
             background: rgba(255, 255, 255, 1);
             transform: translateY(-2px);
         }
-        
+
         .timeframe-tab.active {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
             border-color: #4CAF50;
         }
-        
+
         .parameters-section {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
@@ -143,32 +143,32 @@ class ParametersHandler:
             margin-bottom: 30px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
-        
+
         .parameters-section h3 {
             color: #2c3e50;
             margin-top: 0;
             margin-bottom: 20px;
             font-size: 1.6em;
         }
-        
+
         .parameters-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
-        
+
         .parameter-group {
             display: flex;
             flex-direction: column;
         }
-        
+
         .parameter-group label {
             font-weight: 600;
             margin-bottom: 8px;
             color: #333;
             font-size: 14px;
         }
-        
+
         .parameter-group input,
         .parameter-group select {
             padding: 12px;
@@ -178,33 +178,33 @@ class ParametersHandler:
             transition: border-color 0.3s ease;
             background: white;
         }
-        
+
         .parameter-group input:focus,
         .parameter-group select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .parameter-group input[type="number"] {
             width: 100%;
         }
-        
+
         .parameter-group input[type="text"] {
             width: 100%;
         }
-        
+
         .parameter-group select {
             width: 100%;
         }
-        
+
         .save-section {
             text-align: center;
             margin-top: 30px;
             padding-top: 20px;
             border-top: 2px solid #e0e0e0;
         }
-        
+
         .save-btn {
             padding: 15px 30px;
             background: linear-gradient(135deg, #4CAF50, #45a049);
@@ -217,12 +217,12 @@ class ParametersHandler:
             transition: all 0.3s ease;
             margin: 0 10px;
         }
-        
+
         .save-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
         }
-        
+
         .reset-btn {
             padding: 15px 30px;
             background: linear-gradient(135deg, #ff9800, #f57c00);
@@ -235,12 +235,12 @@ class ParametersHandler:
             transition: all 0.3s ease;
             margin: 0 10px;
         }
-        
+
         .reset-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
         }
-        
+
         .load-btn {
             padding: 15px 30px;
             background: linear-gradient(135deg, #2196F3, #1976D2);
@@ -253,12 +253,12 @@ class ParametersHandler:
             transition: all 0.3s ease;
             margin: 0 10px;
         }
-        
+
         .load-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
         }
-        
+
         .message {
             margin-top: 20px;
             padding: 15px;
@@ -266,41 +266,41 @@ class ParametersHandler:
             text-align: center;
             font-weight: 600;
         }
-        
+
         .message.success {
             background: #e8f5e8;
             color: #2e7d32;
             border-left: 4px solid #4CAF50;
         }
-        
+
         .message.error {
             background: #ffebee;
             color: #c62828;
             border-left: 4px solid #f44336;
         }
-        
+
         .message.info {
             background: #e3f2fd;
             color: #1565c0;
             border-left: 4px solid #2196F3;
         }
-        
+
         .hidden {
             display: none;
         }
-        
+
         .parameter-description {
             font-size: 12px;
             color: #666;
             margin-top: 5px;
             font-style: italic;
         }
-        
+
         .advanced-toggle {
             text-align: center;
             margin: 20px 0;
         }
-        
+
         .advanced-toggle button {
             padding: 10px 20px;
             background: rgba(102, 126, 234, 0.1);
@@ -311,7 +311,7 @@ class ParametersHandler:
             font-weight: 600;
             transition: all 0.3s ease;
         }
-        
+
         .advanced-toggle button:hover {
             background: #667eea;
             color: white;
@@ -323,7 +323,7 @@ class ParametersHandler:
         <div class="header">
             <h1>⚙️ Parameters Configuration</h1>
             <p>Configure trading strategy parameters and system settings</p>
-            
+
             <div class="nav-buttons">
                 <button class="nav-btn" onclick="window.location.href='/'">Dashboard</button>
                 <button class="nav-btn" onclick="window.location.href='/infrastructure'">Infrastructure</button>
@@ -335,14 +335,14 @@ class ParametersHandler:
                 <button class="refresh-btn" onclick="loadParameters()">Refresh Now</button>
             </div>
         </div>
-        
+
         <div class="timeframe-tabs">
             <button class="timeframe-tab active" onclick="showTimeframe('daily')">📅 Daily (1day)</button>
             <button class="timeframe-tab" onclick="showTimeframe('hourly')">⏰ Hourly (1hour)</button>
             <button class="timeframe-tab" onclick="showTimeframe('minute')">⚡ Minute (1min)</button>
             <button class="timeframe-tab" onclick="showTimeframe('system')">🔧 System</button>
         </div>
-        
+
         <!-- Daily Parameters -->
         <div id="daily-params" class="parameters-section">
             <h3>📅 Daily Trading Parameters</h3>
@@ -384,7 +384,7 @@ class ParametersHandler:
                 </div>
             </div>
         </div>
-        
+
         <!-- Hourly Parameters -->
         <div id="hourly-params" class="parameters-section hidden">
             <h3>⏰ Hourly Trading Parameters</h3>
@@ -426,7 +426,7 @@ class ParametersHandler:
                 </div>
             </div>
         </div>
-        
+
         <!-- Minute Parameters -->
         <div id="minute-params" class="parameters-section hidden">
             <h3>⚡ Minute Trading Parameters</h3>
@@ -467,7 +467,7 @@ class ParametersHandler:
                 </div>
             </div>
         </div>
-        
+
         <!-- System Parameters -->
         <div id="system-params" class="parameters-section hidden">
             <h3>🔧 System Configuration</h3>
@@ -519,45 +519,45 @@ class ParametersHandler:
                 </div>
             </div>
         </div>
-        
+
         <div class="save-section">
             <button class="save-btn" onclick="saveParameters()">💾 Save Parameters</button>
             <button class="reset-btn" onclick="resetParameters()">🔄 Reset to Defaults</button>
             <button class="load-btn" onclick="loadParameters()">📥 Load from Database</button>
         </div>
-        
+
         <div id="message-container"></div>
     </div>
-    
+
     <script>
         let currentTimeframe = 'daily';
-        
+
         function showTimeframe(timeframe) {
             // Hide all parameter sections
             document.querySelectorAll('.parameters-section').forEach(section => {
                 section.classList.add('hidden');
             });
-            
+
             // Remove active class from all tabs
             document.querySelectorAll('.timeframe-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            
+
             // Show selected timeframe section
             document.getElementById(timeframe + '-params').classList.remove('hidden');
-            
+
             // Add active class to selected tab
             event.target.classList.add('active');
-            
+
             currentTimeframe = timeframe;
         }
-        
+
         function saveParameters() {
             const params = {
                 timeframe: currentTimeframe,
                 parameters: {}
             };
-            
+
             // Collect parameters based on current timeframe
             if (currentTimeframe === 'daily') {
                 params.parameters = {
@@ -596,7 +596,7 @@ class ParametersHandler:
                     backup_source: document.getElementById('system-backup-source').value
                 };
             }
-            
+
             // Save to database
             fetch('/api/parameters/save', {
                 method: 'POST',
@@ -617,7 +617,7 @@ class ParametersHandler:
                 showMessage('Error saving parameters: ' + error, 'error');
             });
         }
-        
+
         function resetParameters() {
             if (confirm('Are you sure you want to reset all parameters to defaults?')) {
                 // Reset daily parameters
@@ -627,7 +627,7 @@ class ParametersHandler:
                 document.getElementById('daily-capital').value = '10';
                 document.getElementById('daily-stop-loss').value = '5';
                 document.getElementById('daily-take-profit').value = '15';
-                
+
                 // Reset hourly parameters
                 document.getElementById('hourly-lookback').value = '168';
                 document.getElementById('hourly-threshold').value = '0.65';
@@ -635,7 +635,7 @@ class ParametersHandler:
                 document.getElementById('hourly-capital').value = '8';
                 document.getElementById('hourly-stop-loss').value = '3';
                 document.getElementById('hourly-take-profit').value = '8';
-                
+
                 // Reset minute parameters
                 document.getElementById('minute-lookback').value = '1440';
                 document.getElementById('minute-threshold').value = '0.7';
@@ -643,7 +643,7 @@ class ParametersHandler:
                 document.getElementById('minute-capital').value = '5';
                 document.getElementById('minute-stop-loss').value = '2';
                 document.getElementById('minute-take-profit').value = '4';
-                
+
                 // Reset system parameters
                 document.getElementById('system-max-positions').value = '10';
                 document.getElementById('system-risk-per-trade').value = '2';
@@ -651,11 +651,11 @@ class ParametersHandler:
                 document.getElementById('system-rebalance-frequency').value = 'daily';
                 document.getElementById('system-data-source').value = 'yfinance';
                 document.getElementById('system-backup-source').value = 'alpha_vantage';
-                
+
                 showMessage('Parameters reset to defaults!', 'success');
             }
         }
-        
+
         function loadParameters() {
             // Load parameters from database
             fetch('/api/parameters/load?timeframe=' + currentTimeframe)
@@ -672,7 +672,7 @@ class ParametersHandler:
                     showMessage('Error loading parameters: ' + error, 'error');
                 });
         }
-        
+
         function populateParameters(params) {
             if (currentTimeframe === 'daily') {
                 if (params.lookback) document.getElementById('daily-lookback').value = params.lookback;
@@ -704,17 +704,17 @@ class ParametersHandler:
                 if (params.backup_source) document.getElementById('system-backup-source').value = params.backup_source;
             }
         }
-        
+
         function showMessage(message, type) {
             const container = document.getElementById('message-container');
             container.innerHTML = `<div class="message ${type}">${message}</div>`;
-            
+
             // Auto-hide after 5 seconds
             setTimeout(() => {
                 container.innerHTML = '';
             }, 5000);
         }
-        
+
         // Load parameters on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadParameters();

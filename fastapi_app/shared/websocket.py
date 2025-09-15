@@ -27,7 +27,7 @@ class WebSocketManager:
     async def send_personal_message(self, message: dict, websocket: WebSocket):
         try:
             await websocket.send_text(json.dumps(message))
-        except:
+        except Exception:
             self.disconnect(websocket)
 
     async def broadcast(self, message: dict):
@@ -35,7 +35,7 @@ class WebSocketManager:
         for connection in self.active_connections:
             try:
                 await connection.send_text(json.dumps(message))
-            except:
+            except Exception:
                 disconnected.append(connection)
 
         # Clean up disconnected connections

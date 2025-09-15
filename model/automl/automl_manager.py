@@ -323,7 +323,7 @@ class AutoMLManager:
         """
         try:
             best_framework = None
-            best_score = -float("inf")
+            best_score = -float("in")
 
             for framework_name, result in results.items():
                 if result.get("success", False) and "test_metrics" in result:

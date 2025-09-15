@@ -58,7 +58,7 @@ def read_delta_partition(spark: SparkSession, path: str, partition_filter: str) 
     return spark.read.format("delta").load(path).filter(partition_filter)
 
 
-def upsert_delta(df: DataFrame, path: str, merge_key: str, partition_cols: Optional[List[str]] = None) -> None:
+def upsert_delta(df: DataFrame, path: str, merge_key: str, spark, partition_cols: Optional[List[str]] = None) -> None:
     """
     Upsert DataFrame to Delta Lake using merge operation.
 

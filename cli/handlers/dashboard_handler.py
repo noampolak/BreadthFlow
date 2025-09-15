@@ -38,7 +38,7 @@ class DashboardHandler:
                 <button class="refresh-btn" onclick="loadData()">Refresh Now</button>
             </div>
         </div>
-        
+
         <!-- Dashboard Stats -->
         <div class="stats">
             <div class="stat-card">
@@ -58,7 +58,7 @@ class DashboardHandler:
                 <div class="stat-label">Avg Duration (s)</div>
             </div>
         </div>
-        
+
         <!-- Recent Pipeline Runs -->
         <div class="runs-section">
             <h2>Recent Pipeline Runs</h2>
@@ -76,7 +76,7 @@ class DashboardHandler:
                     <tr><td colspan="5">Loading...</td></tr>
                 </tbody>
             </table>
-            
+
             <!-- Pagination Controls -->
             <div class="pagination-container" id="pagination-container" style="display: none;">
                 <div class="pagination-info">
@@ -88,10 +88,10 @@ class DashboardHandler:
                     <button id="next-page" class="pagination-btn" onclick="changePage(1)" disabled>Next →</button>
                 </div>
             </div>
-            
+
             <div class="last-updated" id="last-updated">Last updated: Never</div>
         </div>
-        
+
         <!-- Quick Actions -->
         <div class="runs-section">
             <h2>Quick Actions</h2>
@@ -103,7 +103,7 @@ class DashboardHandler:
             </div>
         </div>
     </div>
-    
+
     <!-- Run Details Modal -->
     <div id="runModal" class="modal">
         <div class="modal-content">
@@ -111,14 +111,14 @@ class DashboardHandler:
             <div id="modalContent">Loading...</div>
         </div>
     </div>
-    
+
     <script src="/static/js/dashboard.js"></script>
     <script>
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
         });
-        
+
         // Auto-refresh every 30 seconds
         setInterval(loadData, 30000);
     </script>
@@ -173,7 +173,7 @@ class DashboardHandler:
                         <div class="stat-label">Uptime</div>
                     </div>
                 </div>
-                
+
                 <!-- Service Status -->
                 <div class="runs-section">
                     <h2>Service Status</h2>
@@ -192,7 +192,7 @@ class DashboardHandler:
                         </tbody>
                     </table>
                 </div>
-                
+
                 <!-- System Resources -->
                 <div class="runs-section">
                     <h2>System Resources</h2>
@@ -215,10 +215,10 @@ class DashboardHandler:
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="last-updated" id="last-updated">Last updated: Never</div>
             </div>
-            
+
             <script>
                 // Load infrastructure data
                 async function loadInfrastructureData() {
@@ -232,7 +232,7 @@ class DashboardHandler:
                             document.getElementById('database-status').textContent = '🔴';
                             document.getElementById('database-status').style.color = '#dc3545';
                         }
-                        
+
                         // Check pipeline status
                         const pipelineResponse = await fetch('/api/pipeline/status');
                         if (pipelineResponse.ok) {
@@ -248,7 +248,7 @@ class DashboardHandler:
                             document.getElementById('pipeline-status').textContent = '🔴';
                             document.getElementById('pipeline-status').style.color = '#dc3545';
                         }
-                        
+
                         // Check API status
                         const apiResponse = await fetch('/api/summary');
                         if (apiResponse.ok) {
@@ -258,18 +258,18 @@ class DashboardHandler:
                             document.getElementById('api-status').textContent = '🔴';
                             document.getElementById('api-status').style.color = '#dc3545';
                         }
-                        
+
                         // Update services table
                         updateServicesTable();
-                        
+
                         // Update system resources (mock data for now)
                         document.getElementById('cpu-usage').textContent = '15%';
                         document.getElementById('memory-usage').textContent = '45%';
                         document.getElementById('disk-usage').textContent = '32%';
                         document.getElementById('network-status').textContent = '🟢';
-                        
+
                         document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleString();
-                        
+
                     } catch (error) {
                         console.error('Error loading infrastructure data:', error);
                         document.getElementById('database-status').textContent = '🔴';
@@ -277,7 +277,7 @@ class DashboardHandler:
                         document.getElementById('api-status').textContent = '🔴';
                     }
                 }
-                
+
                 function updateServicesTable() {
                     const tbody = document.getElementById('services-tbody');
                     const services = [
@@ -286,12 +286,12 @@ class DashboardHandler:
                         { name: 'API Endpoints', status: 'Active', lastCheck: new Date().toLocaleString(), responseTime: '8ms', details: 'All endpoints responding' },
                         { name: 'Static Files', status: 'Serving', lastCheck: new Date().toLocaleString(), responseTime: '3ms', details: 'CSS/JS files' }
                     ];
-                    
+
                     tbody.innerHTML = '';
                     services.forEach(service => {
                         const row = document.createElement('tr');
                         const statusClass = service.status === 'Running' || service.status === 'Connected' || service.status === 'Active' || service.status === 'Serving' ? 'status-completed' : 'status-failed';
-                        
+
                         row.innerHTML = `
                             <td>${service.name}</td>
                             <td><span class="${statusClass}">${service.status}</span></td>
@@ -302,10 +302,10 @@ class DashboardHandler:
                         tbody.appendChild(row);
                     });
                 }
-                
+
                 // Load data on page load
                 loadInfrastructureData();
-                
+
                 // Auto-refresh every 30 seconds
                 setInterval(loadInfrastructureData, 30000);
             </script>
@@ -325,20 +325,20 @@ class DashboardHandler:
     <title>BreadthFlow Trading Signals</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
-        body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            margin: 0; 
-            padding: 0; 
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding: 20px; 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        .header { 
+        .header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 15px;
@@ -390,8 +390,8 @@ class DashboardHandler:
             font-weight: bold;
             transition: transform 0.3s ease;
         }
-        .refresh-btn:hover { 
-            transform: scale(1.05); 
+        .refresh-btn:hover {
+            transform: scale(1.05);
         }
         .panel {
             background: rgba(255, 255, 255, 0.95);
@@ -450,7 +450,7 @@ class DashboardHandler:
                 <button class="refresh-btn" onclick="loadSignals()">Refresh Signals</button>
             </div>
         </div>
-        
+
         <div class="panel">
             <h2>Latest Trading Signals</h2>
             <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
@@ -467,7 +467,7 @@ class DashboardHandler:
             </div>
             <div id="signals-container">Loading signals...</div>
         </div>
-        
+
         <div class="panel">
             <h2>Signal Export</h2>
             <div class="export-section">
@@ -476,18 +476,18 @@ class DashboardHandler:
             </div>
         </div>
     </div>
-    
+
     <script>
         async function loadSignals() {
             try {
                 const response = await fetch('/api/signals/latest');
                 const data = await response.json();
-                
+
                 if (data.error) {
                     document.getElementById('signals-container').innerHTML = `<p>Error: ${data.error}</p>`;
                     return;
                 }
-                
+
                 const container = document.getElementById('signals-container');
                 if (data.signals && data.signals.length > 0) {
                     container.innerHTML = data.signals.map(signal => formatSignalCard(signal)).join('');
@@ -498,19 +498,19 @@ class DashboardHandler:
                 document.getElementById('signals-container').innerHTML = `<p>Error loading signals: ${error}</p>`;
             }
         }
-        
+
         function formatSignalCard(signal) {
             const signalClass = signal.signal_type || 'hold';
             const confidence = signal.confidence || 0;
             const strength = signal.strength || 'medium';
             const timeframe = signal.timeframe || '1day';
-            
+
             // Apply timeframe filter
             const selectedTimeframe = document.getElementById('timeframe-filter').value;
             if (selectedTimeframe !== 'all' && timeframe !== selectedTimeframe) {
                 return ''; // Don't show this signal
             }
-            
+
             return `
                 <div class="signal-card ${signalClass}">
                     <h3>${signal.symbol || 'UNKNOWN'} <span style="font-size: 0.7em; color: #666; font-weight: normal;">(${timeframe})</span></h3>
@@ -522,14 +522,14 @@ class DashboardHandler:
                 </div>
             `;
         }
-        
+
         function exportSignals(format) {
             window.open(`/api/signals/export?format=${format}`, '_blank');
         }
-        
+
         // Load signals on page load
         loadSignals();
-        
+
         // Auto-refresh every 60 seconds
         setInterval(loadSignals, 60000);
     </script>

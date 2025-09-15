@@ -377,7 +377,7 @@ class ModelTrainer:
             if len(np.unique(y_true)) == 2:
                 try:
                     metrics[f"{prefix}_roc_auc"] = roc_auc_score(y_true, y_pred)
-                except:
+                except Exception:
                     metrics[f"{prefix}_roc_auc"] = 0.0
 
             return metrics

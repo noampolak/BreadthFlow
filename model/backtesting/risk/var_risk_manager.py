@@ -123,23 +123,23 @@ class VaRRiskManager(RiskManager):
 
         # Check basic risk limits
         if not self._check_basic_risk_limits(trade, portfolio, config):
-            logger.warning(f"Trade rejected: Basic risk limits exceeded")
+            logger.warning("Trade rejected: Basic risk limits exceeded")
             return False
 
         # Check VaR limits
         if not self._check_var_limits(trade, portfolio, config):
-            logger.warning(f"Trade rejected: VaR limits exceeded")
+            logger.warning("Trade rejected: VaR limits exceeded")
             return False
 
         # Check Expected Shortfall limits
         if not self._check_conditional_var_limits(trade, portfolio, config):
-            logger.warning(f"Trade rejected: Expected Shortfall limits exceeded")
+            logger.warning("Trade rejected: Expected Shortfall limits exceeded")
             return False
 
         # Run stress tests if enabled
         if self.config.get("enable_stress_testing", True):
             if not self._run_stress_tests(trade, portfolio, config):
-                logger.warning(f"Trade rejected: Failed stress tests")
+                logger.warning("Trade rejected: Failed stress tests")
                 return False
 
         # All checks passed

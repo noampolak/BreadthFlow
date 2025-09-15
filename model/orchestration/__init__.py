@@ -4,7 +4,7 @@ Orchestration System
 
 This package provides the main orchestration layer that integrates all components:
 - Data fetching
-- Signal generation  
+- Signal generation
 - Backtesting
 - Training
 - Component registry

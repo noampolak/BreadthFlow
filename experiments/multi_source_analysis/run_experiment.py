@@ -214,7 +214,7 @@ class MultiSourceExperiment:
 
             if response.status_code == 200:
                 results = response.json()
-                print(f"Training completed successfully!")
+                print("Training completed successfully!")
                 return results
             else:
                 print(f"Error training models: {response.text}")
@@ -292,7 +292,7 @@ class MultiSourceExperiment:
             with open(results_file, "w") as f:
                 json.dump(model_results, f, indent=2, default=str)
 
-            print(f"\nExperiment completed successfully!")
+            print("\nExperiment completed successfully!")
             print(f"Results saved to: {results_file}")
         else:
             print("\nExperiment failed - no model results")

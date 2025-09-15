@@ -42,7 +42,7 @@ class ModelRegistry:
         # Ensure experiment exists
         try:
             mlflow.create_experiment(self.experiment_name)
-        except:
+        except Exception:
             pass  # Experiment already exists
 
         mlflow.set_experiment(self.experiment_name)

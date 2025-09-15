@@ -224,7 +224,7 @@ class H2OIntegration:
                 pdp_data = best_model.partial_plot(
                     data=h2o.H2OFrame(X_test), cols=best_model.varimp(use_pandas=True).head(5)["variable"].tolist(), plot=False
                 )
-            except:
+            except Exception:
                 pdp_data = None
 
             interpretability = {

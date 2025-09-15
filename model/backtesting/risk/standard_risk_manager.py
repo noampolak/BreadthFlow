@@ -91,22 +91,22 @@ class StandardRiskManager(RiskManager):
 
         # Check basic risk limits
         if not self._check_basic_risk_limits(trade, portfolio, config):
-            logger.warning(f"Trade rejected: Basic risk limits exceeded")
+            logger.warning("Trade rejected: Basic risk limits exceeded")
             return False
 
         # Check position concentration limits
         if not self._check_concentration_limits(trade, portfolio, config):
-            logger.warning(f"Trade rejected: Concentration limits exceeded")
+            logger.warning("Trade rejected: Concentration limits exceeded")
             return False
 
         # Check portfolio risk limits
         if not self._check_portfolio_risk_limits(trade, portfolio, config):
-            logger.warning(f"Trade rejected: Portfolio risk limits exceeded")
+            logger.warning("Trade rejected: Portfolio risk limits exceeded")
             return False
 
         # Check drawdown limits
         if not self.check_drawdown_limit(portfolio, config):
-            logger.warning(f"Trade rejected: Drawdown limit exceeded")
+            logger.warning("Trade rejected: Drawdown limit exceeded")
             return False
 
         # All checks passed

@@ -233,7 +233,7 @@ class HyperparameterOptimizer:
                 "n_estimators": {"type": "int", "low": 50, "high": 500, "step": 50},
                 "max_depth": {"type": "int", "low": 3, "high": 20},
                 "min_samples_split": {"type": "int", "low": 2, "high": 20},
-                "min_samples_leaf": {"type": "int", "low": 1, "high": 10},
+                "min_samples_lea": {"type": "int", "low": 1, "high": 10},
                 "max_features": {"type": "categorical", "choices": ["sqrt", "log2", None]},
                 "bootstrap": {"type": "categorical", "choices": [True, False]},
             }
@@ -263,7 +263,7 @@ class HyperparameterOptimizer:
             param_space = {
                 "C": {"type": "float", "low": 0.1, "high": 100, "log": True},
                 "gamma": {"type": "float", "low": 0.001, "high": 1, "log": True},
-                "kernel": {"type": "categorical", "choices": ["rbf", "poly", "sigmoid"]},
+                "kernel": {"type": "categorical", "choices": ["rb", "poly", "sigmoid"]},
                 "degree": {"type": "int", "low": 2, "high": 5},
             }
 

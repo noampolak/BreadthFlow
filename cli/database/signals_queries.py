@@ -17,12 +17,12 @@ class SignalsQueries:
                 return {"total_signals": 0, "buy_signals": 0, "sell_signals": 0, "avg_confidence": 0}
 
             signals_query = """
-                SELECT 
+                SELECT
                     COUNT(*) as total_signals,
                     COUNT(CASE WHEN signal_type = 'BUY' THEN 1 END) as buy_signals,
                     COUNT(CASE WHEN signal_type = 'SELL' THEN 1 END) as sell_signals,
                     ROUND(AVG(confidence), 2) as avg_confidence
-                FROM signals_metadata 
+                FROM signals_metadata
                 WHERE run_id = :run_id
             """
             signals_result = self.db.execute_query(signals_query, {"run_id": run_id})
@@ -50,9 +50,9 @@ class SignalsQueries:
                 return {"total_return": 0, "sharpe_ratio": 0, "max_drawdown": 0, "total_trades": 0}
 
             backtest_query = """
-                SELECT 
+                SELECT
                     total_return, sharpe_ratio, max_drawdown, total_trades
-                FROM backtest_results 
+                FROM backtest_results
                 WHERE run_id = :run_id
             """
             backtest_result = self.db.execute_query(backtest_query, {"run_id": run_id})
@@ -80,9 +80,9 @@ class SignalsQueries:
                 return []
 
             export_query = """
-                SELECT 
+                SELECT
                     symbol, signal_type, confidence, timestamp, price, volume
-                FROM signals_metadata 
+                FROM signals_metadata
                 WHERE run_id = :run_id
                 ORDER BY timestamp
             """
@@ -117,11 +117,11 @@ class SignalsQueries:
                 return []
 
             signals_query = """
-                SELECT 
+                SELECT
                     symbol, signal_type, confidence, timestamp, price, volume,
                     timeframe, run_id
-                FROM signals_metadata 
-                ORDER BY timestamp DESC 
+                FROM signals_metadata
+                ORDER BY timestamp DESC
                 LIMIT 50
             """
             signals_result = self.db.execute_query(signals_query)
@@ -158,9 +158,9 @@ class SignalsQueries:
             if run_id:
                 # Export signals for specific run
                 export_query = """
-                    SELECT 
+                    SELECT
                         symbol, signal_type, confidence, timestamp, price, volume, timeframe
-                    FROM signals_metadata 
+                    FROM signals_metadata
                     WHERE run_id = :run_id
                     ORDER BY timestamp
                 """
@@ -168,10 +168,10 @@ class SignalsQueries:
             else:
                 # Export all recent signals
                 export_query = """
-                    SELECT 
+                    SELECT
                         symbol, signal_type, confidence, timestamp, price, volume, timeframe
-                    FROM signals_metadata 
-                    ORDER BY timestamp DESC 
+                    FROM signals_metadata
+                    ORDER BY timestamp DESC
                     LIMIT 1000
                 """
                 export_result = self.db.execute_query(export_query)

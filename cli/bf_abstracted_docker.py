@@ -105,7 +105,7 @@ def log_pipeline_run(run_id, command, status, duration=None, error_message=None,
         else:
             cursor.execute(
                 """
-                UPDATE pipeline_runs 
+                UPDATE pipeline_runs
                 SET status = %s, end_time = %s, duration = %s, error_message = %s
                 WHERE run_id = %s
             """,
@@ -175,7 +175,7 @@ def data_fetch(symbols, timeframe, start_date, end_date, data_source):
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ Data fetch completed successfully")
+            print("✅ Data fetch completed successfully")
             print(f"📊 Fetched data for {len(symbols.split(','))} symbols")
             print(f"⏱️ Duration: {duration:.2f}s")
         else:
@@ -213,7 +213,7 @@ def signals_generate(symbols, timeframe, strategy):
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ Signal generation completed successfully")
+            print("✅ Signal generation completed successfully")
             print(f"📊 Generated signals for {len(symbols.split(','))} symbols")
             print(f"⏱️ Duration: {duration:.2f}s")
         else:
@@ -257,7 +257,7 @@ def backtest_run(symbols, timeframe, start_date, end_date, initial_capital):
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ Backtesting completed successfully")
+            print("✅ Backtesting completed successfully")
             print(f"📊 Backtested {len(symbols.split(','))} symbols")
             print(f"💰 Initial Capital: ${initial_capital:,}")
             print(f"⏱️ Duration: {duration:.2f}s")
@@ -290,7 +290,7 @@ def pipeline_start(mode):
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ Pipeline started successfully")
+            print("✅ Pipeline started successfully")
             print(f"🎮 Mode: {mode}")
             print(f"⏱️ Duration: {duration:.2f}s")
         else:
@@ -321,7 +321,7 @@ def pipeline_stop():
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ Pipeline stopped successfully")
+            print("✅ Pipeline stopped successfully")
             print(f"⏱️ Duration: {duration:.2f}s")
         else:
             error_msg = result.get("error", "Unknown error")
@@ -351,7 +351,7 @@ def pipeline_status():
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ Pipeline status retrieved successfully")
+            print("✅ Pipeline status retrieved successfully")
             status = result.get("status", {})
             print(f"📊 Status: {status.get('status', 'Unknown')}")
             print(f"⏱️ Duration: {duration:.2f}s")
@@ -383,7 +383,7 @@ def health():
 
         if result.get("success"):
             log_pipeline_run(run_id, command, "completed", duration)
-            print(f"✅ System health check completed")
+            print("✅ System health check completed")
             health = result.get("health", {})
             print(f"🏥 Overall Health: {health.get('overall_health', 'Unknown')}")
             print(f"⏱️ Duration: {duration:.2f}s")
@@ -454,11 +454,11 @@ def demo():
         duration = (datetime.now() - start_time).total_seconds()
 
         log_pipeline_run(run_id, command, "completed", duration)
-        print(f"\n✅ Demo completed successfully!")
-        print(f"📊 Data Fetch: ✅")
-        print(f"🎯 Signal Generation: ✅")
-        print(f"📈 Backtesting: ✅")
-        print(f"🏥 System Health: ✅")
+        print("\n✅ Demo completed successfully!")
+        print("📊 Data Fetch: ✅")
+        print("🎯 Signal Generation: ✅")
+        print("📈 Backtesting: ✅")
+        print("🏥 System Health: ✅")
         print(f"⏱️ Total Duration: {duration:.2f}s")
 
     except Exception as e:

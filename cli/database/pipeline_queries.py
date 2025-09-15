@@ -25,7 +25,7 @@ class PipelineQueries:
 
             # Get success rate
             success_rate_query = """
-                SELECT 
+                SELECT
                     ROUND(
                         (COUNT(CASE WHEN status = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2
                     ) as success_rate
@@ -36,7 +36,7 @@ class PipelineQueries:
 
             # Get recent runs (last 24h)
             recent_runs_query = """
-                SELECT COUNT(*) FROM pipeline_runs 
+                SELECT COUNT(*) FROM pipeline_runs
                 WHERE start_time >= NOW() - INTERVAL '24 hours'
             """
             recent_runs_result = self.db.execute_query(recent_runs_query)
@@ -45,7 +45,7 @@ class PipelineQueries:
             # Get average duration
             avg_duration_query = """
                 SELECT ROUND(AVG(EXTRACT(EPOCH FROM (end_time - start_time))), 2)
-                FROM pipeline_runs 
+                FROM pipeline_runs
                 WHERE status = 'completed' AND end_time IS NOT NULL
             """
             avg_duration_result = self.db.execute_query(avg_duration_query)
@@ -88,11 +88,11 @@ class PipelineQueries:
 
             # Get runs for current page
             runs_query = """
-                SELECT 
+                SELECT
                     run_id, command, status, start_time, end_time,
                     EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time)) as duration
-                FROM pipeline_runs 
-                ORDER BY start_time DESC 
+                FROM pipeline_runs
+                ORDER BY start_time DESC
                 LIMIT :per_page OFFSET :offset
             """
             runs_result = self.db.execute_query(runs_query, {"per_page": per_page, "offset": offset})
@@ -150,11 +150,11 @@ class PipelineQueries:
                 return None
 
             run_query = """
-                SELECT 
+                SELECT
                     run_id, command, status, start_time, end_time,
                     EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time)) as duration,
                     error_message, metadata
-                FROM pipeline_runs 
+                FROM pipeline_runs
                 WHERE run_id = :run_id
             """
             run_result = self.db.execute_query(run_query, {"run_id": run_id})
@@ -187,12 +187,12 @@ class PipelineQueries:
 
             # Check if pipeline is currently running
             running_query = """
-                SELECT 
+                SELECT
                     run_id, command, start_time,
                     EXTRACT(EPOCH FROM (NOW() - start_time)) as uptime_seconds
-                FROM pipeline_runs 
-                WHERE status = 'running' 
-                ORDER BY start_time DESC 
+                FROM pipeline_runs
+                WHERE status = 'running'
+                ORDER BY start_time DESC
                 LIMIT 1
             """
             running_result = self.db.execute_query(running_query)
@@ -212,10 +212,10 @@ class PipelineQueries:
             else:
                 # Get last run info
                 last_run_query = """
-                    SELECT 
+                    SELECT
                         run_id, command, status, start_time, end_time
-                    FROM pipeline_runs 
-                    ORDER BY start_time DESC 
+                    FROM pipeline_runs
+                    ORDER BY start_time DESC
                     LIMIT 1
                 """
                 last_run_result = self.db.execute_query(last_run_query)
@@ -247,13 +247,13 @@ class PipelineQueries:
                 return []
 
             runs_query = """
-                SELECT 
+                SELECT
                     run_id, command, status, start_time, end_time,
                     EXTRACT(EPOCH FROM (COALESCE(end_time, NOW()) - start_time)) as duration_seconds,
                     error_message
-                FROM pipeline_runs 
+                FROM pipeline_runs
                 WHERE start_time >= NOW() - INTERVAL '2 days'
-                ORDER BY start_time DESC 
+                ORDER BY start_time DESC
                 LIMIT 20
             """
             runs_result = self.db.execute_query(runs_query)
@@ -325,7 +325,7 @@ class PipelineQueries:
 
             # Find and stop any running pipeline
             update_query = """
-                UPDATE pipeline_runs 
+                UPDATE pipeline_runs
                 SET status = 'stopped', end_time = NOW()
                 WHERE status = 'running'
             """

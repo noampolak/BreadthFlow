@@ -285,7 +285,7 @@ class WorkflowManager:
             self.logger.error(f"Workflow execution {execution_id} failed: {e}")
             self.error_handler.record_error(
                 error=e,
-                context={"execution_id": execution_id, "workflow_id": workflow_id},
+                context={"execution_id": execution_id, "workflow_id": execution.workflow_id},
                 component="WorkflowManager",
                 operation="execute_workflow",
             )
@@ -442,7 +442,7 @@ class WorkflowManager:
 
         # Check if workflow is currently running
         running_count = sum(
-            1 for exec_id, task in self.running_executions.items() if self.executions[execution_id].workflow_id == workflow_id
+            1 for exec_id, task in self.running_executions.items() if self.executions[exec_id].workflow_id == workflow_id
         )
 
         if running_count > 0:

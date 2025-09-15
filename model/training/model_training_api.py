@@ -115,7 +115,7 @@ async def health_check():
         mlflow_status = "healthy"
         try:
             experiment_manager.get_experiment_summary("breadthflow_training")
-        except:
+        except Exception:
             mlflow_status = "unhealthy"
 
         return {

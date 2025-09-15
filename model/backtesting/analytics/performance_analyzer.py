@@ -161,7 +161,7 @@ class PerformanceAnalyzer:
         avg_win = winning_pnl.mean() if len(winning_pnl) > 0 else 0
         avg_loss = losing_pnl.mean() if len(losing_pnl) > 0 else 0
 
-        profit_factor = abs(winning_pnl.sum() / losing_pnl.sum()) if losing_pnl.sum() != 0 else float("inf")
+        profit_factor = abs(winning_pnl.sum() / losing_pnl.sum()) if losing_pnl.sum() != 0 else float("in")
 
         # Trade duration metrics
         trade_durations = self._calculate_trade_durations()
@@ -333,7 +333,7 @@ class PerformanceAnalyzer:
         downside_returns = returns_series[returns_series < 0]
 
         if len(downside_returns) == 0:
-            return float("inf")
+            return float("in")
 
         downside_deviation = downside_returns.std()
 
@@ -412,7 +412,7 @@ class PerformanceAnalyzer:
         winning_pnl = sum(trade["realized_pnl"] for trade in self.trades if trade["realized_pnl"] > 0)
         losing_pnl = abs(sum(trade["realized_pnl"] for trade in self.trades if trade["realized_pnl"] < 0))
 
-        return winning_pnl / losing_pnl if losing_pnl > 0 else float("inf")
+        return winning_pnl / losing_pnl if losing_pnl > 0 else float("in")
 
     def _calculate_avg_win(self) -> float:
         """Calculate average winning trade"""

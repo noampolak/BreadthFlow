@@ -397,7 +397,7 @@ async def demo_dashboard_commands():
         result = await execute_command(cmd["command"], **cmd["params"])
 
         if result.get("success"):
-            print(f"   ✅ Success!")
+            print("   ✅ Success!")
             print(f"   Duration: {result.get('duration', 0):.2f}s")
             if result.get("command") == "backtest" and result.get("performance_metrics"):
                 print(f"   Performance Metrics: {len(result.get('performance_metrics', {}))} metrics")

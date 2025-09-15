@@ -294,7 +294,7 @@ class BaseBacktestEngine(BacktestEngineInterface):
             "sharpe_ratio": results["performance_metrics"].get("summary", {}).get("sharpe_ratio", 0),
         }
 
-        logger.info(f"Backtest results post-processed")
+        logger.info("Backtest results post-processed")
         return results
 
     def _validate_signal(self, signal: Dict[str, Any]) -> bool:

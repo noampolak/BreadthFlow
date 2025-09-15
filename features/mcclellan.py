@@ -296,14 +296,14 @@ class McClellanOscillator:
             (col("mcclellan_oscillator") > 0)
             & (
                 col("mcclellan_oscillator")
-                > expr(f"avg(mcclellan_oscillator) over (order by date rows between 10 preceding and current row)")
+                > expr("avg(mcclellan_oscillator) over (order by date rows between 10 preceding and current row)")
             ),
         ).withColumn(
             "bearish_divergence",
             (col("mcclellan_oscillator") < 0)
             & (
                 col("mcclellan_oscillator")
-                < expr(f"avg(mcclellan_oscillator) over (order by date rows between 10 preceding and current row)")
+                < expr("avg(mcclellan_oscillator) over (order by date rows between 10 preceding and current row)")
             ),
         )
 
