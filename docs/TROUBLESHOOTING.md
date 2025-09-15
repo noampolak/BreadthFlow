@@ -2,6 +2,25 @@
 
 > Common issues and solutions for the ML pipeline
 
+## ✅ **Recent Fixes Applied**
+
+The following issues have been resolved in the latest version:
+
+1. **✅ Service Connectivity Issues** - All ML services now connect properly
+2. **✅ Config File Path Issues** - Fixed relative path problems in notebooks
+3. **✅ Circular Reference Errors** - Fixed dictionary comprehension issues
+4. **✅ Seldon Core Port Mapping** - Corrected port configuration for model serving
+5. **✅ Model Registry DNS Issues** - Fixed hostname resolution problems
+6. **✅ Optuna Import Issues** - Resolved dependency conflicts in model registry
+
+### **🎯 Ready-to-Use Examples**
+
+- **Complete Jupyter Notebook**: `notebooks/multi_source_training_example.ipynb`
+- **All Services Working**: 6/6 ML services connected and operational
+- **End-to-End Workflow**: From data generation to model deployment
+
+---
+
 ## 🎯 **Quick Diagnostics**
 
 ### **Check All Services**

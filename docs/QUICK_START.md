@@ -33,6 +33,18 @@ curl http://localhost:8006/health  # Model Registry
 ```
 
 ### **Step 3: Train Your First Model**
+
+#### **Option A: Use the Ready-to-Use Jupyter Notebook (Recommended)**
+```bash
+# Open Jupyter Lab
+open http://localhost:8888
+# Token: breadthflow123
+
+# Navigate to: notebooks/multi_source_training_example.ipynb
+# Run all cells for complete end-to-end workflow
+```
+
+#### **Option B: Use API Commands**
 ```bash
 # Generate features first
 curl -X POST http://localhost:8002/features/generate \
@@ -45,7 +57,7 @@ curl -X POST http://localhost:8002/features/generate \
   }'
 
 # Train the model
-curl -X POST http://localhost:8003/train \
+curl -X POST http://localhost:8003/train-models \
   -H "Content-Type: application/json" \
   -d '{
     "symbols": ["AAPL"],

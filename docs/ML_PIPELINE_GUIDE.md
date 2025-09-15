@@ -10,7 +10,29 @@ The BreadthFlow ML Pipeline provides a complete machine learning workflow from d
 
 ## 🚀 **How to Actually Use the ML Pipeline - Step by Step**
 
-### **🎯 Method 1: Quick Start (Recommended for Beginners)**
+### **🎯 Method 1: Ready-to-Use Jupyter Notebook (Recommended for Everyone)**
+
+#### **Step 1: Open the Complete Example**
+```bash
+# Open Jupyter Lab
+open http://localhost:8888
+# Token: breadthflow123
+
+# Navigate to: notebooks/multi_source_training_example.ipynb
+# This notebook contains a complete end-to-end workflow
+```
+
+#### **What the Notebook Includes:**
+- ✅ **Service Connectivity Testing** - Verifies all ML services are working
+- ✅ **Configuration Loading** - Loads experiment settings from YAML
+- ✅ **Sample Data Generation** - Creates realistic market data for demonstration
+- ✅ **Feature Engineering** - Uses generic, reusable feature modules
+- ✅ **Model Training** - Trains multiple algorithms using the ML pipeline
+- ✅ **MLflow Integration** - Tracks experiments and models
+- ✅ **Seldon Deployment** - Deploys models for production serving
+- ✅ **Complete Workflow** - From data to deployed model in one notebook
+
+### **🎯 Method 2: API-Based Workflow (For Advanced Users)**
 
 #### **Step 1: Start the ML Platform**
 ```bash

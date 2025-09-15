@@ -30,6 +30,8 @@ BreadthFlow now features a **complete machine learning training pipeline** that 
 - **🔄 Data Orchestration** - Apache Airflow for workflow management
 - **⚡ Real-time Processing** - Apache Spark for distributed data processing
 - **📦 Model Registry** - Complete model lifecycle management
+- **🎯 Ready-to-Use Examples** - Complete Jupyter notebook with multi-source analysis
+- **✅ Fully Tested & Working** - All services connected and operational
 
 ---
 
@@ -98,6 +100,8 @@ BreadthFlow now features a **complete machine learning training pipeline** that 
 - **📈 Comprehensive Monitoring** with Grafana dashboards and Prometheus metrics
 - **🚀 Production Model Serving** with Seldon Core and A/B testing capabilities
 - **⚡ One-Line Testing** for new trading ideas with automated ML pipeline
+- **✅ All Issues Fixed** - Service connectivity, config paths, and circular references resolved
+- **🎯 Ready-to-Use Examples** - Complete Jupyter notebook with multi-source analysis
 
 ---
 
@@ -146,6 +150,18 @@ docker-compose -f docker-compose.ml.yml ps
 - **Web Dashboard**: http://localhost:8083 (Pipeline monitoring)
 
 ### **3. Train Your First Model**
+
+#### **Option A: Use the Ready-to-Use Jupyter Notebook (Recommended)**
+```bash
+# Open Jupyter Lab
+open http://localhost:8888
+# Token: breadthflow123
+
+# Navigate to: notebooks/multi_source_training_example.ipynb
+# Run all cells for complete end-to-end workflow
+```
+
+#### **Option B: Use API Commands**
 ```bash
 # Generate features
 curl -X POST http://localhost:8002/features/generate \
@@ -153,7 +169,7 @@ curl -X POST http://localhost:8002/features/generate \
   -d '{"symbols": ["AAPL"], "timeframe": "1day"}'
 
 # Train model
-curl -X POST http://localhost:8003/train \
+curl -X POST http://localhost:8003/train-models \
   -H "Content-Type: application/json" \
   -d '{"symbols": ["AAPL"], "timeframe": "1day", "algorithm": "random_forest"}'
 ```
