@@ -2,10 +2,11 @@
 Parameters handler for the parameters configuration page
 """
 
+
 class ParametersHandler:
     def __init__(self):
         pass
-    
+
     def serve_parameters(self):
         """Serve the comprehensive parameters configuration page"""
         html = """<!DOCTYPE html>
@@ -721,5 +722,5 @@ class ParametersHandler:
     </script>
 </body>
 </html>"""
-        
-        return html, 'text/html; charset=utf-8', 200
+
+        return html, "text/html; charset=utf-8", 200

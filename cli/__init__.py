@@ -6,4 +6,4 @@ Provides user-friendly CLI for data fetching, signal generation, and analysis.
 
 from .bf_abstracted import cli
 
-__all__ = ['cli']
+__all__ = ["cli"]

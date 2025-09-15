@@ -10,9 +10,4 @@ from .auto_sklearn_integration import AutoSklearnIntegration
 from .tpot_integration import TPOTIntegration
 from .h2o_integration import H2OIntegration
 
-__all__ = [
-    'AutoMLManager',
-    'AutoSklearnIntegration',
-    'TPOTIntegration',
-    'H2OIntegration'
-]
+__all__ = ["AutoMLManager", "AutoSklearnIntegration", "TPOTIntegration", "H2OIntegration"]

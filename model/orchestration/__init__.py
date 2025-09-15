@@ -19,8 +19,4 @@ from .pipeline_orchestrator import PipelineOrchestrator
 from .workflow_manager import WorkflowManager
 from .system_monitor import SystemMonitor
 
-__all__ = [
-    'PipelineOrchestrator',
-    'WorkflowManager', 
-    'SystemMonitor'
-]
+__all__ = ["PipelineOrchestrator", "WorkflowManager", "SystemMonitor"]

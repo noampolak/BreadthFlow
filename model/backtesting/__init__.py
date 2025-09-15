@@ -19,9 +19,16 @@ from .risk.var_risk_manager import VaRRiskManager
 from .analytics.performance_analyzer import PerformanceAnalyzer
 
 __all__ = [
-    'BacktestConfig', 'BacktestEngineInterface',
-    'BaseBacktestEngine', 'StandardBacktestEngine', 'HighFrequencyBacktestEngine',
-    'ExecutionEngine', 'StandardExecutionEngine', 'HighFrequencyExecutionEngine',
-    'RiskManager', 'StandardRiskManager', 'VaRRiskManager',
-    'PerformanceAnalyzer'
+    "BacktestConfig",
+    "BacktestEngineInterface",
+    "BaseBacktestEngine",
+    "StandardBacktestEngine",
+    "HighFrequencyBacktestEngine",
+    "ExecutionEngine",
+    "StandardExecutionEngine",
+    "HighFrequencyExecutionEngine",
+    "RiskManager",
+    "StandardRiskManager",
+    "VaRRiskManager",
+    "PerformanceAnalyzer",
 ]

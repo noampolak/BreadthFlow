@@ -17,6 +17,7 @@ SQLALCHEMY_DATABASE_URL = "postgresql://test_user:test_password@localhost:5433/b
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def override_get_db():
     """Override database dependency for testing"""
     try:
@@ -25,8 +26,10 @@ def override_get_db():
     finally:
         db.close()
 
+
 # Override the database dependency
 app.dependency_overrides[get_db] = override_get_db
+
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -35,6 +38,7 @@ def event_loop():
     yield loop
     loop.close()
 
+
 @pytest.fixture(scope="session")
 def setup_test_db():
     """Set up test database"""
@@ -42,10 +46,12 @@ def setup_test_db():
     yield
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture
 def client():
     """Create test client"""
     return TestClient(app)
+
 
 @pytest.fixture
 def db_session():
@@ -54,38 +60,35 @@ def db_session():
     yield session
     session.close()
 
+
 @pytest.fixture
 def test_data_factory():
     """Create test data factory"""
     return TestDataFactory()
+
 
 @pytest.fixture
 def sample_ohlcv_data(test_data_factory):
     """Create sample OHLCV data for testing"""
     return test_data_factory.create_ohlcv_data()
 
+
 @pytest.fixture
 def sample_signal_data(test_data_factory):
     """Create sample signal data for testing"""
     return test_data_factory.create_signal_data()
+
 
 @pytest.fixture
 def sample_user_data(test_data_factory):
     """Create sample user data for testing"""
     return test_data_factory.create_user_data()
 
+
 # Pytest configuration
 def pytest_configure(config):
     """Configure pytest"""
-    config.addinivalue_line(
-        "markers", "unit: mark test as unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: mark test as end-to-end test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "e2e: mark test as end-to-end test")
+    config.addinivalue_line("markers", "slow: mark test as slow running")

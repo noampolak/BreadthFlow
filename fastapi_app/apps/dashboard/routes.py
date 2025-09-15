@@ -6,11 +6,13 @@ from .utils import DashboardService
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
+
 @router.get("/summary", response_model=DashboardSummaryResponse)
 async def get_dashboard_summary(db: Session = Depends(get_db)):
     """Get complete dashboard summary with stats and recent runs"""
     service = DashboardService(db)
     return await service.get_dashboard_summary()
+
 
 @router.get("/stats", response_model=DashboardStatsResponse)
 async def get_dashboard_stats(db: Session = Depends(get_db)):

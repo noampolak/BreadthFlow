@@ -25,17 +25,17 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry install --with dev --with dev
+        poetry install --with dev
     
     - name: Run code formatting check
       run: |
-        black --check .
-        isort --check-only .
+        poetry run black --check .
+        poetry run isort --check-only .
     
     - name: Run linting
       run: |
-        flake8 .
-        mypy .
+        poetry run flake8 .
+        poetry run mypy .
     
     - name: Run security check
       run: |
@@ -81,18 +81,18 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry install --with dev --with dev
+        poetry install --with dev
     
     - name: Run unit tests
       run: |
-        pytest tests/unit/ -v --cov=. --cov-report=xml --cov-report=html --junitxml=junit.xml
+        poetry run pytest tests/unit/ -v --cov=. --cov-report=xml --cov-report=html --junitxml=junit.xml
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/breadthflow_test
         REDIS_URL: redis://localhost:6379
     
     - name: Run integration tests
       run: |
-        pytest tests/integration/ -v --cov=. --cov-report=xml --cov-report=html --junitxml=junit-integration.xml
+        poetry run pytest tests/integration/ -v --cov=. --cov-report=xml --cov-report=html --junitxml=junit-integration.xml
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/breadthflow_test
         REDIS_URL: redis://localhost:6379
@@ -155,7 +155,7 @@ jobs:
     
     - name: Run E2E tests
       run: |
-        pytest tests/e2e/ -v --junitxml=junit-e2e.xml
+        poetry run pytest tests/e2e/ -v --junitxml=junit-e2e.xml
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5433/breadthflow_test
         REDIS_URL: redis://localhost:6380
@@ -220,7 +220,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install poetry
-        poetry install --with dev --with dev
+        poetry install --with dev
         pip install safety bandit
     
     - name: Run security scan

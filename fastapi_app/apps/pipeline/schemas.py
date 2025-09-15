@@ -3,12 +3,14 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 from enum import Enum
 
+
 class PipelineStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
     STOPPED = "stopped"
+
 
 class PipelineConfig(BaseModel):
     mode: str = Field(..., description="Pipeline mode (demo, small, medium, full)")
@@ -17,12 +19,15 @@ class PipelineConfig(BaseModel):
     symbols: Optional[str] = Field(None, description="Custom symbols list")
     data_source: str = Field("yfinance", description="Data source")
 
+
 class PipelineRunBase(BaseModel):
     command: str = Field(..., description="Pipeline command to execute")
     run_metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
 
+
 class PipelineRunCreate(PipelineRunBase):
     pass
+
 
 class PipelineRunResponse(PipelineRunBase):
     run_id: str
@@ -31,9 +36,10 @@ class PipelineRunResponse(PipelineRunBase):
     end_time: Optional[datetime]
     duration: Optional[float]
     error_message: Optional[str]
-    
+
     class Config:
         from_attributes = True
+
 
 class PipelineStatusResponse(BaseModel):
     state: str

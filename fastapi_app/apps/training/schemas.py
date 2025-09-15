@@ -3,12 +3,14 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 from enum import Enum
 
+
 class TrainingStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
 
 class TrainingRequest(BaseModel):
     symbols: List[str] = Field(..., description="List of symbols to train on")
@@ -20,12 +22,14 @@ class TrainingRequest(BaseModel):
     parameters: Optional[Dict[str, Any]] = Field(None, description="Model parameters")
     test_split: float = Field(0.2, description="Test data split ratio")
 
+
 class TrainingResponse(BaseModel):
     training_id: str
     status: TrainingStatus
     message: str
     start_time: datetime
     estimated_duration: Optional[int] = None  # in minutes
+
 
 class TrainingHistory(BaseModel):
     training_id: str
@@ -42,9 +46,10 @@ class TrainingHistory(BaseModel):
     end_time: Optional[datetime] = None
     duration: Optional[float] = None
     error_message: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
+
 
 class ModelInfo(BaseModel):
     model_id: str
@@ -60,7 +65,6 @@ class ModelInfo(BaseModel):
     created_at: datetime
     last_used: Optional[datetime] = None
     is_deployed: bool = False
-    
+
     class Config:
         from_attributes = True
-

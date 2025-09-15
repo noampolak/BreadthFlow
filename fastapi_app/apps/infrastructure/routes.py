@@ -8,10 +8,9 @@ from apps.infrastructure.utils import InfrastructureService
 
 router = APIRouter(prefix="/infrastructure", tags=["infrastructure"])
 
+
 @router.get("/health", response_model=SystemHealth)
-async def get_infrastructure_health_route(
-    db: Session = Depends(get_db_session)
-):
+async def get_infrastructure_health_route(db: Session = Depends(get_db_session)):
     """Get overall system health and service status"""
     try:
         service = InfrastructureService(db)

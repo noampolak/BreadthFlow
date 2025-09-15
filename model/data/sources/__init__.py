@@ -9,6 +9,7 @@ from .data_source_interface import DataSourceInterface
 
 try:
     from .yfinance_source import YFinanceDataSource
-    __all__ = ['DataSourceInterface', 'YFinanceDataSource']
+
+    __all__ = ["DataSourceInterface", "YFinanceDataSource"]
 except ImportError:
-    __all__ = ['DataSourceInterface']
+    __all__ = ["DataSourceInterface"]

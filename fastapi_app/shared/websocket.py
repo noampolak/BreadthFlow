@@ -4,6 +4,7 @@ import json
 import asyncio
 from datetime import datetime
 
+
 class WebSocketManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
@@ -35,7 +36,7 @@ class WebSocketManager:
                 await connection.send_text(json.dumps(message))
             except:
                 disconnected.append(connection)
-        
+
         # Clean up disconnected connections
         for connection in disconnected:
             self.disconnect(connection)
@@ -45,22 +46,14 @@ class WebSocketManager:
             "type": "pipeline_update",
             "pipeline_id": pipeline_id,
             "status": status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         await self.broadcast(message)
 
     async def broadcast_signal_update(self, signal_data: dict):
-        message = {
-            "type": "signal_update",
-            "data": signal_data,
-            "timestamp": datetime.now().isoformat()
-        }
+        message = {"type": "signal_update", "data": signal_data, "timestamp": datetime.now().isoformat()}
         await self.broadcast(message)
 
     async def broadcast_dashboard_update(self, dashboard_data: dict):
-        message = {
-            "type": "dashboard_update",
-            "data": dashboard_data,
-            "timestamp": datetime.now().isoformat()
-        }
+        message = {"type": "dashboard_update", "data": dashboard_data, "timestamp": datetime.now().isoformat()}
         await self.broadcast(message)

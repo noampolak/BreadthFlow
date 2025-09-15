@@ -38,7 +38,9 @@ websocket_manager = WebSocketManager()
 
 # Set WebSocket manager for tasks
 from apps.pipeline.tasks import set_websocket_manager
+
 set_websocket_manager(websocket_manager)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -50,6 +52,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("🛑 Shutting down BreadthFlow API...")
 
+
 app = FastAPI(
     title=settings.api_title,
     version=settings.api_version,
@@ -57,7 +60,7 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
 )
 
 # Middleware
@@ -69,10 +72,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["*"]
-)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # Include routers
 app.include_router(dashboard_router, prefix="/api")
@@ -83,6 +83,7 @@ app.include_router(commands_router, prefix="/api")
 app.include_router(training_router, prefix="/api")
 app.include_router(parameters_router, prefix="/api")
 
+
 # WebSocket endpoint for real-time updates
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -92,11 +93,11 @@ async def websocket_endpoint(websocket: WebSocket):
             # Keep connection alive and send periodic updates
             await asyncio.sleep(30)
             await websocket_manager.send_personal_message(
-                {"type": "heartbeat", "timestamp": "2024-01-01T00:00:00Z"}, 
-                websocket
+                {"type": "heartbeat", "timestamp": "2024-01-01T00:00:00Z"}, websocket
             )
     except WebSocketDisconnect:
         websocket_manager.disconnect(websocket)
+
 
 @app.get("/")
 async def root():
@@ -105,23 +106,16 @@ async def root():
         "version": settings.api_version,
         "docs": "/docs",
         "websocket": "/ws",
-        "status": "running"
+        "status": "running",
     }
+
 
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "healthy", 
-        "version": settings.api_version,
-        "database": "connected",
-        "spark_server": "connected"
-    }
+    return {"status": "healthy", "version": settings.api_version, "database": "connected", "spark_server": "connected"}
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        "main:app", 
-        host="0.0.0.0", 
-        port=8005, 
-        reload=settings.debug
-    )
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8005, reload=settings.debug)

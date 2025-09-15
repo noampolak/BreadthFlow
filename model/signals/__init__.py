@@ -16,8 +16,13 @@ from .strategies.fundamental_analysis_strategy import FundamentalAnalysisStrateg
 from .composite_signal_generator import CompositeSignalGenerator
 
 __all__ = [
-    'SignalConfig', 'SignalGeneratorInterface',
-    'TechnicalIndicators', 'FundamentalIndicators', 'SentimentIndicators',
-    'BaseSignalStrategy', 'TechnicalAnalysisStrategy', 'FundamentalAnalysisStrategy',
-    'CompositeSignalGenerator'
+    "SignalConfig",
+    "SignalGeneratorInterface",
+    "TechnicalIndicators",
+    "FundamentalIndicators",
+    "SentimentIndicators",
+    "BaseSignalStrategy",
+    "TechnicalAnalysisStrategy",
+    "FundamentalAnalysisStrategy",
+    "CompositeSignalGenerator",
 ]

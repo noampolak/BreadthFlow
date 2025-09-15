@@ -5,9 +5,10 @@ import uuid
 from datetime import datetime
 from .schemas import TrainingStatus
 
+
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
-    
+
     training_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     symbols = Column(Text, nullable=False)  # JSON string
     timeframe = Column(String(20), nullable=False)
@@ -27,9 +28,10 @@ class TrainingSession(Base):
     duration = Column(Float, nullable=True)  # in seconds
     error_message = Column(Text, nullable=True)
 
+
 class TrainedModel(Base):
     __tablename__ = "trained_models"
-    
+
     model_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     training_id = Column(UUID(as_uuid=True), nullable=False)
     name = Column(String(100), nullable=False)
@@ -45,4 +47,3 @@ class TrainedModel(Base):
     last_used = Column(DateTime, nullable=True)
     is_deployed = Column(Boolean, nullable=False, default=False)
     model_path = Column(String(200), nullable=False)
-

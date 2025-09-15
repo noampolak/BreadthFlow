@@ -8,11 +8,12 @@ from datetime import datetime
 from .models import ParameterConfig, ParameterHistory
 from .schemas import ParameterGroup, ParameterValue, ParameterUpdate, ParameterType
 
+
 class ParametersService:
     def __init__(self, db: Session):
         self.db = db
         self._initialize_default_parameters()
-    
+
     def _initialize_default_parameters(self):
         """Initialize default parameters if they don't exist"""
         if self.db.query(ParameterConfig).count() == 0:
@@ -22,18 +23,18 @@ class ParametersService:
                     param_config = ParameterConfig(
                         group_name=group_name,
                         parameter_name=param_name,
-                        value=json.dumps(param_data['value']),
-                        default_value=json.dumps(param_data['default_value']),
-                        description=param_data['description'],
-                        parameter_type=param_data['type'],
-                        options=json.dumps(param_data.get('options', [])),
-                        min_value=param_data.get('min_value'),
-                        max_value=param_data.get('max_value'),
-                        required=param_data.get('required', True)
+                        value=json.dumps(param_data["value"]),
+                        default_value=json.dumps(param_data["default_value"]),
+                        description=param_data["description"],
+                        parameter_type=param_data["type"],
+                        options=json.dumps(param_data.get("options", [])),
+                        min_value=param_data.get("min_value"),
+                        max_value=param_data.get("max_value"),
+                        required=param_data.get("required", True),
                     )
                     self.db.add(param_config)
             self.db.commit()
-    
+
     def _get_default_parameters(self) -> Dict[str, Dict[str, Any]]:
         """Get default parameter configurations"""
         return {
@@ -44,7 +45,7 @@ class ParametersService:
                     "description": "Default symbols for data fetching",
                     "type": ParameterType.MULTISELECT,
                     "options": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD", "INTC"],
-                    "required": True
+                    "required": True,
                 },
                 "default_timeframe": {
                     "value": "1day",
@@ -52,7 +53,7 @@ class ParametersService:
                     "description": "Default timeframe for data fetching",
                     "type": ParameterType.SELECT,
                     "options": ["1min", "5min", "15min", "1hour", "1day"],
-                    "required": True
+                    "required": True,
                 },
                 "data_source": {
                     "value": "yfinance",
@@ -60,7 +61,7 @@ class ParametersService:
                     "description": "Data source for fetching market data",
                     "type": ParameterType.SELECT,
                     "options": ["yfinance", "alpha_vantage", "quandl"],
-                    "required": True
+                    "required": True,
                 },
                 "cache_duration": {
                     "value": 3600,
@@ -69,8 +70,8 @@ class ParametersService:
                     "type": ParameterType.INTEGER,
                     "min_value": 60,
                     "max_value": 86400,
-                    "required": True
-                }
+                    "required": True,
+                },
             },
             "signal_generation": {
                 "default_strategy": {
@@ -79,7 +80,7 @@ class ParametersService:
                     "description": "Default trading strategy",
                     "type": ParameterType.SELECT,
                     "options": ["momentum", "mean_reversion", "breakout", "rsi", "macd"],
-                    "required": True
+                    "required": True,
                 },
                 "confidence_threshold": {
                     "value": 0.7,
@@ -88,7 +89,7 @@ class ParametersService:
                     "type": ParameterType.FLOAT,
                     "min_value": 0.0,
                     "max_value": 1.0,
-                    "required": True
+                    "required": True,
                 },
                 "signal_strength_threshold": {
                     "value": "medium",
@@ -96,7 +97,7 @@ class ParametersService:
                     "description": "Minimum signal strength",
                     "type": ParameterType.SELECT,
                     "options": ["weak", "medium", "strong"],
-                    "required": True
+                    "required": True,
                 },
                 "max_signals_per_day": {
                     "value": 10,
@@ -105,8 +106,8 @@ class ParametersService:
                     "type": ParameterType.INTEGER,
                     "min_value": 1,
                     "max_value": 100,
-                    "required": True
-                }
+                    "required": True,
+                },
             },
             "backtesting": {
                 "default_capital": {
@@ -116,7 +117,7 @@ class ParametersService:
                     "type": ParameterType.INTEGER,
                     "min_value": 1000,
                     "max_value": 10000000,
-                    "required": True
+                    "required": True,
                 },
                 "commission_rate": {
                     "value": 0.001,
@@ -125,7 +126,7 @@ class ParametersService:
                     "type": ParameterType.FLOAT,
                     "min_value": 0.0,
                     "max_value": 0.01,
-                    "required": True
+                    "required": True,
                 },
                 "slippage": {
                     "value": 0.0005,
@@ -134,7 +135,7 @@ class ParametersService:
                     "type": ParameterType.FLOAT,
                     "min_value": 0.0,
                     "max_value": 0.01,
-                    "required": True
+                    "required": True,
                 },
                 "risk_free_rate": {
                     "value": 0.02,
@@ -143,8 +144,8 @@ class ParametersService:
                     "type": ParameterType.FLOAT,
                     "min_value": 0.0,
                     "max_value": 0.1,
-                    "required": True
-                }
+                    "required": True,
+                },
             },
             "pipeline": {
                 "default_mode": {
@@ -153,7 +154,7 @@ class ParametersService:
                     "description": "Default pipeline mode",
                     "type": ParameterType.SELECT,
                     "options": ["demo", "small", "medium", "full"],
-                    "required": True
+                    "required": True,
                 },
                 "execution_interval": {
                     "value": 300,
@@ -162,7 +163,7 @@ class ParametersService:
                     "type": ParameterType.INTEGER,
                     "min_value": 60,
                     "max_value": 3600,
-                    "required": True
+                    "required": True,
                 },
                 "max_concurrent_runs": {
                     "value": 3,
@@ -171,15 +172,15 @@ class ParametersService:
                     "type": ParameterType.INTEGER,
                     "min_value": 1,
                     "max_value": 10,
-                    "required": True
+                    "required": True,
                 },
                 "auto_restart": {
                     "value": True,
                     "default_value": True,
                     "description": "Automatically restart failed pipelines",
                     "type": ParameterType.BOOLEAN,
-                    "required": True
-                }
+                    "required": True,
+                },
             },
             "notifications": {
                 "email_enabled": {
@@ -187,7 +188,7 @@ class ParametersService:
                     "default_value": False,
                     "description": "Enable email notifications",
                     "type": ParameterType.BOOLEAN,
-                    "required": True
+                    "required": True,
                 },
                 "email_recipients": {
                     "value": [],
@@ -195,14 +196,14 @@ class ParametersService:
                     "description": "Email recipients for notifications",
                     "type": ParameterType.MULTISELECT,
                     "options": [],
-                    "required": False
+                    "required": False,
                 },
                 "slack_enabled": {
                     "value": False,
                     "default_value": False,
                     "description": "Enable Slack notifications",
                     "type": ParameterType.BOOLEAN,
-                    "required": True
+                    "required": True,
                 },
                 "notification_level": {
                     "value": "info",
@@ -210,18 +211,18 @@ class ParametersService:
                     "description": "Minimum notification level",
                     "type": ParameterType.SELECT,
                     "options": ["debug", "info", "warning", "error"],
-                    "required": True
-                }
-            }
+                    "required": True,
+                },
+            },
         }
-    
+
     def get_parameter_groups(self) -> List[ParameterGroup]:
         """Get all parameter groups"""
         groups = {}
-        
+
         # Get all parameters from database
         parameters = self.db.query(ParameterConfig).all()
-        
+
         for param in parameters:
             if param.group_name not in groups:
                 groups[param.group_name] = {
@@ -229,14 +230,14 @@ class ParametersService:
                     "display_name": param.group_name.replace("_", " ").title(),
                     "description": f"Configuration parameters for {param.group_name.replace('_', ' ')}",
                     "parameters": [],
-                    "last_modified": None
+                    "last_modified": None,
                 }
-            
+
             # Parse parameter data
             value = json.loads(param.value)
             default_value = json.loads(param.default_value)
             options = json.loads(param.options) if param.options else None
-            
+
             param_value = ParameterValue(
                 name=param.parameter_name,
                 value=value,
@@ -247,34 +248,39 @@ class ParametersService:
                 min_value=param.min_value,
                 max_value=param.max_value,
                 required=param.required,
-                last_modified=param.last_modified
+                last_modified=param.last_modified,
             )
-            
+
             groups[param.group_name]["parameters"].append(param_value)
-            
+
             # Track last modified time
-            if param.last_modified and (not groups[param.group_name]["last_modified"] or 
-                                      param.last_modified > groups[param.group_name]["last_modified"]):
+            if param.last_modified and (
+                not groups[param.group_name]["last_modified"]
+                or param.last_modified > groups[param.group_name]["last_modified"]
+            ):
                 groups[param.group_name]["last_modified"] = param.last_modified
-        
+
         return [ParameterGroup(**group_data) for group_data in groups.values()]
-    
+
     def update_parameters(self, updates: List[ParameterUpdate]):
         """Update parameter values"""
         for update in updates:
-            param = self.db.query(ParameterConfig).filter(
-                ParameterConfig.group_name == update.group_name,
-                ParameterConfig.parameter_name == update.parameter_name
-            ).first()
-            
+            param = (
+                self.db.query(ParameterConfig)
+                .filter(
+                    ParameterConfig.group_name == update.group_name, ParameterConfig.parameter_name == update.parameter_name
+                )
+                .first()
+            )
+
             if param:
                 # Store old value for history
                 old_value = param.value
-                
+
                 # Update parameter
                 param.value = json.dumps(update.value)
                 param.last_modified = datetime.utcnow()
-                
+
                 # Create history record
                 history = ParameterHistory(
                     history_id=str(uuid.uuid4()),
@@ -284,27 +290,25 @@ class ParametersService:
                     new_value=json.dumps(update.value),
                     changed_by="admin",  # In a real app, this would be the current user
                     change_time=datetime.utcnow(),
-                    change_reason="Manual update"
+                    change_reason="Manual update",
                 )
-                
+
                 self.db.add(history)
-        
+
         self.db.commit()
-    
+
     def reset_parameter_group(self, group_name: str):
         """Reset parameter group to default values"""
-        parameters = self.db.query(ParameterConfig).filter(
-            ParameterConfig.group_name == group_name
-        ).all()
-        
+        parameters = self.db.query(ParameterConfig).filter(ParameterConfig.group_name == group_name).all()
+
         for param in parameters:
             # Store old value for history
             old_value = param.value
-            
+
             # Reset to default
             param.value = param.default_value
             param.last_modified = datetime.utcnow()
-            
+
             # Create history record
             history = ParameterHistory(
                 history_id=str(uuid.uuid4()),
@@ -314,46 +318,43 @@ class ParametersService:
                 new_value=param.default_value,
                 changed_by="admin",
                 change_time=datetime.utcnow(),
-                change_reason="Reset to default"
+                change_reason="Reset to default",
             )
-            
+
             self.db.add(history)
-        
+
         self.db.commit()
-    
+
     def export_parameters(self, format: str = "json") -> Dict[str, Any]:
         """Export parameters in specified format"""
         groups = self.get_parameter_groups()
-        
+
         export_data = {}
         for group in groups:
             export_data[group.group_name] = {}
             for param in group.parameters:
                 export_data[group.group_name][param.name] = param.value
-        
-        return {
-            "format": format,
-            "data": export_data,
-            "exported_at": datetime.utcnow().isoformat()
-        }
-    
+
+        return {"format": format, "data": export_data, "exported_at": datetime.utcnow().isoformat()}
+
     def import_parameters(self, parameters_data: Dict[str, Any]):
         """Import parameters from data"""
         for group_name, params in parameters_data.items():
             for param_name, value in params.items():
-                param = self.db.query(ParameterConfig).filter(
-                    ParameterConfig.group_name == group_name,
-                    ParameterConfig.parameter_name == param_name
-                ).first()
-                
+                param = (
+                    self.db.query(ParameterConfig)
+                    .filter(ParameterConfig.group_name == group_name, ParameterConfig.parameter_name == param_name)
+                    .first()
+                )
+
                 if param:
                     # Store old value for history
                     old_value = param.value
-                    
+
                     # Update parameter
                     param.value = json.dumps(value)
                     param.last_modified = datetime.utcnow()
-                    
+
                     # Create history record
                     history = ParameterHistory(
                         history_id=str(uuid.uuid4()),
@@ -363,19 +364,17 @@ class ParametersService:
                         new_value=json.dumps(value),
                         changed_by="admin",
                         change_time=datetime.utcnow(),
-                        change_reason="Import"
+                        change_reason="Import",
                     )
-                    
+
                     self.db.add(history)
-        
+
         self.db.commit()
-    
+
     def get_parameter_history(self, limit: int = 50) -> List[ParameterHistory]:
         """Get parameter change history"""
-        history = self.db.query(ParameterHistory).order_by(
-            desc(ParameterHistory.change_time)
-        ).limit(limit).all()
-        
+        history = self.db.query(ParameterHistory).order_by(desc(ParameterHistory.change_time)).limit(limit).all()
+
         return [
             ParameterHistory(
                 history_id=h.history_id,
@@ -385,8 +384,7 @@ class ParametersService:
                 new_value=h.new_value,
                 changed_by=h.changed_by,
                 change_time=h.change_time,
-                change_reason=h.change_reason
+                change_reason=h.change_reason,
             )
             for h in history
         ]
-

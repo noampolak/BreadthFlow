@@ -22,22 +22,26 @@ app = FastAPI(
 # Initialize the model registry
 model_registry = ModelRegistry()
 
+
 class ModelRegistrationRequest(BaseModel):
     model_name: str
     version: Optional[str] = None
     metrics: Optional[Dict[str, float]] = None
     tags: Optional[Dict[str, str]] = None
 
+
 class ModelPromotionRequest(BaseModel):
     model_name: str
     version: str
     stage: str
+
 
 class ABTestRequest(BaseModel):
     model_name: str
     model_a_version: str
     model_b_version: str
     traffic_split: float = 0.5
+
 
 @app.get("/health", summary="Health Check")
 async def health_check():
@@ -47,6 +51,7 @@ async def health_check():
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         raise HTTPException(status_code=500, detail=f"Health check failed: {e}")
+
 
 @app.get("/models", summary="List All Models")
 async def list_models():
@@ -58,6 +63,7 @@ async def list_models():
         logger.error(f"Error listing models: {e}")
         raise HTTPException(status_code=500, detail=f"Error listing models: {e}")
 
+
 @app.get("/models/{model_name}/versions", summary="Get Model Versions")
 async def get_model_versions(model_name: str):
     """Get all versions of a specific model."""
@@ -67,6 +73,7 @@ async def get_model_versions(model_name: str):
     except Exception as e:
         logger.error(f"Error getting model versions: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting model versions: {e}")
+
 
 @app.get("/models/{model_name}/production", summary="Get Production Model")
 async def get_production_model(model_name: str):
@@ -81,16 +88,13 @@ async def get_production_model(model_name: str):
         logger.error(f"Error getting production model: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting production model: {e}")
 
+
 @app.post("/models/{model_name}/promote", summary="Promote Model")
 async def promote_model(model_name: str, request: ModelPromotionRequest):
     """Promote a model to a specific stage."""
     try:
-        success = model_registry.promote_model(
-            model_name=request.model_name,
-            version=request.version,
-            stage=request.stage
-        )
-        
+        success = model_registry.promote_model(model_name=request.model_name, version=request.version, stage=request.stage)
+
         if success:
             return {"message": f"Successfully promoted {model_name} version {request.version} to {request.stage}"}
         else:
@@ -98,6 +102,7 @@ async def promote_model(model_name: str, request: ModelPromotionRequest):
     except Exception as e:
         logger.error(f"Error promoting model: {e}")
         raise HTTPException(status_code=500, detail=f"Error promoting model: {e}")
+
 
 @app.post("/ab-tests", summary="Create A/B Test")
 async def create_ab_test(request: ABTestRequest):
@@ -107,13 +112,14 @@ async def create_ab_test(request: ABTestRequest):
             model_name=request.model_name,
             model_a_version=request.model_a_version,
             model_b_version=request.model_b_version,
-            traffic_split=request.traffic_split
+            traffic_split=request.traffic_split,
         )
-        
+
         return {"message": "A/B test created successfully", "ab_test": ab_test}
     except Exception as e:
         logger.error(f"Error creating A/B test: {e}")
         raise HTTPException(status_code=500, detail=f"Error creating A/B test: {e}")
+
 
 @app.get("/ab-tests", summary="List A/B Tests")
 async def list_ab_tests():
@@ -125,12 +131,13 @@ async def list_ab_tests():
         logger.error(f"Error listing A/B tests: {e}")
         raise HTTPException(status_code=500, detail=f"Error listing A/B tests: {e}")
 
+
 @app.post("/ab-tests/{test_id}/stop", summary="Stop A/B Test")
 async def stop_ab_test(test_id: str):
     """Stop an A/B test."""
     try:
         success = model_registry.stop_ab_test(test_id)
-        
+
         if success:
             return {"message": f"A/B test {test_id} stopped successfully"}
         else:
@@ -139,13 +146,14 @@ async def stop_ab_test(test_id: str):
         logger.error(f"Error stopping A/B test: {e}")
         raise HTTPException(status_code=500, detail=f"Error stopping A/B test: {e}")
 
+
 @app.get("/ab-tests/{test_id}", summary="Get A/B Test")
 async def get_ab_test(test_id: str):
     """Get details of a specific A/B test."""
     try:
         ab_tests = model_registry.get_ab_tests()
         ab_test = next((test for test in ab_tests if test["test_id"] == test_id), None)
-        
+
         if ab_test:
             return {"ab_test": ab_test}
         else:
@@ -154,6 +162,8 @@ async def get_ab_test(test_id: str):
         logger.error(f"Error getting A/B test: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting A/B test: {e}")
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

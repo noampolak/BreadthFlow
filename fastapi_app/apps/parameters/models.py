@@ -5,9 +5,10 @@ import uuid
 from datetime import datetime
 from .schemas import ParameterType
 
+
 class ParameterConfig(Base):
     __tablename__ = "parameter_configs"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_name = Column(String(50), nullable=False)
     parameter_name = Column(String(100), nullable=False)
@@ -22,9 +23,10 @@ class ParameterConfig(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_modified = Column(DateTime, nullable=True)
 
+
 class ParameterHistory(Base):
     __tablename__ = "parameter_history"
-    
+
     history_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     group_name = Column(String(50), nullable=False)
     parameter_name = Column(String(100), nullable=False)
@@ -33,4 +35,3 @@ class ParameterHistory(Base):
     changed_by = Column(String(100), nullable=False)
     change_time = Column(DateTime, nullable=False, default=datetime.utcnow)
     change_reason = Column(String(200), nullable=True)
-

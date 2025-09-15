@@ -4,10 +4,11 @@ Dashboard handler for the main dashboard page
 
 from template_renderer import TemplateRenderer
 
+
 class DashboardHandler:
     def __init__(self):
         self.template_renderer = TemplateRenderer()
-    
+
     def serve_dashboard(self):
         """Serve the main dashboard page"""
         try:
@@ -123,10 +124,10 @@ class DashboardHandler:
     </script>
 </body>
 </html>"""
-            return html, 'text/html; charset=utf-8', 200
+            return html, "text/html; charset=utf-8", 200
         except Exception as e:
-            return f"Error rendering dashboard: {str(e)}", 'text/plain', 500
-    
+            return f"Error rendering dashboard: {str(e)}", "text/plain", 500
+
     def serve_infrastructure(self):
         """Serve the infrastructure page"""
         html = """
@@ -311,9 +312,9 @@ class DashboardHandler:
         </body>
         </html>
         """
-        
-        return html, 'text/html; charset=utf-8', 200
-    
+
+        return html, "text/html; charset=utf-8", 200
+
     def serve_trading(self):
         """Serve the comprehensive trading signals page"""
         html = """<!DOCTYPE html>
@@ -534,7 +535,5 @@ class DashboardHandler:
     </script>
 </body>
 </html>"""
-        
-        return html, 'text/html; charset=utf-8', 200
-    
 
+        return html, "text/html; charset=utf-8", 200

@@ -9,15 +9,19 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 
+
 class ResourceType(Enum):
     """Types of data resources"""
+
     TRADING = "trading"
     FUNDAMENTAL = "fundamental"
     ALTERNATIVE = "alternative"
     CUSTOM = "custom"
 
+
 class DataFrequency(Enum):
     """Data update frequencies"""
+
     REALTIME = "realtime"
     MINUTE_1 = "1min"
     MINUTE_5 = "5min"
@@ -29,9 +33,11 @@ class DataFrequency(Enum):
     QUARTERLY = "quarterly"
     YEARLY = "yearly"
 
+
 @dataclass
 class ResourceField:
     """Definition of a data field within a resource"""
+
     name: str
     type: str  # 'string', 'integer', 'float', 'datetime', 'boolean'
     description: str
@@ -39,9 +45,11 @@ class ResourceField:
     default: Any = None
     validation_rules: Dict[str, Any] = None
 
+
 @dataclass
 class DataResource:
     """Definition of a data resource"""
+
     name: str
     type: ResourceType
     frequency: DataFrequency
@@ -49,6 +57,7 @@ class DataResource:
     description: str
     source_requirements: Dict[str, Any] = None
     validation_rules: Dict[str, Any] = None
+
 
 # Predefined data resources
 
@@ -68,11 +77,7 @@ STOCK_PRICE = DataResource(
         ResourceField("volume", "integer", "Trading volume", True),
         ResourceField("adj_close", "float", "Adjusted closing price", False),
     ],
-    validation_rules={
-        "price_positive": True,
-        "high_ge_low": True,
-        "volume_positive": True
-    }
+    validation_rules={"price_positive": True, "high_ge_low": True, "volume_positive": True},
 )
 
 # Revenue Resource
@@ -89,10 +94,7 @@ REVENUE = DataResource(
         ResourceField("period", "string", "Reporting period", True),
         ResourceField("source", "string", "Data source", False),
     ],
-    validation_rules={
-        "revenue_positive": True,
-        "date_valid": True
-    }
+    validation_rules={"revenue_positive": True, "date_valid": True},
 )
 
 # Market Cap Resource
@@ -109,10 +111,7 @@ MARKET_CAP = DataResource(
         ResourceField("currency", "string", "Currency code", False, "USD"),
         ResourceField("source", "string", "Data source", False),
     ],
-    validation_rules={
-        "market_cap_positive": True,
-        "shares_positive": True
-    }
+    validation_rules={"market_cap_positive": True, "shares_positive": True},
 )
 
 # News Sentiment Resource
@@ -130,28 +129,23 @@ NEWS_SENTIMENT = DataResource(
         ResourceField("source", "string", "Data source", False),
         ResourceField("confidence", "float", "Confidence score", False),
     ],
-    validation_rules={
-        "sentiment_range": (-1.0, 1.0),
-        "confidence_range": (0.0, 1.0)
-    }
+    validation_rules={"sentiment_range": (-1.0, 1.0), "confidence_range": (0.0, 1.0)},
 )
 
 # Additional predefined resources can be added here
 # P/E Ratio, P/B Ratio, Earnings, etc.
 
+
 def get_resource_by_name(name: str) -> Optional[DataResource]:
     """Get a predefined resource by name"""
-    resources = {
-        "stock_price": STOCK_PRICE,
-        "revenue": REVENUE,
-        "market_cap": MARKET_CAP,
-        "news_sentiment": NEWS_SENTIMENT
-    }
+    resources = {"stock_price": STOCK_PRICE, "revenue": REVENUE, "market_cap": MARKET_CAP, "news_sentiment": NEWS_SENTIMENT}
     return resources.get(name)
+
 
 def list_available_resources() -> List[str]:
     """List all available predefined resources"""
     return ["stock_price", "revenue", "market_cap", "news_sentiment"]
+
 
 def validate_resource_data(data: Dict[str, Any], resource: DataResource) -> bool:
     """Validate data against resource definition"""
@@ -159,73 +153,75 @@ def validate_resource_data(data: Dict[str, Any], resource: DataResource) -> bool
     for field in resource.fields:
         if field.required and field.name not in data:
             return False
-    
+
     # Check field types
     for field in resource.fields:
         if field.name in data:
             value = data[field.name]
             if not _validate_field_type(value, field.type):
                 return False
-    
+
     # Check validation rules
     if resource.validation_rules:
         if not _validate_resource_rules(data, resource.validation_rules):
             return False
-    
+
     return True
+
 
 def _validate_field_type(value: Any, expected_type: str) -> bool:
     """Validate field type"""
     type_mapping = {
-        'string': str,
-        'integer': int,
-        'float': (int, float),
-        'datetime': str,  # Simplified for now
-        'boolean': bool
+        "string": str,
+        "integer": int,
+        "float": (int, float),
+        "datetime": str,  # Simplified for now
+        "boolean": bool,
     }
-    
+
     expected_class = type_mapping.get(expected_type)
     if expected_class is None:
         return True
-    
+
     return isinstance(value, expected_class)
+
 
 def _validate_resource_rules(data: Dict[str, Any], rules: Dict[str, Any]) -> bool:
     """Validate resource-specific rules"""
     for rule, value in rules.items():
         if rule == "price_positive":
-            price_fields = ['open', 'high', 'low', 'close']
+            price_fields = ["open", "high", "low", "close"]
             for field in price_fields:
                 if field in data and data[field] <= 0:
                     return False
-        
+
         elif rule == "high_ge_low":
-            if 'high' in data and 'low' in data:
-                if data['high'] < data['low']:
+            if "high" in data and "low" in data:
+                if data["high"] < data["low"]:
                     return False
-        
+
         elif rule == "volume_positive":
-            if 'volume' in data and data['volume'] < 0:
+            if "volume" in data and data["volume"] < 0:
                 return False
-        
+
         elif rule == "revenue_positive":
-            if 'revenue' in data and data['revenue'] <= 0:
+            if "revenue" in data and data["revenue"] <= 0:
                 return False
-        
+
         elif rule == "market_cap_positive":
-            if 'market_cap' in data and data['market_cap'] <= 0:
+            if "market_cap" in data and data["market_cap"] <= 0:
                 return False
-        
+
         elif rule == "sentiment_range":
-            if 'sentiment_score' in data:
+            if "sentiment_score" in data:
                 min_val, max_val = value
-                if not (min_val <= data['sentiment_score'] <= max_val):
+                if not (min_val <= data["sentiment_score"] <= max_val):
                     return False
-        
+
         elif rule == "confidence_range":
-            if 'confidence' in data:
+            if "confidence" in data:
                 min_val, max_val = value
-                if not (min_val <= data['confidence'] <= max_val):
+                if not (min_val <= data["confidence"] <= max_val):
                     return False
-    
+
     return True

@@ -2,10 +2,11 @@
 Commands handler for the commands page
 """
 
+
 class CommandsHandler:
     def __init__(self):
         pass
-    
+
     def serve_commands(self):
         """Serve the commands page"""
         html = """<!DOCTYPE html>
@@ -591,5 +592,5 @@ class CommandsHandler:
     </script>
 </body>
 </html>"""
-        
-        return html, 'text/html; charset=utf-8', 200
+
+        return html, "text/html; charset=utf-8", 200

@@ -10,8 +10,4 @@ from .training.model_trainer import ModelTrainer
 from .training.experiment_manager import ExperimentManager
 from .training.hyperparameter_optimizer import HyperparameterOptimizer
 
-__all__ = [
-    'ModelTrainer',
-    'ExperimentManager', 
-    'HyperparameterOptimizer'
-]
+__all__ = ["ModelTrainer", "ExperimentManager", "HyperparameterOptimizer"]

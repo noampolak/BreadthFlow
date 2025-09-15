@@ -9,8 +9,4 @@ from .data_ingestion_service import DataIngestionService
 from .data_validation_service import DataValidationService
 from .minio_storage_service import MinIOStorageService
 
-__all__ = [
-    'DataIngestionService',
-    'DataValidationService', 
-    'MinIOStorageService'
-]
+__all__ = ["DataIngestionService", "DataValidationService", "MinIOStorageService"]

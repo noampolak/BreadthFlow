@@ -9,4 +9,4 @@ from .technical_indicators import TechnicalIndicators
 from .fundamental_indicators import FundamentalIndicators
 from .sentiment_indicators import SentimentIndicators
 
-__all__ = ['TechnicalIndicators', 'FundamentalIndicators', 'SentimentIndicators']
+__all__ = ["TechnicalIndicators", "FundamentalIndicators", "SentimentIndicators"]

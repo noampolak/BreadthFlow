@@ -16,26 +16,27 @@ import json
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class BreadthFlowModel:
     """
     Seldon Core model wrapper for BreadthFlow trading models.
     """
-    
+
     def __init__(self):
         """Initialize the model wrapper."""
         self.model = None
         self.model_version = os.getenv("MODEL_VERSION", "latest")
         self.mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
         self.model_name = os.getenv("SELDON_MODEL_NAME", "breadthflow-model")
-        
+
         # Set MLflow tracking URI
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
-        
+
         # Load model
         self.load_model()
-        
+
         logger.info(f"BreadthFlowModel initialized with model: {self.model_name}, version: {self.model_version}")
-    
+
     def load_model(self):
         """Load model from MLflow Model Registry."""
         try:
@@ -54,6 +55,7 @@ class BreadthFlowModel:
                 else:
                     # Create a dummy model for testing
                     from sklearn.ensemble import RandomForestClassifier
+
                     self.model = RandomForestClassifier(n_estimators=10, random_state=42)
                     # Fit with dummy data
                     X_dummy = np.random.rand(100, 10)
@@ -63,11 +65,11 @@ class BreadthFlowModel:
             except Exception as e2:
                 logger.error(f"Failed to load fallback model: {e2}")
                 raise
-    
+
     def predict(self, X: Union[np.ndarray, List, Dict], feature_names: List[str] = None) -> Union[np.ndarray, List]:
         """
         Make predictions using the loaded model.
-        
+
         Args:
             X: Input features
             feature_names: Optional feature names
@@ -82,21 +84,21 @@ class BreadthFlowModel:
                 df = pd.DataFrame(X)
             else:
                 df = pd.DataFrame(X)
-            
+
             # Ensure we have the right number of features
             if feature_names:
-                df.columns = feature_names[:len(df.columns)]
-            
+                df.columns = feature_names[: len(df.columns)]
+
             # Make predictions
             predictions = self.model.predict(df)
-            
+
             # Convert to list for JSON serialization
             if isinstance(predictions, np.ndarray):
                 predictions = predictions.tolist()
-            
+
             logger.info(f"Made predictions for {len(df)} samples")
             return predictions
-            
+
         except Exception as e:
             logger.error(f"Error making predictions: {e}")
             # Return dummy predictions for testing
@@ -104,11 +106,11 @@ class BreadthFlowModel:
                 return [0] * len(X)
             else:
                 return [0]
-    
+
     def predict_proba(self, X: Union[np.ndarray, List, Dict], feature_names: List[str] = None) -> Union[np.ndarray, List]:
         """
         Make probability predictions using the loaded model.
-        
+
         Args:
             X: Input features
             feature_names: Optional feature names
@@ -123,26 +125,26 @@ class BreadthFlowModel:
                 df = pd.DataFrame(X)
             else:
                 df = pd.DataFrame(X)
-            
+
             # Ensure we have the right number of features
             if feature_names:
-                df.columns = feature_names[:len(df.columns)]
-            
+                df.columns = feature_names[: len(df.columns)]
+
             # Make probability predictions
-            if hasattr(self.model, 'predict_proba'):
+            if hasattr(self.model, "predict_proba"):
                 probabilities = self.model.predict_proba(df)
             else:
                 # Fallback to regular predictions
                 predictions = self.model.predict(df)
                 probabilities = np.column_stack([1 - predictions, predictions])
-            
+
             # Convert to list for JSON serialization
             if isinstance(probabilities, np.ndarray):
                 probabilities = probabilities.tolist()
-            
+
             logger.info(f"Made probability predictions for {len(df)} samples")
             return probabilities
-            
+
         except Exception as e:
             logger.error(f"Error making probability predictions: {e}")
             # Return dummy probabilities for testing
@@ -150,11 +152,11 @@ class BreadthFlowModel:
                 return [[0.5, 0.5]] * len(X)
             else:
                 return [[0.5, 0.5]]
-    
+
     def health_check(self) -> Dict[str, Any]:
         """
         Perform health check on the model.
-        
+
         Returns:
             Health status dictionary
         """
@@ -162,26 +164,21 @@ class BreadthFlowModel:
             # Test prediction with dummy data
             dummy_data = np.random.rand(1, 10)
             prediction = self.predict(dummy_data)
-            
+
             return {
                 "status": "healthy",
                 "model_name": self.model_name,
                 "model_version": self.model_version,
                 "prediction_test": "passed",
-                "mlflow_uri": self.mlflow_tracking_uri
+                "mlflow_uri": self.mlflow_tracking_uri,
             }
         except Exception as e:
-            return {
-                "status": "unhealthy",
-                "error": str(e),
-                "model_name": self.model_name,
-                "model_version": self.model_version
-            }
-    
+            return {"status": "unhealthy", "error": str(e), "model_name": self.model_name, "model_version": self.model_version}
+
     def metadata(self) -> Dict[str, Any]:
         """
         Return model metadata.
-        
+
         Returns:
             Model metadata dictionary
         """
@@ -190,5 +187,5 @@ class BreadthFlowModel:
             "model_version": self.model_version,
             "model_type": type(self.model).__name__,
             "features_expected": 10,  # This should be dynamic based on actual model
-            "mlflow_uri": self.mlflow_tracking_uri
+            "mlflow_uri": self.mlflow_tracking_uri,
         }

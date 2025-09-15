@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
+
 class DashboardStatsResponse(BaseModel):
     total_runs: int
     successful_runs: int
@@ -11,6 +12,7 @@ class DashboardStatsResponse(BaseModel):
     success_rate: float
     last_updated: datetime
 
+
 class RecentRunResponse(BaseModel):
     run_id: str
     command: str
@@ -19,9 +21,10 @@ class RecentRunResponse(BaseModel):
     end_time: Optional[datetime]
     duration: Optional[float]
     error_message: Optional[str]
-    
+
     class Config:
         from_attributes = True
+
 
 class DashboardSummaryResponse(BaseModel):
     stats: DashboardStatsResponse

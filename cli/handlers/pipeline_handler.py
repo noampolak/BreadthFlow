@@ -2,10 +2,11 @@
 Pipeline handler for the pipeline management page
 """
 
+
 class PipelineHandler:
     def __init__(self):
         pass
-    
+
     def serve_pipeline_management(self):
         """Serve the comprehensive pipeline management page"""
         html = """<!DOCTYPE html>
@@ -648,5 +649,5 @@ class PipelineHandler:
     </script>
 </body>
 </html>"""
-        
-        return html, 'text/html; charset=utf-8', 200
+
+        return html, "text/html; charset=utf-8", 200

@@ -8,8 +8,4 @@ from .model_trainer import ModelTrainer
 from .experiment_manager import ExperimentManager
 from .hyperparameter_optimizer import HyperparameterOptimizer
 
-__all__ = [
-    'ModelTrainer',
-    'ExperimentManager',
-    'HyperparameterOptimizer'
-]
+__all__ = ["ModelTrainer", "ExperimentManager", "HyperparameterOptimizer"]

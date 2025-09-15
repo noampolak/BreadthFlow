@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 from enum import Enum
 
+
 class ParameterType(str, Enum):
     STRING = "string"
     INTEGER = "integer"
@@ -10,6 +11,7 @@ class ParameterType(str, Enum):
     BOOLEAN = "boolean"
     SELECT = "select"
     MULTISELECT = "multiselect"
+
 
 class ParameterValue(BaseModel):
     name: str = Field(..., description="Parameter name")
@@ -23,6 +25,7 @@ class ParameterValue(BaseModel):
     required: bool = Field(True, description="Whether parameter is required")
     last_modified: Optional[datetime] = Field(None, description="Last modification time")
 
+
 class ParameterGroup(BaseModel):
     group_name: str = Field(..., description="Parameter group name")
     display_name: str = Field(..., description="Display name for the group")
@@ -30,10 +33,12 @@ class ParameterGroup(BaseModel):
     parameters: List[ParameterValue] = Field(..., description="Parameters in this group")
     last_modified: Optional[datetime] = Field(None, description="Last modification time")
 
+
 class ParameterUpdate(BaseModel):
     group_name: str = Field(..., description="Parameter group name")
     parameter_name: str = Field(..., description="Parameter name")
     value: Any = Field(..., description="New parameter value")
+
 
 class ParameterHistory(BaseModel):
     history_id: str
@@ -44,7 +49,6 @@ class ParameterHistory(BaseModel):
     changed_by: str
     change_time: datetime
     change_reason: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
-

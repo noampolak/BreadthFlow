@@ -11,11 +11,11 @@ from .signals_handler import SignalsHandler
 from .api_handler import APIHandler
 
 __all__ = [
-    'DashboardHandler',
-    'CommandsHandler', 
-    'TrainingHandler',
-    'PipelineHandler',
-    'ParametersHandler',
-    'SignalsHandler',
-    'APIHandler'
+    "DashboardHandler",
+    "CommandsHandler",
+    "TrainingHandler",
+    "PipelineHandler",
+    "ParametersHandler",
+    "SignalsHandler",
+    "APIHandler",
 ]

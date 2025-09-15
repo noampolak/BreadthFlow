@@ -2,10 +2,11 @@
 Training handler for the training page
 """
 
+
 class TrainingHandler:
     def __init__(self):
         pass
-    
+
     def serve_training(self):
         """Serve the comprehensive Training page with full functionality"""
         html = """
@@ -783,5 +784,5 @@ class TrainingHandler:
 </body>
 </html>
         """
-        
-        return html, 'text/html; charset=utf-8', 200
+
+        return html, "text/html; charset=utf-8", 200

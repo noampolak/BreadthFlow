@@ -9,4 +9,4 @@ from .base_signal_strategy import BaseSignalStrategy
 from .technical_analysis_strategy import TechnicalAnalysisStrategy
 from .fundamental_analysis_strategy import FundamentalAnalysisStrategy
 
-__all__ = ['BaseSignalStrategy', 'TechnicalAnalysisStrategy', 'FundamentalAnalysisStrategy']
+__all__ = ["BaseSignalStrategy", "TechnicalAnalysisStrategy", "FundamentalAnalysisStrategy"]
