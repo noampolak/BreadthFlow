@@ -9,9 +9,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from fastapi_app.core.database import get_db
+from fastapi_app.core.database import get_db, Base
 from fastapi_app.main import app
-from fastapi_app.models import Base
 from tests.fixtures.test_data import TestDataFactory
 
 # Test database configuration
