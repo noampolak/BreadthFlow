@@ -16,12 +16,12 @@ try:
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
-from typing import Dict, List, Optional, Any, Callable
+import queue
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import threading
-import queue
+from typing import Any, Callable, Dict, List, Optional
 
 from ..logging.enhanced_logger import EnhancedLogger
 from ..logging.error_handler import ErrorHandler

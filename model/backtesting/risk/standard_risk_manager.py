@@ -5,11 +5,12 @@ Implements standard risk management with position limits, portfolio risk control
 and basic risk metrics.
 """
 
-from typing import Dict, List, Any, Optional
 import logging
-from .risk_manager import RiskManager
+from typing import Any, Dict, List, Optional
+
 from ..backtest_config import BacktestConfig
-from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from ..trade_record import PortfolioRecord, PositionRecord, TradeRecord
+from .risk_manager import RiskManager
 
 logger = logging.getLogger(__name__)
 

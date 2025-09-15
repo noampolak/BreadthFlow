@@ -6,13 +6,14 @@ This CLI uses the new abstraction system with workflow manager,
 providing the same interface as the old CLI but with enhanced capabilities.
 """
 
-import click
-import sys
 import asyncio
 import json
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
 import logging
+import sys
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import click
 
 # Add the new module directories to the path
 sys.path.extend(
@@ -37,14 +38,14 @@ sys.path.extend(
 
 # Import the dashboard integration
 from dashboard_integration import (
-    get_dashboard_integration,
     fetch_data_async,
     generate_signals_async,
+    get_dashboard_integration,
+    get_pipeline_status_async,
+    get_system_health_sync,
     run_backtest_async,
     start_pipeline_async,
     stop_pipeline_async,
-    get_pipeline_status_async,
-    get_system_health_sync,
 )
 
 # Configure logging

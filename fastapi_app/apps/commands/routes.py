@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
-from typing import List, Dict, Any
-import subprocess
 import json
+import subprocess
 from datetime import datetime
+from typing import Any, Dict, List
 
-from core.dependencies import get_db_session
-from apps.commands.schemas import CommandRequest, CommandResponse, CommandHistory
+from apps.commands.schemas import CommandHistory, CommandRequest, CommandResponse
 from apps.commands.utils import CommandService
+from core.dependencies import get_db_session
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/commands", tags=["commands"])
 

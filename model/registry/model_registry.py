@@ -3,15 +3,17 @@ Model Registry Service
 Manages model versioning, deployment, and A/B testing.
 """
 
-import os
-import logging
-import mlflow
-import mlflow.sklearn
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import json
+import logging
+import os
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import mlflow.sklearn
+import numpy as np
+import pandas as pd
+
+import mlflow
 
 # Optional imports with fallbacks
 try:

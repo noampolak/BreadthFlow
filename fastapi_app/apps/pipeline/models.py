@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Boolean, Float
-from sqlalchemy.sql import func
 from shared.models import Base
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
+from sqlalchemy.sql import func
 
 
 class PipelineRun(Base):

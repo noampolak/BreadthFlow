@@ -4,8 +4,9 @@ Technical Indicators Component
 Provides technical analysis indicators for signal generation.
 """
 
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from typing import Dict, List, Any, Optional
 
 # Optional pandas import
 try:

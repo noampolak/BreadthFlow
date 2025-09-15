@@ -2,19 +2,21 @@
 Unit tests for signal generation components.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
+import pytest
+
+from model.signals.components.fundamental_indicators import FundamentalIndicators
+from model.signals.components.sentiment_indicators import SentimentIndicators
 
 # Import signal generation components
 from model.signals.components.technical_indicators import TechnicalIndicators
-from model.signals.components.fundamental_indicators import FundamentalIndicators
-from model.signals.components.sentiment_indicators import SentimentIndicators
-from model.signals.strategies.technical_analysis_strategy import TechnicalAnalysisStrategy
-from model.signals.strategies.fundamental_analysis_strategy import FundamentalAnalysisStrategy
 from model.signals.composite_signal_generator import CompositeSignalGenerator
 from model.signals.signal_config import SignalConfig
+from model.signals.strategies.fundamental_analysis_strategy import FundamentalAnalysisStrategy
+from model.signals.strategies.technical_analysis_strategy import TechnicalAnalysisStrategy
 
 
 class TestTechnicalIndicators:

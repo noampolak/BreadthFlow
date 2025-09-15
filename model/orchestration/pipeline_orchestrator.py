@@ -12,9 +12,9 @@ Main orchestration class that coordinates all BreadthFlow components:
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Union
 
 # Optional pandas import
 try:
@@ -24,24 +24,24 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 
-# Core system imports
-from model.registry.component_registry import ComponentRegistry
+# Backtesting layer imports
+from model.backtesting.backtest_config import BacktestConfig
+from model.backtesting.engines.standard_backtest_engine import StandardBacktestEngine
 from model.config.configuration_manager import ConfigurationManager
-from model.logging.error_handler import ErrorHandler
-from model.logging.enhanced_logger import EnhancedLogger
-from model.logging.error_recovery import ErrorRecovery
+from model.data.resources.data_resources import DataResource
 
 # Data layer imports
 from model.data.universal_data_fetcher import UniversalDataFetcher
-from model.data.resources.data_resources import DataResource
+from model.logging.enhanced_logger import EnhancedLogger
+from model.logging.error_handler import ErrorHandler
+from model.logging.error_recovery import ErrorRecovery
+
+# Core system imports
+from model.registry.component_registry import ComponentRegistry
 
 # Signal layer imports
 from model.signals.composite_signal_generator import CompositeSignalGenerator
 from model.signals.signal_config import SignalConfig
-
-# Backtesting layer imports
-from model.backtesting.backtest_config import BacktestConfig
-from model.backtesting.engines.standard_backtest_engine import StandardBacktestEngine
 
 # Training layer imports (when available)
 try:

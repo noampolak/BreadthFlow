@@ -5,8 +5,8 @@ Abstract interface for data sources in the BreadthFlow system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 # Optional pandas import
 try:

@@ -1,8 +1,10 @@
-from sqlalchemy import Column, String, DateTime, Float, Text, Enum
-from sqlalchemy.dialects.postgresql import UUID
-from shared.models import Base
 import uuid
 from datetime import datetime
+
+from shared.models import Base
+from sqlalchemy import Column, DateTime, Enum, Float, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+
 from .schemas import CommandStatus
 
 

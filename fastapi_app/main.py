@@ -1,30 +1,30 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from contextlib import asynccontextmanager
 import asyncio
 import logging
+from contextlib import asynccontextmanager
 
-from core.config import settings
-from core.database import engine, Base
-from shared.websocket import WebSocketManager
-
-# Import all app routers
-from apps.dashboard.routes import router as dashboard_router
-from apps.pipeline.routes import router as pipeline_router
-from apps.signals.routes import router as signals_router
-from apps.infrastructure.routes import router as infrastructure_router
+from apps.commands.models import *
 from apps.commands.routes import router as commands_router
-from apps.training.routes import router as training_router
-from apps.parameters.routes import router as parameters_router
 
 # Import all models to ensure tables are created
 from apps.dashboard.models import *
-from apps.pipeline.models import *
-from apps.signals.models import *
-from apps.commands.models import *
-from apps.training.models import *
+
+# Import all app routers
+from apps.dashboard.routes import router as dashboard_router
+from apps.infrastructure.routes import router as infrastructure_router
 from apps.parameters.models import *
+from apps.parameters.routes import router as parameters_router
+from apps.pipeline.models import *
+from apps.pipeline.routes import router as pipeline_router
+from apps.signals.models import *
+from apps.signals.routes import router as signals_router
+from apps.training.models import *
+from apps.training.routes import router as training_router
+from core.config import settings
+from core.database import Base, engine
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from shared.websocket import WebSocketManager
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.log_level))

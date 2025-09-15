@@ -5,19 +5,20 @@ This script demonstrates how to use the generic feature engineering modules
 to create a comprehensive multi-source analysis experiment.
 """
 
+import json
 import os
 import sys
-import yaml
-import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
 import requests
-import json
+import yaml
 
 # Add project root to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from features import TechnicalIndicators, FinancialFundamentals, MarketMicrostructure, TimeFeatures, FeatureUtils
+from features import FeatureUtils, FinancialFundamentals, MarketMicrostructure, TechnicalIndicators, TimeFeatures
 
 
 class MultiSourceExperiment:

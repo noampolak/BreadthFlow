@@ -6,9 +6,10 @@ and trading patterns for financial machine learning.
 """
 
 import logging
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional, Tuple
 from scipy import stats
 
 logger = logging.getLogger(__name__)

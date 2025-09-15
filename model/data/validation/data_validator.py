@@ -4,10 +4,10 @@ Data Validation System
 This module provides data validation components for the BreadthFlow abstraction system.
 """
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict, Any, Optional, Callable
-import logging
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

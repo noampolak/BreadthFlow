@@ -1,14 +1,15 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from typing import List, Optional
-import uuid
 import asyncio
-from datetime import datetime, timedelta
 import json
 import os
+import uuid
+from datetime import datetime, timedelta
+from typing import List, Optional
 
-from .models import TrainingSession, TrainedModel
-from .schemas import TrainingRequest, TrainingResponse, TrainingHistory, ModelInfo, TrainingStatus
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
+
+from .models import TrainedModel, TrainingSession
+from .schemas import ModelInfo, TrainingHistory, TrainingRequest, TrainingResponse, TrainingStatus
 
 
 class TrainingService:

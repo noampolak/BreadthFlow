@@ -5,13 +5,15 @@ This DAG orchestrates the feature engineering process,
 including technical indicators, time-based features, and data validation.
 """
 
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.operators.bash import BashOperator
-from airflow.sensors.http_sensor import HttpSensor
-from airflow.providers.http.operators.http import SimpleHttpOperator
 import json
+from datetime import datetime, timedelta
+
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.sensors.http_sensor import HttpSensor
+
+from airflow import DAG
 
 # Default arguments
 default_args = {
@@ -86,9 +88,10 @@ store_features >> log_completion
 # Python functions for feature engineering
 def create_technical_indicators_func(**context):
     """Create technical indicators from OHLCV data."""
-    import pandas as pd
-    import numpy as np
     from datetime import datetime
+
+    import numpy as np
+    import pandas as pd
 
     print("Creating technical indicators...")
 
@@ -121,8 +124,9 @@ def create_technical_indicators_func(**context):
 
 def create_time_features_func(**context):
     """Create time-based features."""
-    import pandas as pd
     from datetime import datetime
+
+    import pandas as pd
 
     print("Creating time-based features...")
 
@@ -146,9 +150,10 @@ def create_time_features_func(**context):
 
 def create_microstructure_features_func(**context):
     """Create market microstructure features."""
-    import pandas as pd
-    import numpy as np
     from datetime import datetime
+
+    import numpy as np
+    import pandas as pd
 
     print("Creating microstructure features...")
 

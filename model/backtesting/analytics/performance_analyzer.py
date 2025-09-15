@@ -4,13 +4,15 @@ Performance Analyzer
 Comprehensive performance analysis and reporting for backtesting results.
 """
 
-from typing import Dict, List, Any, Optional, Tuple
 import logging
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
+
 from ..backtest_config import BacktestConfig
-from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from ..trade_record import PortfolioRecord, PositionRecord, TradeRecord
 
 logger = logging.getLogger(__name__)
 

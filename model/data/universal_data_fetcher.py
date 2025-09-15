@@ -5,9 +5,9 @@ Orchestrates data fetching across multiple sources and resources,
 providing a unified interface for the BreadthFlow system.
 """
 
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 # Optional pandas import
 try:
@@ -16,10 +16,10 @@ try:
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
-from .sources.data_source_interface import DataSourceInterface
-from .resources.data_resources import get_resource_by_name, validate_resource_data
 from ..logging.enhanced_logger import EnhancedLogger
 from ..logging.error_handler import ErrorHandler
+from .resources.data_resources import get_resource_by_name, validate_resource_data
+from .sources.data_source_interface import DataSourceInterface
 
 logger = logging.getLogger(__name__)
 

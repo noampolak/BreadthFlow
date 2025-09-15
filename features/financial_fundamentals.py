@@ -5,9 +5,10 @@ Generic, reusable financial fundamental analysis indicators that can be used
 across multiple experiments and investment strategies.
 """
 
+from typing import Dict, Optional, Union
+
 import numpy as np
 import pandas as pd
-from typing import Union, Dict, Optional
 
 
 class FinancialFundamentals:

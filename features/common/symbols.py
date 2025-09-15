@@ -7,7 +7,7 @@ Provides utilities for loading and managing symbol lists for market breadth anal
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

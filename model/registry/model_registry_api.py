@@ -3,10 +3,11 @@ Model Registry API
 FastAPI application for model registry and A/B testing management.
 """
 
+import logging
+from typing import Any, Dict, List, Optional
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict, List, Any, Optional
-import logging
 
 from model.registry.model_registry import ModelRegistry
 

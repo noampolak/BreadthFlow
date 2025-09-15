@@ -5,8 +5,8 @@ This module provides comprehensive error tracking, logging, and recovery mechani
 for the BreadthFlow system.
 """
 
-from .error_handler import ErrorHandler, ErrorRecord
 from .enhanced_logger import EnhancedLogger
+from .error_handler import ErrorHandler, ErrorRecord
 from .error_recovery import ErrorRecovery
 
 __all__ = ["ErrorHandler", "ErrorRecord", "EnhancedLogger", "ErrorRecovery"]

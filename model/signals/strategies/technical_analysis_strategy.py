@@ -4,9 +4,10 @@ Technical Analysis Strategy
 Implements technical analysis-based signal generation strategies.
 """
 
-import numpy as np
-from typing import Dict, List, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 # Optional pandas import
 try:
@@ -16,9 +17,10 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 import time
-from .base_signal_strategy import BaseSignalStrategy
-from ..signal_config import SignalConfig
+
 from ..components.technical_indicators import TechnicalIndicators
+from ..signal_config import SignalConfig
+from .base_signal_strategy import BaseSignalStrategy
 
 logger = logging.getLogger(__name__)
 

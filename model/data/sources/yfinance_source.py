@@ -4,14 +4,15 @@ YFinance Data Source Implementation
 Provides YFinance integration for the BreadthFlow abstraction system.
 """
 
-import yfinance as yf
-import pandas as pd
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
+import pandas as pd
+import yfinance as yf
+
+from ..resources.data_resources import STOCK_PRICE, DataResource
 from .data_source_interface import DataSourceInterface
-from ..resources.data_resources import DataResource, STOCK_PRICE
 
 logger = logging.getLogger(__name__)
 

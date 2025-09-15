@@ -5,9 +5,10 @@ Generic, reusable market microstructure indicators that can be used
 across multiple experiments and trading strategies.
 """
 
+from typing import Dict, Union
+
 import numpy as np
 import pandas as pd
-from typing import Union, Dict
 
 
 class MarketMicrostructure:

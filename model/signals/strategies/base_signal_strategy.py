@@ -5,7 +5,7 @@ Abstract base class for signal generation strategies.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Optional pandas import
 try:
@@ -14,8 +14,9 @@ try:
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
-from datetime import datetime
 import logging
+from datetime import datetime
+
 from ..signal_config import SignalConfig
 
 logger = logging.getLogger(__name__)

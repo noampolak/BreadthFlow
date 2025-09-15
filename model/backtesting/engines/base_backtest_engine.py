@@ -4,17 +4,19 @@ Base Backtest Engine
 Abstract base class for all backtesting engines.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional
 import logging
-import pandas as pd
+from abc import ABC, abstractmethod
 from datetime import datetime
-from ..backtest_engine_interface import BacktestEngineInterface
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+
+from ..analytics.performance_analyzer import PerformanceAnalyzer
 from ..backtest_config import BacktestConfig
-from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from ..backtest_engine_interface import BacktestEngineInterface
 from ..execution.execution_engine import ExecutionEngine
 from ..risk.risk_manager import RiskManager
-from ..analytics.performance_analyzer import PerformanceAnalyzer
+from ..trade_record import PortfolioRecord, PositionRecord, TradeRecord
 
 logger = logging.getLogger(__name__)
 

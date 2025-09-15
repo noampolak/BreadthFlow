@@ -6,14 +6,15 @@ This CLI integrates the new abstraction system with the existing Docker infrastr
 It follows the same pattern as kibana_enhanced_bf.py but uses the new workflow manager.
 """
 
-import click
-import sys
 import asyncio
 import json
+import logging
+import sys
 import uuid
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-import logging
+from typing import Any, Dict, List, Optional
+
+import click
 
 # Add the jobs directory to Python path (Docker container path)
 sys.path.insert(0, "/opt/bitnami/spark/jobs")
@@ -39,20 +40,20 @@ sys.path.extend(
     ]
 )
 
+# Import logging system
+import logging
+
 # Import the dashboard integration
 from cli.dashboard_integration import (
-    get_dashboard_integration,
     fetch_data_async,
     generate_signals_async,
+    get_dashboard_integration,
+    get_pipeline_status_async,
+    get_system_health_sync,
     run_backtest_async,
     start_pipeline_async,
     stop_pipeline_async,
-    get_pipeline_status_async,
-    get_system_health_sync,
 )
-
-# Import logging system
-import logging
 
 es_logger = logging.getLogger(__name__)
 
@@ -64,8 +65,9 @@ from datetime import datetime
 def log_pipeline_run(run_id, command, status, duration=None, error_message=None, metadata=None):
     """Log pipeline run to PostgreSQL database"""
     try:
-        import psycopg2
         from datetime import datetime
+
+        import psycopg2
 
         # Connect to PostgreSQL using environment variable
         DATABASE_URL = "postgresql://pipeline:pipeline123@breadthflow-postgres:5432/breadthflow"

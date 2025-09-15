@@ -5,12 +5,12 @@ Enhanced logging with structured data and performance tracking
 for the BreadthFlow system.
 """
 
-from typing import Dict, Any, Optional
-import logging
 import json
-from datetime import datetime
-from contextlib import contextmanager
+import logging
 import time
+from contextlib import contextmanager
+from datetime import datetime
+from typing import Any, Dict, Optional
 
 
 class EnhancedLogger:

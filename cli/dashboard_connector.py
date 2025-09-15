@@ -9,19 +9,19 @@ to the new BreadthFlow abstraction system.
 import asyncio
 import json
 import logging
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 # Import the dashboard integration
 from cli.dashboard_integration import (
-    get_dashboard_integration,
     fetch_data_async,
     generate_signals_async,
+    get_dashboard_integration,
+    get_pipeline_status_async,
+    get_system_health_sync,
     run_backtest_async,
     start_pipeline_async,
     stop_pipeline_async,
-    get_pipeline_status_async,
-    get_system_health_sync,
 )
 
 logger = logging.getLogger(__name__)

@@ -6,11 +6,12 @@ for automated machine learning pipeline optimization.
 """
 
 import logging
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime
 import warnings
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 
@@ -112,7 +113,7 @@ class TPOTIntegration:
             y_test_pred = tpot.predict(X_test)
 
             # Calculate metrics
-            from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+            from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
             train_metrics = {
                 "train_accuracy": accuracy_score(y_train, y_train_pred),
@@ -205,7 +206,7 @@ class TPOTIntegration:
             y_test_pred = tpot.predict(X_test)
 
             # Calculate metrics
-            from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+            from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
             train_metrics = {
                 "train_mse": mean_squared_error(y_train, y_train_pred),

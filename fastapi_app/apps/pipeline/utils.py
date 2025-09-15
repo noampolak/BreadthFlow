@@ -1,10 +1,12 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
-from typing import List, Optional
-from .models import PipelineRun
-from .schemas import PipelineRunCreate, PipelineConfig, PipelineStatus, PipelineStatusResponse
 import uuid
 from datetime import datetime
+from typing import List, Optional
+
+from sqlalchemy import desc, func
+from sqlalchemy.orm import Session
+
+from .models import PipelineRun
+from .schemas import PipelineConfig, PipelineRunCreate, PipelineStatus, PipelineStatusResponse
 
 
 class PipelineService:

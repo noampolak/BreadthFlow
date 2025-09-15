@@ -1,11 +1,11 @@
+from datetime import datetime
+from typing import Any, Dict, List
+
+from apps.parameters.schemas import ParameterGroup, ParameterUpdate, ParameterValue
+from apps.parameters.utils import ParametersService
+from core.dependencies import get_db_session
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
-from datetime import datetime
-
-from core.dependencies import get_db_session
-from apps.parameters.schemas import ParameterGroup, ParameterValue, ParameterUpdate
-from apps.parameters.utils import ParametersService
 
 router = APIRouter(prefix="/parameters", tags=["parameters"])
 

@@ -6,7 +6,8 @@ This module provides a centralized way to register all built-in components.
 """
 
 from datetime import datetime
-from .component_registry import ComponentRegistry, ComponentMetadata
+
+from .component_registry import ComponentMetadata, ComponentRegistry
 
 
 def register_default_components(registry: ComponentRegistry):

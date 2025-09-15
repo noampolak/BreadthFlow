@@ -10,9 +10,4 @@ __author__ = "Noam (Engineering), Yossi (Research)"
 __description__ = "Real-time market breadth analysis and trading signals"
 
 # Import main components
-from . import ingestion
-from . import streaming
-from . import features
-from . import model
-from . import backtests
-from . import cli
+from . import backtests, cli, features, ingestion, model, streaming

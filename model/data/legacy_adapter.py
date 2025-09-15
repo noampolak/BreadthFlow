@@ -5,12 +5,14 @@ Provides backward compatibility with the existing TimeframeAgnosticFetcher
 while integrating with the new universal data fetching system.
 """
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
-from datetime import datetime, timedelta
 import logging
-from .sources.data_source_interface import DataSourceInterface
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+
 from .resources.data_resources import STOCK_PRICE, validate_resource_data
+from .sources.data_source_interface import DataSourceInterface
 
 logger = logging.getLogger(__name__)
 

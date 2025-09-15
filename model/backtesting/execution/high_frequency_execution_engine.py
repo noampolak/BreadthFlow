@@ -4,13 +4,14 @@ High-Frequency Execution Engine
 Implements high-frequency trade execution with minimal latency and advanced order types.
 """
 
-import uuid
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import logging
-from .execution_engine import ExecutionEngine
+import uuid
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from ..backtest_config import BacktestConfig, ExecutionType
-from ..trade_record import TradeRecord, TradeType, TradeStatus
+from ..trade_record import TradeRecord, TradeStatus, TradeType
+from .execution_engine import ExecutionEngine
 
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,7 @@ API handler for all API endpoints
 """
 
 import json
+
 from database.pipeline_queries import PipelineQueries
 from database.signals_queries import SignalsQueries
 

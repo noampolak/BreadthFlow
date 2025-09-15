@@ -7,10 +7,10 @@ for the ML training pipeline.
 
 import logging
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
 from pyspark.sql import SparkSession
 

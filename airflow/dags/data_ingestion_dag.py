@@ -5,14 +5,16 @@ This DAG orchestrates the data ingestion process for ML training,
 including data fetching, validation, and storage.
 """
 
+import json
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+
 from airflow.operators.bash import BashOperator
-from airflow.sensors.http_sensor import HttpSensor
+from airflow.operators.python import PythonOperator
 from airflow.providers.http.operators.http import SimpleHttpOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-import json
+from airflow.sensors.http_sensor import HttpSensor
+
+from airflow import DAG
 
 # Default arguments
 default_args = {

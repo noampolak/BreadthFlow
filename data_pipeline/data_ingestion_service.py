@@ -5,16 +5,16 @@ Handles data fetching from various sources and storing in MinIO
 with proper organization for ML training.
 """
 
-import logging
 import json
+import logging
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, year, month, dayofmonth, current_timestamp
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, current_timestamp, dayofmonth, month, year
 
 logger = logging.getLogger(__name__)
 
@@ -163,9 +163,10 @@ class DataIngestionService:
 
         def fetch_partition(partition):
             """Fetch data for symbols in this partition."""
-            import yfinance as yf
-            import pandas as pd
             from datetime import datetime
+
+            import pandas as pd
+            import yfinance as yf
 
             results = []
 
@@ -229,7 +230,7 @@ class DataIngestionService:
         result_rdd = symbols_df.rdd.mapPartitions(fetch_partition)
 
         # Convert back to DataFrame
-        from pyspark.sql.types import StructType, StructField, StringType, DoubleType, LongType, TimestampType
+        from pyspark.sql.types import DoubleType, LongType, StringType, StructField, StructType, TimestampType
 
         schema = StructType(
             [

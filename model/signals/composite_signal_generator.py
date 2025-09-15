@@ -5,7 +5,7 @@ Orchestrates multiple signal generation strategies and combines their outputs
 into a unified signal generation system.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Optional pandas import
 try:
@@ -14,20 +14,18 @@ try:
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
-from datetime import datetime
-import logging
-import time
-from .signal_config import SignalConfig
-from .signal_generator_interface import SignalGeneratorInterface
-from .strategies.base_signal_strategy import BaseSignalStrategy
-from .strategies.technical_analysis_strategy import TechnicalAnalysisStrategy
-from .strategies.fundamental_analysis_strategy import FundamentalAnalysisStrategy
-
 # Import logging components directly to avoid PySpark dependency
 import logging
 import time
 from datetime import datetime
+
 import numpy as np
+
+from .signal_config import SignalConfig
+from .signal_generator_interface import SignalGeneratorInterface
+from .strategies.base_signal_strategy import BaseSignalStrategy
+from .strategies.fundamental_analysis_strategy import FundamentalAnalysisStrategy
+from .strategies.technical_analysis_strategy import TechnicalAnalysisStrategy
 
 logger = logging.getLogger(__name__)
 

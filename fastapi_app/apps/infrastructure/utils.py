@@ -1,9 +1,9 @@
-from sqlalchemy.orm import Session
-from datetime import datetime
-import psutil
 import time
+from datetime import datetime
 
-from apps.infrastructure.schemas import SystemHealth, ServiceStatus, SystemResources, DatabaseStatus
+import psutil
+from apps.infrastructure.schemas import DatabaseStatus, ServiceStatus, SystemHealth, SystemResources
+from sqlalchemy.orm import Session
 
 
 class InfrastructureService:

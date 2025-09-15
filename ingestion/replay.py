@@ -5,21 +5,20 @@ Implements historical data replay from Delta Lake to Kafka
 for real-time simulation and testing of the signal generation pipeline.
 """
 
+import json
 import logging
 import time
-import json
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any, Iterator
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, Iterator, List, Optional
 
 import pandas as pd
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, to_timestamp, date_format, struct, to_json, row_number, window, expr, lit
-from pyspark.sql.window import Window
-from pyspark.sql.types import StructType, StructField, StringType, TimestampType
-
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, date_format, expr, lit, row_number, struct, to_json, to_timestamp, window
+from pyspark.sql.types import StringType, StructField, StructType, TimestampType
+from pyspark.sql.window import Window
 
 from features.common.config import get_config
 from features.common.io import read_delta

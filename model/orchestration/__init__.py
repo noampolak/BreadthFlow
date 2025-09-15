@@ -16,7 +16,7 @@ and managing the entire BreadthFlow system.
 """
 
 from .pipeline_orchestrator import PipelineOrchestrator
-from .workflow_manager import WorkflowManager
 from .system_monitor import SystemMonitor
+from .workflow_manager import WorkflowManager
 
 __all__ = ["PipelineOrchestrator", "WorkflowManager", "SystemMonitor"]

@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
 
-from core.dependencies import get_db_session
-from apps.infrastructure.schemas import SystemHealth, ServiceStatus
+from apps.infrastructure.schemas import ServiceStatus, SystemHealth
 from apps.infrastructure.utils import InfrastructureService
+from core.dependencies import get_db_session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/infrastructure", tags=["infrastructure"])
 

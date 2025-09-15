@@ -6,7 +6,7 @@ fundamental analysis, and composite approaches.
 """
 
 from .base_signal_strategy import BaseSignalStrategy
-from .technical_analysis_strategy import TechnicalAnalysisStrategy
 from .fundamental_analysis_strategy import FundamentalAnalysisStrategy
+from .technical_analysis_strategy import TechnicalAnalysisStrategy
 
 __all__ = ["BaseSignalStrategy", "TechnicalAnalysisStrategy", "FundamentalAnalysisStrategy"]

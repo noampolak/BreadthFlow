@@ -1,10 +1,12 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
-from typing import List
 from datetime import datetime, timedelta
-from .models import DashboardStats
-from .schemas import DashboardStatsResponse, RecentRunResponse, DashboardSummaryResponse
+from typing import List
+
 from apps.pipeline.models import PipelineRun
+from sqlalchemy import desc, func
+from sqlalchemy.orm import Session
+
+from .models import DashboardStats
+from .schemas import DashboardStatsResponse, DashboardSummaryResponse, RecentRunResponse
 
 
 class DashboardService:

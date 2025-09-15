@@ -5,12 +5,14 @@ Implements Value at Risk (VaR) based risk management with advanced risk metrics
 and portfolio optimization.
 """
 
-from typing import Dict, List, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from .risk_manager import RiskManager
+
 from ..backtest_config import BacktestConfig
-from ..trade_record import TradeRecord, PositionRecord, PortfolioRecord
+from ..trade_record import PortfolioRecord, PositionRecord, TradeRecord
+from .risk_manager import RiskManager
 
 logger = logging.getLogger(__name__)
 

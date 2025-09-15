@@ -5,9 +5,9 @@ Defines the core data resource types, frequencies, and field specifications
 for the BreadthFlow data management system.
 """
 
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class ResourceType(Enum):

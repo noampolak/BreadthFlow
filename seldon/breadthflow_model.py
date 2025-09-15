@@ -3,15 +3,17 @@ BreadthFlow Seldon Core Model Wrapper
 This module provides the Seldon Core interface for serving ML models.
 """
 
-import os
-import logging
-import pandas as pd
-import numpy as np
-import mlflow
-import mlflow.sklearn
-import joblib
-from typing import Dict, List, Any, Union
 import json
+import logging
+import os
+from typing import Any, Dict, List, Union
+
+import joblib
+import mlflow.sklearn
+import numpy as np
+import pandas as pd
+
+import mlflow
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

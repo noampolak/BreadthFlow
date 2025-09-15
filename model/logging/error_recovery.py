@@ -5,10 +5,10 @@ Error recovery and retry mechanisms for the BreadthFlow system
 including retry patterns, circuit breakers, and fallback strategies.
 """
 
-from typing import Callable, Dict, Any, Optional
-import time
 import logging
+import time
 from functools import wraps
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

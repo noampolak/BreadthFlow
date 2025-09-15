@@ -8,16 +8,16 @@ with robust error handling, retry logic, and data quality validation.
 import logging
 import time
 from datetime import datetime
-from typing import List, Optional, Dict, Any
-import yfinance as yf
-import pandas as pd
+from typing import Any, Dict, List, Optional
 
-from pyspark.sql import SparkSession, DataFrame
+import pandas as pd
+import yfinance as yf
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import udf
-from pyspark.sql.types import StructType, StructField, StringType, DoubleType, LongType, TimestampType
+from pyspark.sql.types import DoubleType, LongType, StringType, StructField, StructType, TimestampType
 
 from features.common.config import get_config
-from features.common.io import write_delta, read_delta
+from features.common.io import read_delta, write_delta
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -190,9 +190,10 @@ class DataFetcher:
 
         # Use mapPartitions for true Spark parallelism
         def fetch_partition(partition):
-            import yfinance as yf
-            import pandas as pd
             from datetime import datetime
+
+            import pandas as pd
+            import yfinance as yf
 
             results = []
             partition_symbols = []
@@ -284,7 +285,7 @@ class DataFetcher:
         # Add partitioning columns
         logger.info("🔄 Adding partitioning columns (year, month, day)")
         partition_start = time.time()
-        from pyspark.sql.functions import year, month, dayofmonth, col
+        from pyspark.sql.functions import col, dayofmonth, month, year
 
         result_df = (
             result_df.withColumn("year", year(col("date")))
@@ -794,8 +795,9 @@ def fetch_symbol_udf(symbol: str, start_date: str, end_date: str) -> str:
     """
     try:
         import json
-        import yfinance as yf
         from datetime import datetime
+
+        import yfinance as yf
 
         # Fetch data
         ticker = yf.Ticker(symbol)

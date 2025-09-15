@@ -4,10 +4,10 @@ Backtest Configuration
 Defines configuration structures for backtesting in the BreadthFlow system.
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class ExecutionType(Enum):

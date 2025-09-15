@@ -1,14 +1,15 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from typing import List, Optional
+import asyncio
+import json
 import subprocess
 import uuid
-import asyncio
 from datetime import datetime
-import json
+from typing import List, Optional
+
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from .models import CommandExecution
-from .schemas import CommandRequest, CommandResponse, CommandHistory, CommandStatus
+from .schemas import CommandHistory, CommandRequest, CommandResponse, CommandStatus
 
 
 class CommandService:

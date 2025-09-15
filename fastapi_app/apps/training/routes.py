@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
-from typing import List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List
 
-from core.dependencies import get_db_session
-from apps.training.schemas import TrainingRequest, TrainingResponse, TrainingHistory, ModelInfo
+from apps.training.schemas import ModelInfo, TrainingHistory, TrainingRequest, TrainingResponse
 from apps.training.utils import TrainingService
+from core.dependencies import get_db_session
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/training", tags=["training"])
 

@@ -1,12 +1,13 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
-from typing import List, Dict, Any
 import json
 import uuid
 from datetime import datetime
+from typing import Any, Dict, List
+
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from .models import ParameterConfig, ParameterHistory
-from .schemas import ParameterGroup, ParameterValue, ParameterUpdate, ParameterType
+from .schemas import ParameterGroup, ParameterType, ParameterUpdate, ParameterValue
 
 
 class ParametersService:

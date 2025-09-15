@@ -4,9 +4,10 @@ Configuration management for Breadth/Thrust Signals POC.
 Provides centralized configuration management with environment variable support.
 """
 
-import os
 import json
-from typing import Dict, Any, Optional
+import os
+from typing import Any, Dict, Optional
+
 from dotenv import load_dotenv
 
 # Load environment variables

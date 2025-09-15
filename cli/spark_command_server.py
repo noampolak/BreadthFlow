@@ -6,10 +6,10 @@ Provides a basic HTTP interface for Spark commands
 
 import json
 import logging
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
 import threading
 import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlparse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

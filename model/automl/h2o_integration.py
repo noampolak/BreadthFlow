@@ -6,11 +6,12 @@ machine learning including deep learning and ensemble methods.
 """
 
 import logging
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime
 import warnings
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 
@@ -141,7 +142,7 @@ class H2OIntegration:
 
             # Calculate metrics
             if problem_type == "classification":
-                from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+                from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
                 train_metrics = {
                     "train_accuracy": accuracy_score(y_train, train_pred_array),
@@ -157,7 +158,7 @@ class H2OIntegration:
                     "test_f1": f1_score(y_test, test_pred_array, average="weighted", zero_division=0),
                 }
             else:
-                from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+                from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
                 train_metrics = {
                     "train_mse": mean_squared_error(y_train, train_pred_array),

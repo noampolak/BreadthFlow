@@ -4,10 +4,10 @@ Trade and Position Records
 Defines data structures for tracking trades and positions in backtesting.
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class TradeType(Enum):

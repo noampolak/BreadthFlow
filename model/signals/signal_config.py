@@ -4,9 +4,9 @@ Signal Configuration
 Defines configuration structures for signal generation in the BreadthFlow system.
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

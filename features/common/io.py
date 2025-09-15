@@ -6,7 +6,8 @@ Provides functions for reading and writing Delta tables with proper partitioning
 
 import os
 from typing import List, Optional
-from pyspark.sql import SparkSession, DataFrame
+
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
 
 

@@ -6,17 +6,18 @@ This script tests the complete workflow from feature generation to model trainin
 inside the Docker environment.
 """
 
-import sys
 import os
+import sys
 
 sys.path.append("/home/jovyan/work")
 
-from features import TechnicalIndicators, FinancialFundamentals, MarketMicrostructure, TimeFeatures, FeatureUtils
-from experiments.multi_source_analysis.run_experiment import MultiSourceExperiment
-import pandas as pd
 import numpy as np
+import pandas as pd
 import requests
 import yaml
+
+from experiments.multi_source_analysis.run_experiment import MultiSourceExperiment
+from features import FeatureUtils, FinancialFundamentals, MarketMicrostructure, TechnicalIndicators, TimeFeatures
 
 
 def test_complete_workflow():

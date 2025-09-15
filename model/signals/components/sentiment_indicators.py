@@ -4,10 +4,11 @@ Sentiment Indicators Component
 Provides sentiment analysis indicators for signal generation.
 """
 
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 

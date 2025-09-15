@@ -5,11 +5,13 @@ Abstract interface for trade execution engines in the BreadthFlow system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional
-import pandas as pd
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+
 from ..backtest_config import BacktestConfig, ExecutionType
-from ..trade_record import TradeRecord, TradeType, TradeStatus
+from ..trade_record import TradeRecord, TradeStatus, TradeType
 
 
 class ExecutionEngine(ABC):

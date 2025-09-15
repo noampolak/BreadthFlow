@@ -6,14 +6,14 @@ for the BreadthFlow data management system.
 """
 
 from .data_resources import (
-    ResourceType,
-    DataFrequency,
-    ResourceField,
-    DataResource,
-    STOCK_PRICE,
-    REVENUE,
     MARKET_CAP,
     NEWS_SENTIMENT,
+    REVENUE,
+    STOCK_PRICE,
+    DataFrequency,
+    DataResource,
+    ResourceField,
+    ResourceType,
 )
 
 __all__ = [

@@ -3,6 +3,7 @@ Database connection management for BreadthFlow dashboard
 """
 
 import os
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 

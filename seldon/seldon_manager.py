@@ -3,13 +3,14 @@ Seldon Core Management Script
 Provides utilities for managing Seldon deployments and A/B tests.
 """
 
-import os
-import yaml
 import json
 import logging
-import requests
-from typing import Dict, List, Any, Optional
+import os
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import requests
+import yaml
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

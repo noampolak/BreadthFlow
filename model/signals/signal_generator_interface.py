@@ -5,7 +5,7 @@ Abstract interface for signal generators in the BreadthFlow system.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Optional pandas import
 try:
@@ -15,6 +15,7 @@ try:
 except ImportError:
     PANDAS_AVAILABLE = False
 from datetime import datetime
+
 from .signal_config import SignalConfig
 
 

@@ -5,10 +5,11 @@ Generic, reusable utilities for feature engineering that can be used
 across multiple experiments and trading strategies.
 """
 
+from typing import List, Optional, Union
+
 import numpy as np
 import pandas as pd
-from typing import Union, List, Optional
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 
 class FeatureUtils:
