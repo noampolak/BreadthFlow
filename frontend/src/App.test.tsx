@@ -1,6 +1,15 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './App';
+
+// Mock react-router-dom completely
+jest.mock('react-router-dom', () => ({
+  BrowserRouter: ({ children }) => children,
+  Routes: ({ children }) => children,
+  Route: ({ element }) => element,
+  Navigate: ({ to }) => <div>Navigate to {to}</div>,
+  Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a>,
+  useLocation: () => ({ pathname: '/dashboard' }),
+}));
 
 // Mock the page components to avoid complex dependencies
 jest.mock('./pages/Dashboard', () => {
@@ -44,6 +53,9 @@ jest.mock('./pages/Parameters', () => {
     return <div>Parameters Component</div>;
   };
 });
+
+// Import App after mocking
+import App from './App';
 
 test('renders BreadthFlow dashboard', () => {
   render(<App />);
