@@ -15,14 +15,16 @@ import pandas as pd
 try:
     from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
     from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
+
     # Create dummy classes for type hints when sklearn is not available
     class DummySklearn:
         def __getattr__(self, name):
             raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
-    
+
     accuracy_score = DummySklearn()
     f1_score = DummySklearn()
     precision_score = DummySklearn()
@@ -67,7 +69,7 @@ class HyperparameterOptimizer:
         """
         if not SKLEARN_AVAILABLE:
             raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
-            
+
         self.n_trials = n_trials
         self.timeout = timeout
         self.direction = direction

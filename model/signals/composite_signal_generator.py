@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 # Optional pandas import
 try:
     import pandas as pd
+
     PANDAS_AVAILABLE = True
     DataFrame = pd.DataFrame
     Series = pd.Series
@@ -367,9 +368,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return composite_signals
 
-    def _apply_consensus_filtering(
-        self, composite_signals: DataFrame, strategy_results: Dict[str, DataFrame]
-    ) -> DataFrame:
+    def _apply_consensus_filtering(self, composite_signals: DataFrame, strategy_results: Dict[str, DataFrame]) -> DataFrame:
         """Apply consensus filtering to remove conflicting signals"""
 
         min_strategies = self.config.get("min_strategies_required", 1)
@@ -395,9 +394,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return filtered_signals
 
-    def _calculate_final_metrics(
-        self, composite_signals: DataFrame, strategy_results: Dict[str, DataFrame]
-    ) -> DataFrame:
+    def _calculate_final_metrics(self, composite_signals: DataFrame, strategy_results: Dict[str, DataFrame]) -> DataFrame:
         """Calculate final metrics for composite signals"""
 
         if composite_signals.empty:

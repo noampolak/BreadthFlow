@@ -12,6 +12,7 @@ import numpy as np
 # Optional pandas import
 try:
     import pandas as pd
+
     PANDAS_AVAILABLE = True
     DataFrame = pd.DataFrame
     Series = pd.Series
@@ -78,9 +79,7 @@ class FundamentalIndicators:
 
         return data[price_column] / data[book_value_column]
 
-    def price_to_sales_ratio(
-        self, data: DataFrame, price_column: str = "close", revenue_column: str = "revenue"
-    ) -> Series:
+    def price_to_sales_ratio(self, data: DataFrame, price_column: str = "close", revenue_column: str = "revenue") -> Series:
         """Calculate Price-to-Sales Ratio"""
         if revenue_column not in data.columns:
             return Series(np.nan, index=data.index)
@@ -173,9 +172,7 @@ class FundamentalIndicators:
 
         return data[operating_income_column] / data[revenue_column]
 
-    def net_margin(
-        self, data: DataFrame, net_income_column: str = "net_income", revenue_column: str = "revenue"
-    ) -> Series:
+    def net_margin(self, data: DataFrame, net_income_column: str = "net_income", revenue_column: str = "revenue") -> Series:
         """Calculate Net Margin"""
         if net_income_column not in data.columns or revenue_column not in data.columns:
             return Series(np.nan, index=data.index)
@@ -203,9 +200,7 @@ class FundamentalIndicators:
 
         return data[dividend_column] / data[price_column]
 
-    def payout_ratio(
-        self, data: DataFrame, dividend_column: str = "dividend", earnings_column: str = "earnings"
-    ) -> Series:
+    def payout_ratio(self, data: DataFrame, dividend_column: str = "dividend", earnings_column: str = "earnings") -> Series:
         """Calculate Payout Ratio"""
         if dividend_column not in data.columns or earnings_column not in data.columns:
             return Series(np.nan, index=data.index)

@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 # Optional pandas import
 try:
     import pandas as pd
+
     PANDAS_AVAILABLE = True
     DataFrame = pd.DataFrame
     Series = pd.Series

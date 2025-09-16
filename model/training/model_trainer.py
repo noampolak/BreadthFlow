@@ -27,14 +27,16 @@ try:
     )
     from sklearn.model_selection import TimeSeriesSplit, cross_val_score, train_test_split
     from sklearn.preprocessing import LabelEncoder, StandardScaler
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
+
     # Create dummy classes for type hints when sklearn is not available
     class DummySklearn:
         def __getattr__(self, name):
             raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
-    
+
     joblib = DummySklearn()
     accuracy_score = DummySklearn()
     classification_report = DummySklearn()
@@ -79,7 +81,7 @@ class ModelTrainer:
         """
         if not SKLEARN_AVAILABLE:
             raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
-            
+
         self.experiment_manager = experiment_manager or ExperimentManager()
         self.hyperparameter_optimizer = hyperparameter_optimizer or SimpleHyperparameterOptimizer()
         self.logger = logging.getLogger(__name__)

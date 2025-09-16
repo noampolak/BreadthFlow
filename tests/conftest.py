@@ -3,27 +3,36 @@ Test configuration and fixtures for BreadthFlow test suite.
 """
 
 import asyncio
+import os
+
+# Test database configuration - use file-based SQLite for testing to persist across connections
+import tempfile
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from fastapi_app.apps.commands.models import CommandExecution
+from fastapi_app.apps.dashboard.models import DashboardStats
+from fastapi_app.apps.parameters.models import ParameterConfig, ParameterHistory
+
+# Import all models to ensure they're registered with Base.metadata
+from fastapi_app.apps.pipeline.models import PipelineRun
+from fastapi_app.apps.training.models import TrainedModel, TrainingSession
 from fastapi_app.core.database import Base, get_db
 from fastapi_app.main import app
 from tests.fixtures.test_data import TestDataFactory
 
-# Import all models to ensure they're registered with Base.metadata
-from fastapi_app.apps.pipeline.models import PipelineRun
-from fastapi_app.apps.commands.models import CommandExecution
-from fastapi_app.apps.parameters.models import ParameterConfig, ParameterHistory
-from fastapi_app.apps.dashboard.models import DashboardStats
-from fastapi_app.apps.training.models import TrainingSession, TrainedModel
-
-# Test database configuration - use in-memory SQLite for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+# Create a temporary database file
+temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
+temp_db.close()
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{temp_db.name}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Create all tables once at module level
+Base.metadata.create_all(bind=engine)
 
 
 def override_get_db():
@@ -47,12 +56,15 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(autouse=True)
-def setup_test_db():
-    """Set up test database for each test"""
-    Base.metadata.create_all(bind=engine)
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_test_db():
+    """Clean up the temporary test database file after all tests"""
     yield
-    Base.metadata.drop_all(bind=engine)
+    # Clean up the temporary database file
+    try:
+        os.unlink(temp_db.name)
+    except OSError:
+        pass  # File might already be deleted
 
 
 @pytest.fixture

@@ -13,6 +13,7 @@ import numpy as np
 # Optional pandas import
 try:
     import pandas as pd
+
     PANDAS_AVAILABLE = True
     DataFrame = pd.DataFrame
     Series = pd.Series

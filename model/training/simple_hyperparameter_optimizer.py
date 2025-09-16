@@ -14,14 +14,16 @@ try:
     import joblib
     from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
     from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
+
     # Create dummy classes for type hints when sklearn is not available
     class DummySklearn:
         def __getattr__(self, name):
             raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
-    
+
     joblib = DummySklearn()
     accuracy_score = DummySklearn()
     f1_score = DummySklearn()
@@ -49,7 +51,7 @@ class SimpleHyperparameterOptimizer:
         """
         if not SKLEARN_AVAILABLE:
             raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
-            
+
         self.n_trials = n_trials
         self.cv_folds = cv_folds
         self.scoring = scoring

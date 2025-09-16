@@ -17,19 +17,29 @@ class TestDashboardAPI:
         assert response.status_code == 200
 
         data = response.json()
-        assert "total_runs" in data
-        assert "success_rate" in data
-        assert "active_pipelines" in data
+        assert "stats" in data
         assert "recent_runs" in data
+        assert "last_updated" in data
+
+        # Check stats structure
+        stats = data["stats"]
+        assert "total_runs" in stats
+        assert "success_rate" in stats
+        assert "failed_runs" in stats
+        assert "recent_runs_24h" in stats
+        assert "average_duration" in stats
 
     def test_dashboard_summary_data_types(self, client):
         """Test dashboard summary data types"""
         response = client.get("/api/dashboard/summary")
         data = response.json()
 
-        assert isinstance(data["total_runs"], int)
-        assert isinstance(data["success_rate"], (int, float))
-        assert isinstance(data["active_pipelines"], int)
+        stats = data["stats"]
+        assert isinstance(stats["total_runs"], int)
+        assert isinstance(stats["success_rate"], (int, float))
+        assert isinstance(stats["failed_runs"], int)
+        assert isinstance(stats["recent_runs_24h"], int)
+        assert isinstance(stats["average_duration"], (int, float))
         assert isinstance(data["recent_runs"], list)
 
     def test_dashboard_summary_success_rate_range(self, client):
@@ -37,7 +47,7 @@ class TestDashboardAPI:
         response = client.get("/api/dashboard/summary")
         data = response.json()
 
-        assert 0 <= data["success_rate"] <= 100
+        assert 0 <= data["stats"]["success_rate"] <= 100
 
 
 class TestPipelineAPI:

@@ -11,6 +11,7 @@ try:
     from .training.experiment_manager import ExperimentManager
     from .training.hyperparameter_optimizer import HyperparameterOptimizer
     from .training.model_trainer import ModelTrainer
+
     __all__ = ["ModelTrainer", "ExperimentManager", "HyperparameterOptimizer"]
 except ImportError:
     # ML dependencies not available
