@@ -203,18 +203,18 @@ class TechnicalIndicators:
     # Test compatibility methods
     def calculate_rsi(self, data, period: int = 14):
         """Calculate RSI - test compatibility method"""
-        if hasattr(data, 'name'):  # It's a Series
+        if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({'close': data})
+            df = pd.DataFrame({"close": data})
             return self.relative_strength_index(df, period=period)
         else:  # It's a DataFrame
             return self.relative_strength_index(data, period=period)
 
     def calculate_macd(self, data, fast_period: int = 12, slow_period: int = 26, signal_period: int = 9):
         """Calculate MACD - test compatibility method"""
-        if hasattr(data, 'name'):  # It's a Series
+        if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({'close': data})
+            df = pd.DataFrame({"close": data})
             result = self.moving_average_convergence_divergence(df, fast_period, slow_period, signal_period)
             return result["macd"], result["signal"], result["histogram"]
         else:  # It's a DataFrame
@@ -223,9 +223,9 @@ class TechnicalIndicators:
 
     def calculate_bollinger_bands(self, data, period: int = 20, std_dev: float = 2):
         """Calculate Bollinger Bands - test compatibility method"""
-        if hasattr(data, 'name'):  # It's a Series
+        if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({'close': data})
+            df = pd.DataFrame({"close": data})
             result = self.bollinger_bands(df, period=period, std_dev=std_dev)
             return result["upper"], result["middle"], result["lower"]
         else:  # It's a DataFrame
@@ -234,9 +234,9 @@ class TechnicalIndicators:
 
     def calculate_sma(self, data, period: int = 20):
         """Calculate SMA - test compatibility method"""
-        if hasattr(data, 'name'):  # It's a Series
+        if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({'close': data})
+            df = pd.DataFrame({"close": data})
             return self.simple_moving_average(df, period=period)
         else:  # It's a DataFrame
             return self.simple_moving_average(data, period=period)

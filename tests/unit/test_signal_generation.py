@@ -59,7 +59,7 @@ class TestTechnicalIndicators:
         assert len(upper) == len(symbol_data)
         assert len(middle) == len(symbol_data)
         assert len(lower) == len(symbol_data)
-        
+
         # Check that non-NaN values follow the expected relationships
         valid_mask = ~(upper.isna() | middle.isna() | lower.isna())
         if valid_mask.any():
@@ -152,14 +152,24 @@ class TestTechnicalAnalysisStrategy:
     @pytest.fixture
     def strategy(self):
         """Technical analysis strategy instance"""
-        config = {"rsi_period": 14, "macd_fast": 12, "macd_slow": 26, "macd_signal": 9, "bollinger_period": 20, "bollinger_std": 2}
+        config = {
+            "rsi_period": 14,
+            "macd_fast": 12,
+            "macd_slow": 26,
+            "macd_signal": 9,
+            "bollinger_period": 20,
+            "bollinger_std": 2,
+        }
         return TechnicalAnalysisStrategy(config=config)
 
     def test_signal_generation(self, strategy, sample_ohlcv_data):
         """Test signal generation"""
         symbol_data = sample_ohlcv_data[sample_ohlcv_data["symbol"] == "AAPL"]
         from model.signals.signal_config import SignalConfig
-        config = SignalConfig(min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0)  # Lower thresholds for testing
+
+        config = SignalConfig(
+            min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0
+        )  # Lower thresholds for testing
         signals = strategy.generate_signals({"stock_price": symbol_data}, config)
 
         # Strategy may filter out rows that don't meet criteria, so we expect some signals
@@ -174,7 +184,10 @@ class TestTechnicalAnalysisStrategy:
         """Test signal strength is within valid range"""
         symbol_data = sample_ohlcv_data[sample_ohlcv_data["symbol"] == "AAPL"]
         from model.signals.signal_config import SignalConfig
-        config = SignalConfig(min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0)  # Lower thresholds for testing
+
+        config = SignalConfig(
+            min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0
+        )  # Lower thresholds for testing
         signals = strategy.generate_signals({"stock_price": symbol_data}, config)
 
         # Only check non-empty signals
@@ -187,7 +200,10 @@ class TestTechnicalAnalysisStrategy:
         """Test confidence is within valid range"""
         symbol_data = sample_ohlcv_data[sample_ohlcv_data["symbol"] == "AAPL"]
         from model.signals.signal_config import SignalConfig
-        config = SignalConfig(min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0)  # Lower thresholds for testing
+
+        config = SignalConfig(
+            min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0
+        )  # Lower thresholds for testing
         signals = strategy.generate_signals({"stock_price": symbol_data}, config)
 
         # Only check non-empty signals
@@ -208,34 +224,39 @@ class TestFundamentalAnalysisStrategy:
     def test_signal_generation(self, strategy):
         """Test signal generation with fundamental data"""
         fundamental_data = pd.DataFrame({"pe_ratio": [15, 25, 30], "pb_ratio": [2, 4, 5], "roe": [0.2, 0.1, 0.05]})
-        
+
         # Create mock stock price data (required by the strategy)
-        stock_price_data = pd.DataFrame({
-            "date": pd.date_range('2023-01-01', periods=3, freq='D'),
-            "close": [100, 110, 120],
-            "volume": [1000, 1100, 1200],
-            "earnings": [10, 11, 12],  # Add earnings for PE ratio
-            "book_value": [50, 55, 60],  # Add book value for PB ratio
-            "net_income": [5, 5.5, 6],  # Add net income for ROE
-            "total_equity": [25, 27.5, 30]  # Add total equity for ROE
-        })
+        stock_price_data = pd.DataFrame(
+            {
+                "date": pd.date_range("2023-01-01", periods=3, freq="D"),
+                "close": [100, 110, 120],
+                "volume": [1000, 1100, 1200],
+                "earnings": [10, 11, 12],  # Add earnings for PE ratio
+                "book_value": [50, 55, 60],  # Add book value for PB ratio
+                "net_income": [5, 5.5, 6],  # Add net income for ROE
+                "total_equity": [25, 27.5, 30],  # Add total equity for ROE
+            }
+        )
 
         # Create mock revenue data (required by the strategy)
-        revenue_data = pd.DataFrame({
-            "date": pd.date_range('2023-01-01', periods=3, freq='D'),
-            "revenue": [1000000, 1100000, 1200000],
-            "market_cap": [10000000, 11000000, 12000000]
-        })
-        
+        revenue_data = pd.DataFrame(
+            {
+                "date": pd.date_range("2023-01-01", periods=3, freq="D"),
+                "revenue": [1000000, 1100000, 1200000],
+                "market_cap": [10000000, 11000000, 12000000],
+            }
+        )
+
         # Create a config for the test
         from model.signals.signal_config import SignalConfig
-        config = SignalConfig(min_data_points=1, signal_threshold=0.0, confidence_threshold=0.0)  # Lower thresholds for testing
 
-        signals = strategy.generate_signals({
-            "stock_price": stock_price_data,
-            "revenue": revenue_data,
-            "market_cap": revenue_data
-        }, config)
+        config = SignalConfig(
+            min_data_points=1, signal_threshold=0.0, confidence_threshold=0.0
+        )  # Lower thresholds for testing
+
+        signals = strategy.generate_signals(
+            {"stock_price": stock_price_data, "revenue": revenue_data, "market_cap": revenue_data}, config
+        )
 
         # The strategy may filter out signals based on thresholds, so just check it doesn't crash
         assert isinstance(signals, pd.DataFrame)
@@ -259,7 +280,10 @@ class TestCompositeSignalGenerator:
         """Test signal combination from multiple strategies"""
         symbol_data = sample_ohlcv_data[sample_ohlcv_data["symbol"] == "AAPL"]
         from model.signals.signal_config import SignalConfig
-        config = SignalConfig(min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0)  # Lower thresholds for testing
+
+        config = SignalConfig(
+            min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0
+        )  # Lower thresholds for testing
         signals = generator.generate_signals({"stock_price": symbol_data}, config)
 
         # The generator may filter out signals based on thresholds, so just check it doesn't crash
@@ -274,7 +298,10 @@ class TestCompositeSignalGenerator:
         """Test consensus filtering removes conflicting signals"""
         symbol_data = sample_ohlcv_data[sample_ohlcv_data["symbol"] == "AAPL"]
         from model.signals.signal_config import SignalConfig
-        config = SignalConfig(min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0)  # Lower thresholds for testing
+
+        config = SignalConfig(
+            min_data_points=5, signal_threshold=0.0, confidence_threshold=0.0
+        )  # Lower thresholds for testing
         signals = generator.generate_signals({"stock_price": symbol_data}, config)
 
         # The generator may filter out signals based on thresholds, so just check it doesn't crash

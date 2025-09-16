@@ -162,7 +162,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
             return config.validate()
 
         # Check if strategy is supported (only for SignalConfig objects)
-        if not isinstance(config, dict) and hasattr(config, 'strategy_name'):
+        if not isinstance(config, dict) and hasattr(config, "strategy_name"):
             if config.strategy_name not in self.get_supported_strategies():
                 logger.error(f"Strategy {config.strategy_name} not found in composite generator")
                 return False
@@ -180,7 +180,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
             return bool(data)
         else:
             # Check if all required data is available
-            if hasattr(config, 'required_resources'):
+            if hasattr(config, "required_resources"):
                 for resource in config.required_resources:
                     if resource not in data:
                         logger.error(f"Required resource {resource} not found in data")

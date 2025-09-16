@@ -74,10 +74,12 @@ class SignalConfig:
 
         if self.start_date is None:
             from datetime import datetime, timedelta
+
             self.start_date = datetime.now() - timedelta(days=365)
 
         if self.end_date is None:
             from datetime import datetime
+
             self.end_date = datetime.now()
 
     def validate(self) -> bool:
