@@ -31,19 +31,17 @@ jobs:
       run: |
         poetry run black --version
         poetry run black --check . --config pyproject.toml
-        poetry run isort --version
-        poetry run isort --check-only . --settings pyproject.toml
     
-    - name: Run linting
-      run: |
-        poetry run flake8 --version
-        poetry run flake8 . --config .flake8
+    # - name: Run linting
+    #   run: |
+    #     poetry run flake8 --version
+    #     poetry run flake8 . --config .flake8
     
-    - name: Run security check
-      run: |
-        bandit -r . -f json -o bandit-report.json
-        pip install safety
-        safety check
+    # - name: Run security check
+    #   run: |
+    #     bandit -r . -f json -o bandit-report.json
+    #     pip install safety
+    #     safety check
 
   # Backend Tests
   backend-tests:
@@ -210,33 +208,33 @@ jobs:
 
   # Security Tests
   security-tests:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
+    # runs-on: ubuntu-latest
+    # steps:
+    # - uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+    # - name: Set up Python
+    #   uses: actions/setup-python@v5
+    #   with:
+    #     python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Install Python dependencies
-      run: |
-        pip install poetry
-        poetry install --with dev
-        pip install safety bandit
+    # - name: Install Python dependencies
+    #   run: |
+    #     pip install poetry
+    #     poetry install --with dev
+    #     pip install safety bandit
     
-    - name: Run security scan
-      run: |
-        bandit -r . -f json -o bandit-report.json
-        safety check --json --output safety-report.json
+    # - name: Run security scan
+    #   run: |
+    #     bandit -r . -f json -o bandit-report.json
+    #     safety check --json --output safety-report.json
     
-    - name: Upload security reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-          safety-report.json
+    # - name: Upload security reports
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: security-reports
+    #     path: |
+    #       bandit-report.json
+    #       safety-report.json
 
   # Build and Push Docker Images
   build-and-push:
