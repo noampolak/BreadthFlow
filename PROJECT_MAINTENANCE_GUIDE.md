@@ -292,7 +292,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install poetry
-        poetry install
+        poetry install --with ci
     
     - name: Run tests
       run: |

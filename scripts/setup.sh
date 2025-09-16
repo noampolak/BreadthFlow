@@ -45,7 +45,7 @@ fi
 
 # Install dependencies
 echo "📦 Installing Python dependencies with Poetry..."
-poetry install
+poetry install --with ci
 
 # Setup environment
 echo "⚙️  Setting up environment..."

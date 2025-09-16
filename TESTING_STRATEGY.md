@@ -375,7 +375,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install poetry
-        poetry install
+        poetry install --with ci
     
     - name: Run unit tests
       run: |
@@ -411,7 +411,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install poetry
-        poetry install
+        poetry install --with ci
     
     - name: Run integration tests
       run: |
