@@ -67,7 +67,7 @@ requests = "^2.31.0"
 aiohttp = "^3.9.1"
 
 # Technical Analysis
-TA-Lib = "^0.4.28"
+TA-Lib = "^0.6.7"
 
 # Date/Time Handling
 python-dateutil = "^2.8.2"
