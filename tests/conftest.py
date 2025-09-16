@@ -68,9 +68,12 @@ def cleanup_test_db():
 
 
 @pytest.fixture
-def client():
-    """Create test client"""
-    return TestClient(app)
+def client(db_session):
+    """Test client that uses the test database session"""
+    app.dependency_overrides[get_db] = lambda: db_session
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides = {}
 
 
 @pytest.fixture

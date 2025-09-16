@@ -263,6 +263,49 @@ class ParametersService:
 
         return [ParameterGroup(**group_data) for group_data in groups.values()]
 
+    def get_parameter_group(self, group_name: str) -> ParameterGroup:
+        """Get a specific parameter group"""
+        # Get all parameters for the specified group
+        parameters = self.db.query(ParameterConfig).filter(ParameterConfig.group_name == group_name).all()
+
+        if not parameters:
+            raise ValueError(f"Parameter group '{group_name}' not found")
+
+        group_data = {
+            "group_name": group_name,
+            "display_name": group_name.replace("_", " ").title(),
+            "description": f"Configuration parameters for {group_name.replace('_', ' ')}",
+            "parameters": [],
+            "last_modified": None,
+        }
+
+        for param in parameters:
+            # Parse parameter data
+            value = json.loads(param.value)
+            default_value = json.loads(param.default_value)
+            options = json.loads(param.options) if param.options else []
+
+            param_value = ParameterValue(
+                name=param.parameter_name,
+                value=value,
+                default_value=default_value,
+                description=param.description,
+                parameter_type=param.parameter_type,
+                options=options,
+                min_value=param.min_value,
+                max_value=param.max_value,
+                required=param.required,
+                last_modified=param.last_modified,
+            )
+
+            group_data["parameters"].append(param_value)
+
+            # Track last modified time
+            if param.last_modified and (not group_data["last_modified"] or param.last_modified > group_data["last_modified"]):
+                group_data["last_modified"] = param.last_modified
+
+        return ParameterGroup(**group_data)
+
     def update_parameters(self, updates: List[ParameterUpdate]):
         """Update parameter values"""
         for update in updates:

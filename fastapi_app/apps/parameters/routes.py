@@ -6,13 +6,13 @@ from sqlalchemy.orm import Session
 
 from fastapi_app.apps.parameters.schemas import ParameterGroup, ParameterUpdate, ParameterValue
 from fastapi_app.apps.parameters.utils import ParametersService
-from fastapi_app.core.dependencies import get_db_session
+from fastapi_app.core.dependencies import get_db
 
 router = APIRouter(prefix="/parameters", tags=["parameters"])
 
 
 @router.get("/groups", response_model=List[ParameterGroup])
-async def get_parameter_groups(db: Session = Depends(get_db_session)):
+async def get_parameter_groups(db: Session = Depends(get_db)):
     """Get all parameter groups and their values"""
     try:
         service = ParametersService(db)
@@ -21,8 +21,20 @@ async def get_parameter_groups(db: Session = Depends(get_db_session)):
         raise HTTPException(status_code=500, detail=f"Failed to fetch parameters: {str(e)}")
 
 
+@router.get("/groups/{group_name}", response_model=ParameterGroup)
+async def get_parameter_group(group_name: str, db: Session = Depends(get_db)):
+    """Get a specific parameter group"""
+    try:
+        service = ParametersService(db)
+        return service.get_parameter_group(group_name)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch parameter group: {str(e)}")
+
+
 @router.put("/update", response_model=Dict[str, str])
-async def update_parameters(updates: List[ParameterUpdate], db: Session = Depends(get_db_session)):
+async def update_parameters(updates: List[ParameterUpdate], db: Session = Depends(get_db)):
     """Update parameter values"""
     try:
         service = ParametersService(db)
@@ -33,7 +45,7 @@ async def update_parameters(updates: List[ParameterUpdate], db: Session = Depend
 
 
 @router.post("/reset/{group_name}")
-async def reset_parameter_group(group_name: str, db: Session = Depends(get_db_session)):
+async def reset_parameter_group(group_name: str, db: Session = Depends(get_db)):
     """Reset parameter group to default values"""
     try:
         service = ParametersService(db)
@@ -44,7 +56,7 @@ async def reset_parameter_group(group_name: str, db: Session = Depends(get_db_se
 
 
 @router.get("/export")
-async def export_parameters(format: str = "json", db: Session = Depends(get_db_session)):
+async def export_parameters(format: str = "json", db: Session = Depends(get_db)):
     """Export parameters in JSON or YAML format"""
     try:
         service = ParametersService(db)
@@ -54,7 +66,7 @@ async def export_parameters(format: str = "json", db: Session = Depends(get_db_s
 
 
 @router.post("/import")
-async def import_parameters(parameters_data: Dict[str, Any], db: Session = Depends(get_db_session)):
+async def import_parameters(parameters_data: Dict[str, Any], db: Session = Depends(get_db)):
     """Import parameters from JSON or YAML"""
     try:
         service = ParametersService(db)
@@ -65,7 +77,7 @@ async def import_parameters(parameters_data: Dict[str, Any], db: Session = Depen
 
 
 @router.get("/history")
-async def get_parameter_history(limit: int = 50, db: Session = Depends(get_db_session)):
+async def get_parameter_history(limit: int = 50, db: Session = Depends(get_db)):
     """Get parameter change history"""
     try:
         service = ParametersService(db)

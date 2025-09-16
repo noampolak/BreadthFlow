@@ -21,7 +21,7 @@ class PipelineService:
             run_id=run_id,
             command=f"spark_streaming_start_{config.mode}",
             status=PipelineStatus.PENDING,
-            run_metadata=config.dict(),
+            run_metadata=config.model_dump(),
         )
 
         self.db.add(pipeline_run)

@@ -19,12 +19,13 @@ def set_websocket_manager(manager: WebSocketManager):
     websocket_manager = manager
 
 
-async def start_pipeline_task(pipeline_id: int, config: dict):
+async def start_pipeline_task(pipeline_id: int, config: dict, db: Session = None):
     """Background task to start pipeline execution"""
-    db = next(get_db())
+    if db is None:
+        db = next(get_db())
     try:
         # Update status to running
-        pipeline_run = db.query(PipelineRun).filter(PipelineRun.id == pipeline_id).first()
+        pipeline_run = db.query(PipelineRun).filter(PipelineRun.run_id == pipeline_id).first()
         if pipeline_run:
             pipeline_run.status = "running"
             pipeline_run.is_active = True
@@ -67,7 +68,7 @@ async def start_pipeline_task(pipeline_id: int, config: dict):
 
     except Exception as e:
         # Update status to failed
-        pipeline_run = db.query(PipelineRun).filter(PipelineRun.id == pipeline_id).first()
+        pipeline_run = db.query(PipelineRun).filter(PipelineRun.run_id == pipeline_id).first()
         if pipeline_run:
             pipeline_run.status = "failed"
             pipeline_run.is_active = False
@@ -82,9 +83,10 @@ async def start_pipeline_task(pipeline_id: int, config: dict):
         db.close()
 
 
-async def stop_pipeline_task(run_id: str):
+async def stop_pipeline_task(run_id: str, db: Session = None):
     """Background task to stop pipeline execution"""
-    db = next(get_db())
+    if db is None:
+        db = next(get_db())
     try:
         # Stop pipeline via Spark command server
         async with httpx.AsyncClient() as client:

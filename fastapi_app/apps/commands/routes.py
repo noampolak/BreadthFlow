@@ -8,13 +8,13 @@ from sqlalchemy.orm import Session
 
 from fastapi_app.apps.commands.schemas import CommandHistory, CommandRequest, CommandResponse
 from fastapi_app.apps.commands.utils import CommandService
-from fastapi_app.core.dependencies import get_db_session
+from fastapi_app.core.dependencies import get_db
 
 router = APIRouter(prefix="/commands", tags=["commands"])
 
 
 @router.post("/execute", response_model=CommandResponse)
-async def execute_command(request: CommandRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db_session)):
+async def execute_command(request: CommandRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Execute a command and return the result"""
     try:
         service = CommandService(db)
@@ -25,7 +25,7 @@ async def execute_command(request: CommandRequest, background_tasks: BackgroundT
 
 
 @router.get("/history", response_model=List[CommandHistory])
-async def get_command_history(limit: int = 50, db: Session = Depends(get_db_session)):
+async def get_command_history(limit: int = 50, db: Session = Depends(get_db)):
     """Get command execution history"""
     try:
         service = CommandService(db)
@@ -69,7 +69,7 @@ async def get_quick_flows():
     ]
 
 
-@router.get("/templates", response_model=List[Dict[str, Any]])
+@router.get("/templates")
 async def get_command_templates():
     """Get command templates for different operations"""
     return {

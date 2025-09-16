@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 
 class PipelineStatus(str, Enum):
@@ -19,6 +19,19 @@ class PipelineConfig(BaseModel):
     timeframe: str = Field(..., description="Data timeframe")
     symbols: Optional[str] = Field(None, description="Custom symbols list")
     data_source: str = Field("yfinance", description="Data source")
+
+    @validator("symbols")
+    def validate_symbols(cls, v):
+        if v is not None and v.strip() == "":
+            raise ValueError("Symbols cannot be empty string")
+        return v
+
+    @validator("timeframe")
+    def validate_timeframe(cls, v):
+        valid_timeframes = ["1min", "5min", "15min", "30min", "1h", "4h", "1day", "1week", "1month"]
+        if v not in valid_timeframes:
+            raise ValueError(f'Invalid timeframe. Must be one of: {", ".join(valid_timeframes)}')
+        return v
 
 
 class PipelineRunBase(BaseModel):

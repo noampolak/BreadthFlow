@@ -222,3 +222,66 @@ class InfrastructureService:
             return "warning"
 
         return "healthy"
+
+    def get_system_metrics(self) -> dict:
+        """Get system metrics"""
+        try:
+            system_resources = self._get_system_resources()
+            return {
+                "cpu_usage": system_resources.cpu_usage,
+                "memory_usage": system_resources.memory_usage,
+                "disk_usage": system_resources.disk_usage,
+                "network_status": system_resources.network_status,
+                "timestamp": datetime.now().isoformat(),
+            }
+        except Exception as e:
+            print(f"Error getting system metrics: {e}")
+            return {
+                "cpu_usage": 0.0,
+                "memory_usage": 0.0,
+                "disk_usage": 0.0,
+                "network_status": "unknown",
+                "timestamp": datetime.now().isoformat(),
+            }
+
+    def get_system_logs(self, level: str = None, limit: int = 100) -> list:
+        """Get system logs"""
+        try:
+            # In a real implementation, this would read from log files
+            # For now, return mock log entries
+            logs = [
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "level": "INFO",
+                    "message": "System started successfully",
+                    "source": "fastapi_app",
+                },
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "level": "DEBUG",
+                    "message": "Database connection established",
+                    "source": "database",
+                },
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "level": "WARNING",
+                    "message": "High memory usage detected",
+                    "source": "system_monitor",
+                },
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "level": "ERROR",
+                    "message": "Failed to connect to external service",
+                    "source": "external_api",
+                },
+            ]
+
+            # Filter by level if specified
+            if level:
+                logs = [log for log in logs if log["level"] == level.upper()]
+
+            # Limit results
+            return logs[:limit]
+        except Exception as e:
+            print(f"Error getting system logs: {e}")
+            return []

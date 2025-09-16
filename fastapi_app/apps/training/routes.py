@@ -6,13 +6,13 @@ from sqlalchemy.orm import Session
 
 from fastapi_app.apps.training.schemas import ModelInfo, TrainingHistory, TrainingRequest, TrainingResponse
 from fastapi_app.apps.training.utils import TrainingService
-from fastapi_app.core.dependencies import get_db_session
+from fastapi_app.core.dependencies import get_db
 
 router = APIRouter(prefix="/training", tags=["training"])
 
 
 @router.post("/start", response_model=TrainingResponse)
-async def start_training(request: TrainingRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db_session)):
+async def start_training(request: TrainingRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Start model training"""
     try:
         service = TrainingService(db)
@@ -23,7 +23,7 @@ async def start_training(request: TrainingRequest, background_tasks: BackgroundT
 
 
 @router.get("/history", response_model=List[TrainingHistory])
-async def get_training_history(limit: int = 20, db: Session = Depends(get_db_session)):
+async def get_training_history(limit: int = 20, db: Session = Depends(get_db)):
     """Get training history"""
     try:
         service = TrainingService(db)
@@ -33,7 +33,7 @@ async def get_training_history(limit: int = 20, db: Session = Depends(get_db_ses
 
 
 @router.get("/models", response_model=List[ModelInfo])
-async def get_models(db: Session = Depends(get_db_session)):
+async def get_models(db: Session = Depends(get_db)):
     """Get available trained models"""
     try:
         service = TrainingService(db)
@@ -43,7 +43,7 @@ async def get_models(db: Session = Depends(get_db_session)):
 
 
 @router.delete("/models/{model_id}")
-async def delete_model(model_id: str, db: Session = Depends(get_db_session)):
+async def delete_model(model_id: str, db: Session = Depends(get_db)):
     """Delete a trained model"""
     try:
         service = TrainingService(db)

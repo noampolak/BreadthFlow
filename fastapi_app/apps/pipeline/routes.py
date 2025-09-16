@@ -33,7 +33,7 @@ async def start_pipeline(config: PipelineConfig, background_tasks: BackgroundTas
     pipeline_run = await service.create_pipeline_run(config)
 
     # Start pipeline in background
-    background_tasks.add_task(start_pipeline_task, pipeline_run.id, config.dict())
+    background_tasks.add_task(start_pipeline_task, pipeline_run.run_id, config.model_dump(), db)
 
     return pipeline_run
 
@@ -51,7 +51,7 @@ async def stop_pipeline(run_id: str, background_tasks: BackgroundTasks, db: Sess
         raise HTTPException(status_code=400, detail="Pipeline is not running")
 
     # Stop pipeline in background
-    background_tasks.add_task(stop_pipeline_task, run_id)
+    background_tasks.add_task(stop_pipeline_task, run_id, db)
 
     return {"message": f"Pipeline {run_id} stop requested"}
 
