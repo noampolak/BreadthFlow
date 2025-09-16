@@ -2,6 +2,10 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+
 from fastapi_app.apps.commands.models import *
 from fastapi_app.apps.commands.routes import router as commands_router
 
@@ -21,9 +25,6 @@ from fastapi_app.apps.training.models import *
 from fastapi_app.apps.training.routes import router as training_router
 from fastapi_app.core.config import settings
 from fastapi_app.core.database import Base, engine
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi_app.shared.websocket import WebSocketManager
 
 # Configure logging

@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Any, Dict, List
 
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from fastapi_app.apps.training.schemas import ModelInfo, TrainingHistory, TrainingRequest, TrainingResponse
 from fastapi_app.apps.training.utils import TrainingService
 from fastapi_app.core.dependencies import get_db_session
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/training", tags=["training"])
 

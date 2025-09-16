@@ -1,6 +1,7 @@
-from fastapi_app.shared.models import Base
 from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.sql import func
+
+from fastapi_app.shared.models import Base
 
 
 class PipelineRun(Base):

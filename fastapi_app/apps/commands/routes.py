@@ -3,11 +3,12 @@ import subprocess
 from datetime import datetime
 from typing import Any, Dict, List
 
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from fastapi_app.apps.commands.schemas import CommandHistory, CommandRequest, CommandResponse
 from fastapi_app.apps.commands.utils import CommandService
 from fastapi_app.core.dependencies import get_db_session
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/commands", tags=["commands"])
 

@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime
 
-from fastapi_app.shared.models import Base
 from sqlalchemy import Boolean, Column, DateTime, Enum, Float, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+
+from fastapi_app.shared.models import Base
 
 from .schemas import ParameterType
 

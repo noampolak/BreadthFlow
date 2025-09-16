@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
 from typing import List
 
-from fastapi_app.apps.pipeline.models import PipelineRun
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
+
+from fastapi_app.apps.pipeline.models import PipelineRun
 
 from .models import DashboardStats
 from .schemas import DashboardStatsResponse, DashboardSummaryResponse, RecentRunResponse
