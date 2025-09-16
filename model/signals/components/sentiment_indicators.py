@@ -5,10 +5,21 @@ Provides sentiment analysis indicators for signal generation.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
-import pandas as pd
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
+except ImportError:
+    PANDAS_AVAILABLE = False
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +41,7 @@ class SentimentIndicators:
             "momentum_sentiment": self.momentum_sentiment,
         }
 
-    def calculate_indicator(self, indicator_name: str, data: pd.DataFrame, **kwargs) -> pd.Series:
+    def calculate_indicator(self, indicator_name: str, data: DataFrame, **kwargs) -> Series:
         """Calculate a specific sentiment indicator"""
         if indicator_name not in self.indicators:
             raise ValueError(f"Unknown indicator: {indicator_name}")
@@ -38,11 +49,11 @@ class SentimentIndicators:
         return self.indicators[indicator_name](data, **kwargs)
 
     def news_sentiment_score(
-        self, data: pd.DataFrame, sentiment_column: str = "sentiment_score", volume_column: str = "news_count"
-    ) -> pd.Series:
+        self, data: DataFrame, sentiment_column: str = "sentiment_score", volume_column: str = "news_count"
+    ) -> Series:
         """Calculate weighted news sentiment score"""
         if sentiment_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         sentiment = data[sentiment_column]
 
@@ -59,14 +70,14 @@ class SentimentIndicators:
 
     def social_media_sentiment(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         positive_mentions_column: str = "positive_mentions",
         negative_mentions_column: str = "negative_mentions",
         total_mentions_column: str = "total_mentions",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate social media sentiment score"""
         if positive_mentions_column not in data.columns or negative_mentions_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         positive = data[positive_mentions_column]
         negative = data[negative_mentions_column]
@@ -75,22 +86,22 @@ class SentimentIndicators:
         total = positive + negative
         sentiment = np.where(total > 0, (positive - negative) / total, 0)
 
-        return pd.Series(sentiment, index=data.index)
+        return Series(sentiment, index=data.index)
 
     def analyst_rating_score(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         buy_ratings_column: str = "buy_ratings",
         hold_ratings_column: str = "hold_ratings",
         sell_ratings_column: str = "sell_ratings",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate analyst rating score"""
         if (
             buy_ratings_column not in data.columns
             or hold_ratings_column not in data.columns
             or sell_ratings_column not in data.columns
         ):
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         buy = data[buy_ratings_column]
         hold = data[hold_ratings_column]
@@ -100,18 +111,18 @@ class SentimentIndicators:
         total = buy + hold + sell
         score = np.where(total > 0, (buy + 0.5 * hold) / total, 0.5)
 
-        return pd.Series(score, index=data.index)
+        return Series(score, index=data.index)
 
     def insider_trading_signal(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         insider_buy_volume_column: str = "insider_buy_volume",
         insider_sell_volume_column: str = "insider_sell_volume",
         market_volume_column: str = "volume",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate insider trading sentiment"""
         if insider_buy_volume_column not in data.columns or insider_sell_volume_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         buy_volume = data[insider_buy_volume_column]
         sell_volume = data[insider_sell_volume_column]
@@ -124,21 +135,21 @@ class SentimentIndicators:
         if market_volume_column in data.columns:
             market_volume = data[market_volume_column]
             normalized_ratio = insider_ratio * (total_insider / market_volume)
-            return pd.Series(normalized_ratio, index=data.index)
+            return Series(normalized_ratio, index=data.index)
 
-        return pd.Series(insider_ratio, index=data.index)
+        return Series(insider_ratio, index=data.index)
 
     def options_flow_sentiment(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         call_volume_column: str = "call_volume",
         put_volume_column: str = "put_volume",
         call_premium_column: str = "call_premium",
         put_premium_column: str = "put_premium",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate options flow sentiment"""
         if call_volume_column not in data.columns or put_volume_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         call_volume = data[call_volume_column]
         put_volume = data[put_volume_column]
@@ -156,18 +167,18 @@ class SentimentIndicators:
         else:
             sentiment = 1 / put_call_ratio
 
-        return pd.Series(sentiment, index=data.index)
+        return Series(sentiment, index=data.index)
 
     def short_interest_ratio(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         short_interest_column: str = "short_interest",
         shares_outstanding_column: str = "shares_outstanding",
         avg_volume_column: str = "avg_volume",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate short interest ratio"""
         if short_interest_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         short_interest = data[short_interest_column]
 
@@ -187,30 +198,30 @@ class SentimentIndicators:
         else:
             sentiment = short_ratio
 
-        return pd.Series(sentiment, index=data.index)
+        return Series(sentiment, index=data.index)
 
     def put_call_ratio(
-        self, data: pd.DataFrame, put_volume_column: str = "put_volume", call_volume_column: str = "call_volume"
-    ) -> pd.Series:
+        self, data: DataFrame, put_volume_column: str = "put_volume", call_volume_column: str = "call_volume"
+    ) -> Series:
         """Calculate put-call ratio"""
         if put_volume_column not in data.columns or call_volume_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         put_volume = data[put_volume_column]
         call_volume = data[call_volume_column]
 
         ratio = np.where(call_volume > 0, put_volume / call_volume, 1)
 
-        return pd.Series(ratio, index=data.index)
+        return Series(ratio, index=data.index)
 
     def fear_greed_index(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         volatility_column: str = "volatility",
         momentum_column: str = "momentum",
         market_volume_column: str = "volume",
         put_call_column: str = "put_call_ratio",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate fear and greed index"""
         components = []
 
@@ -239,7 +250,7 @@ class SentimentIndicators:
             components.append(pc_normalized)
 
         if not components:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         # Calculate average of all components
         fear_greed = pd.concat(components, axis=1).mean(axis=1)
@@ -248,15 +259,15 @@ class SentimentIndicators:
 
     def volatility_index(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         high_column: str = "high",
         low_column: str = "low",
         close_column: str = "close",
         period: int = 20,
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate volatility index"""
         if high_column not in data.columns or low_column not in data.columns or close_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         high = data[high_column]
         low = data[low_column]
@@ -277,11 +288,11 @@ class SentimentIndicators:
         return volatility
 
     def momentum_sentiment(
-        self, data: pd.DataFrame, price_column: str = "close", volume_column: str = "volume", period: int = 14
-    ) -> pd.Series:
+        self, data: DataFrame, price_column: str = "close", volume_column: str = "volume", period: int = 14
+    ) -> Series:
         """Calculate momentum-based sentiment"""
         if price_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         price = data[price_column]
 
@@ -301,8 +312,8 @@ class SentimentIndicators:
         return sentiment
 
     def generate_sentiment_signals(
-        self, data: pd.DataFrame, indicators: List[str], parameters: Dict[str, Any] = None
-    ) -> pd.DataFrame:
+        self, data: DataFrame, indicators: List[str], parameters: Dict[str, Any] = None
+    ) -> DataFrame:
         """Generate sentiment analysis signals"""
         if parameters is None:
             parameters = {}
@@ -321,13 +332,13 @@ class SentimentIndicators:
         return signals
 
     def get_sentiment_score(
-        self, data: pd.DataFrame, sentiment_indicators: List[str], weights: Dict[str, float] = None
-    ) -> pd.Series:
+        self, data: DataFrame, sentiment_indicators: List[str], weights: Dict[str, float] = None
+    ) -> Series:
         """Calculate composite sentiment score"""
         if weights is None:
             weights = {}
 
-        score = pd.Series(0.0, index=data.index)
+        score = Series(0.0, index=data.index)
         total_weight = 0
 
         for indicator in sentiment_indicators:
@@ -345,8 +356,8 @@ class SentimentIndicators:
         return score
 
     def get_sentiment_signals(
-        self, data: pd.DataFrame, sentiment_indicators: List[str], thresholds: Dict[str, float] = None
-    ) -> pd.DataFrame:
+        self, data: DataFrame, sentiment_indicators: List[str], thresholds: Dict[str, float] = None
+    ) -> DataFrame:
         """Generate sentiment-based trading signals"""
         if thresholds is None:
             thresholds = {"bullish": 0.3, "bearish": -0.3, "neutral": 0.1}

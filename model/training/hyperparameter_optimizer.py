@@ -10,8 +10,25 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+
+# ML dependencies - imported conditionally to avoid import errors
+try:
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+    from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    # Create dummy classes for type hints when sklearn is not available
+    class DummySklearn:
+        def __getattr__(self, name):
+            raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
+    
+    accuracy_score = DummySklearn()
+    f1_score = DummySklearn()
+    precision_score = DummySklearn()
+    recall_score = DummySklearn()
+    TimeSeriesSplit = DummySklearn()
+    cross_val_score = DummySklearn()
 
 # Optional import for optuna
 try:
@@ -48,6 +65,9 @@ class HyperparameterOptimizer:
             direction: Optimization direction (maximize/minimize)
             pruner: Pruning strategy (median, percentile, etc.)
         """
+        if not SKLEARN_AVAILABLE:
+            raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
+            
         self.n_trials = n_trials
         self.timeout = timeout
         self.direction = direction

@@ -10,13 +10,24 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-import mlflow.lightgbm
-import mlflow.sklearn
-import mlflow.xgboost
 import numpy as np
 import pandas as pd
 
-import mlflow
+# ML dependencies - imported conditionally to avoid import errors
+try:
+    import mlflow
+    import mlflow.lightgbm
+    import mlflow.sklearn
+    import mlflow.xgboost
+    MLFLOW_AVAILABLE = True
+except ImportError:
+    MLFLOW_AVAILABLE = False
+    # Create dummy classes for type hints when MLflow is not available
+    class DummyMLflow:
+        def __getattr__(self, name):
+            raise ImportError("MLflow is not available. Install with: poetry install --with ml")
+    
+    mlflow = DummyMLflow()
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +51,9 @@ class ExperimentManager:
         Args:
             tracking_uri: MLflow tracking server URI
         """
+        if not MLFLOW_AVAILABLE:
+            raise ImportError("MLflow is not available. Install with: poetry install --with ml")
+            
         self.tracking_uri = tracking_uri
         self.logger = logging.getLogger(__name__)
 

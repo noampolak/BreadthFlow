@@ -4,18 +4,22 @@ Fundamental Indicators Component
 Provides fundamental analysis indicators for signal generation.
 """
 
+import logging
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+
 # Optional pandas import
 try:
     import pandas as pd
-
     PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
 except ImportError:
     PANDAS_AVAILABLE = False
-
-import logging
-from typing import Any, Dict, List, Optional
-
-import numpy as np
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +47,7 @@ class FundamentalIndicators:
             "payout_ratio": self.payout_ratio,
         }
 
-    def calculate_indicator(self, indicator_name: str, data: pd.DataFrame, **kwargs) -> pd.Series:
+    def calculate_indicator(self, indicator_name: str, data: DataFrame, **kwargs) -> Series:
         """Calculate a specific fundamental indicator"""
         if indicator_name not in self.indicators:
             raise ValueError(f"Unknown indicator: {indicator_name}")
@@ -58,7 +62,7 @@ class FundamentalIndicators:
 
         # Handle DataFrame inputs
         if earnings_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[price_column] / data[earnings_column]
 
@@ -70,63 +74,63 @@ class FundamentalIndicators:
 
         # Handle DataFrame inputs
         if book_value_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[price_column] / data[book_value_column]
 
     def price_to_sales_ratio(
-        self, data: pd.DataFrame, price_column: str = "close", revenue_column: str = "revenue"
-    ) -> pd.Series:
+        self, data: DataFrame, price_column: str = "close", revenue_column: str = "revenue"
+    ) -> Series:
         """Calculate Price-to-Sales Ratio"""
         if revenue_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[price_column] / data[revenue_column]
 
     def enterprise_value_to_ebitda(
-        self, data: pd.DataFrame, ev_column: str = "enterprise_value", ebitda_column: str = "ebitda"
-    ) -> pd.Series:
+        self, data: DataFrame, ev_column: str = "enterprise_value", ebitda_column: str = "ebitda"
+    ) -> Series:
         """Calculate Enterprise Value to EBITDA"""
         if ev_column not in data.columns or ebitda_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[ev_column] / data[ebitda_column]
 
     def debt_to_equity_ratio(
-        self, data: pd.DataFrame, debt_column: str = "total_debt", equity_column: str = "total_equity"
-    ) -> pd.Series:
+        self, data: DataFrame, debt_column: str = "total_debt", equity_column: str = "total_equity"
+    ) -> Series:
         """Calculate Debt-to-Equity Ratio"""
         if debt_column not in data.columns or equity_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[debt_column] / data[equity_column]
 
     def current_ratio(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         current_assets_column: str = "current_assets",
         current_liabilities_column: str = "current_liabilities",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate Current Ratio"""
         if current_assets_column not in data.columns or current_liabilities_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[current_assets_column] / data[current_liabilities_column]
 
     def quick_ratio(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         current_assets_column: str = "current_assets",
         inventory_column: str = "inventory",
         current_liabilities_column: str = "current_liabilities",
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate Quick Ratio"""
         if (
             current_assets_column not in data.columns
             or inventory_column not in data.columns
             or current_liabilities_column not in data.columns
         ):
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return (data[current_assets_column] - data[inventory_column]) / data[current_liabilities_column]
 
@@ -138,79 +142,79 @@ class FundamentalIndicators:
 
         # Handle DataFrame inputs
         if net_income_column not in data.columns or equity_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[net_income_column] / data[equity_column]
 
     def return_on_assets(
-        self, data: pd.DataFrame, net_income_column: str = "net_income", assets_column: str = "total_assets"
-    ) -> pd.Series:
+        self, data: DataFrame, net_income_column: str = "net_income", assets_column: str = "total_assets"
+    ) -> Series:
         """Calculate Return on Assets"""
         if net_income_column not in data.columns or assets_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[net_income_column] / data[assets_column]
 
     def gross_margin(
-        self, data: pd.DataFrame, gross_profit_column: str = "gross_profit", revenue_column: str = "revenue"
-    ) -> pd.Series:
+        self, data: DataFrame, gross_profit_column: str = "gross_profit", revenue_column: str = "revenue"
+    ) -> Series:
         """Calculate Gross Margin"""
         if gross_profit_column not in data.columns or revenue_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[gross_profit_column] / data[revenue_column]
 
     def operating_margin(
-        self, data: pd.DataFrame, operating_income_column: str = "operating_income", revenue_column: str = "revenue"
-    ) -> pd.Series:
+        self, data: DataFrame, operating_income_column: str = "operating_income", revenue_column: str = "revenue"
+    ) -> Series:
         """Calculate Operating Margin"""
         if operating_income_column not in data.columns or revenue_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[operating_income_column] / data[revenue_column]
 
     def net_margin(
-        self, data: pd.DataFrame, net_income_column: str = "net_income", revenue_column: str = "revenue"
-    ) -> pd.Series:
+        self, data: DataFrame, net_income_column: str = "net_income", revenue_column: str = "revenue"
+    ) -> Series:
         """Calculate Net Margin"""
         if net_income_column not in data.columns or revenue_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[net_income_column] / data[revenue_column]
 
-    def revenue_growth(self, data: pd.DataFrame, revenue_column: str = "revenue", period: int = 4) -> pd.Series:
+    def revenue_growth(self, data: DataFrame, revenue_column: str = "revenue", period: int = 4) -> Series:
         """Calculate Revenue Growth Rate"""
         if revenue_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[revenue_column].pct_change(periods=period)
 
-    def earnings_growth(self, data: pd.DataFrame, earnings_column: str = "earnings", period: int = 4) -> pd.Series:
+    def earnings_growth(self, data: DataFrame, earnings_column: str = "earnings", period: int = 4) -> Series:
         """Calculate Earnings Growth Rate"""
         if earnings_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[earnings_column].pct_change(periods=period)
 
-    def dividend_yield(self, data: pd.DataFrame, dividend_column: str = "dividend", price_column: str = "close") -> pd.Series:
+    def dividend_yield(self, data: DataFrame, dividend_column: str = "dividend", price_column: str = "close") -> Series:
         """Calculate Dividend Yield"""
         if dividend_column not in data.columns or price_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[dividend_column] / data[price_column]
 
     def payout_ratio(
-        self, data: pd.DataFrame, dividend_column: str = "dividend", earnings_column: str = "earnings"
-    ) -> pd.Series:
+        self, data: DataFrame, dividend_column: str = "dividend", earnings_column: str = "earnings"
+    ) -> Series:
         """Calculate Payout Ratio"""
         if dividend_column not in data.columns or earnings_column not in data.columns:
-            return pd.Series(np.nan, index=data.index)
+            return Series(np.nan, index=data.index)
 
         return data[dividend_column] / data[earnings_column]
 
     def generate_fundamental_signals(
-        self, data: pd.DataFrame, indicators: List[str], parameters: Dict[str, Any] = None
-    ) -> pd.DataFrame:
+        self, data: DataFrame, indicators: List[str], parameters: Dict[str, Any] = None
+    ) -> DataFrame:
         """Generate fundamental analysis signals"""
         if parameters is None:
             parameters = {}
@@ -230,16 +234,16 @@ class FundamentalIndicators:
 
     def get_fundamental_score(
         self,
-        data: pd.DataFrame,
+        data: DataFrame,
         positive_indicators: List[str],
         negative_indicators: List[str],
         weights: Dict[str, float] = None,
-    ) -> pd.Series:
+    ) -> Series:
         """Calculate fundamental score based on indicators"""
         if weights is None:
             weights = {}
 
-        score = pd.Series(0.0, index=data.index)
+        score = Series(0.0, index=data.index)
 
         # Positive indicators (higher is better)
         for indicator in positive_indicators:
@@ -260,8 +264,8 @@ class FundamentalIndicators:
         return score
 
     def get_valuation_signals(
-        self, data: pd.DataFrame, valuation_indicators: List[str], thresholds: Dict[str, Dict[str, float]] = None
-    ) -> pd.DataFrame:
+        self, data: DataFrame, valuation_indicators: List[str], thresholds: Dict[str, Dict[str, float]] = None
+    ) -> DataFrame:
         """Generate valuation-based signals"""
         if thresholds is None:
             thresholds = {}

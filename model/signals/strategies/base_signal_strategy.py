@@ -10,10 +10,14 @@ from typing import Any, Dict, List, Optional
 # Optional pandas import
 try:
     import pandas as pd
-
     PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
 except ImportError:
     PANDAS_AVAILABLE = False
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 import logging
 from datetime import datetime
 
@@ -169,7 +173,7 @@ class BaseSignalStrategy(ABC):
             return None
 
         if signals.empty or not confidence_factors:
-            return pd.Series(0.5, index=signals.index)
+            return Series(0.5, index=signals.index)
 
         confidence_scores = []
 
@@ -182,7 +186,7 @@ class BaseSignalStrategy(ABC):
                     confidence_scores.append(normalized)
 
         if not confidence_scores:
-            return pd.Series(0.5, index=signals.index)
+            return Series(0.5, index=signals.index)
 
         # Calculate average confidence
         confidence = pd.concat(confidence_scores, axis=1).mean(axis=1)

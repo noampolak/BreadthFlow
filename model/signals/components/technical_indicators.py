@@ -11,10 +11,14 @@ import numpy as np
 # Optional pandas import
 try:
     import pandas as pd
-
     PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
 except ImportError:
     PANDAS_AVAILABLE = False
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -119,11 +123,11 @@ class TechnicalIndicators:
             np.maximum(np.abs(data["high"] - data["close"].shift(1)), np.abs(data["low"] - data["close"].shift(1))),
         )
 
-        plus_di = 100 * (pd.Series(plus_dm).rolling(window=period).mean() / pd.Series(tr).rolling(window=period).mean())
-        minus_di = 100 * (pd.Series(minus_dm).rolling(window=period).mean() / pd.Series(tr).rolling(window=period).mean())
+        plus_di = 100 * (Series(plus_dm).rolling(window=period).mean() / Series(tr).rolling(window=period).mean())
+        minus_di = 100 * (Series(minus_dm).rolling(window=period).mean() / Series(tr).rolling(window=period).mean())
 
         dx = 100 * np.abs(plus_di - minus_di) / (plus_di + minus_di)
-        adx = pd.Series(dx).rolling(window=period).mean()
+        adx = Series(dx).rolling(window=period).mean()
 
         return {"plus_di": plus_di, "minus_di": minus_di, "adx": adx}
 
@@ -134,7 +138,7 @@ class TechnicalIndicators:
         low_close = np.abs(data["low"] - data["close"].shift(1))
 
         true_range = np.maximum(high_low, np.maximum(high_close, low_close))
-        atr = pd.Series(true_range).rolling(window=period).mean()
+        atr = Series(true_range).rolling(window=period).mean()
 
         return atr
 
@@ -186,7 +190,7 @@ class TechnicalIndicators:
 
     def get_signal_strength(self, data, buy_conditions: List[str], sell_conditions: List[str]):
         """Calculate signal strength based on technical conditions"""
-        signal_strength = pd.Series(0.0, index=data.index)
+        signal_strength = Series(0.0, index=data.index)
 
         # Buy signals
         for condition in buy_conditions:
@@ -205,7 +209,7 @@ class TechnicalIndicators:
         """Calculate RSI - test compatibility method"""
         if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({"close": data})
+            df = DataFrame({"close": data})
             return self.relative_strength_index(df, period=period)
         else:  # It's a DataFrame
             return self.relative_strength_index(data, period=period)
@@ -214,7 +218,7 @@ class TechnicalIndicators:
         """Calculate MACD - test compatibility method"""
         if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({"close": data})
+            df = DataFrame({"close": data})
             result = self.moving_average_convergence_divergence(df, fast_period, slow_period, signal_period)
             return result["macd"], result["signal"], result["histogram"]
         else:  # It's a DataFrame
@@ -225,7 +229,7 @@ class TechnicalIndicators:
         """Calculate Bollinger Bands - test compatibility method"""
         if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({"close": data})
+            df = DataFrame({"close": data})
             result = self.bollinger_bands(df, period=period, std_dev=std_dev)
             return result["upper"], result["middle"], result["lower"]
         else:  # It's a DataFrame
@@ -236,7 +240,7 @@ class TechnicalIndicators:
         """Calculate SMA - test compatibility method"""
         if hasattr(data, "name"):  # It's a Series
             # Convert Series to DataFrame for the method
-            df = pd.DataFrame({"close": data})
+            df = DataFrame({"close": data})
             return self.simple_moving_average(df, period=period)
         else:  # It's a DataFrame
             return self.simple_moving_average(data, period=period)

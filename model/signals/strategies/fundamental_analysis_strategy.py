@@ -6,10 +6,21 @@ Implements fundamental analysis-based signal generation strategies.
 
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
-import pandas as pd
+
+# Optional pandas import
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
+except ImportError:
+    PANDAS_AVAILABLE = False
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 
 from ..components.fundamental_indicators import FundamentalIndicators
 from ..signal_config import SignalConfig
@@ -49,7 +60,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
         # Update config with defaults
         self.config.update(self.default_config)
 
-    def generate_signals(self, data: Dict[str, pd.DataFrame], config: SignalConfig) -> pd.DataFrame:
+    def generate_signals(self, data: Dict[str, DataFrame], config: SignalConfig) -> DataFrame:
         """Generate fundamental analysis signals"""
 
         start_time = time.time()
@@ -65,13 +76,13 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
             if not processed_data:
                 logger.error("No valid data after preprocessing")
-                return pd.DataFrame()
+                return DataFrame()
 
             # Get stock price data as base
             stock_data = processed_data.get("stock_price")
             if stock_data is None or stock_data.empty:
                 logger.error("No stock price data available")
-                return pd.DataFrame()
+                return DataFrame()
 
             # Merge fundamental data with stock data
             signals = self._merge_fundamental_data(stock_data, processed_data)
@@ -103,14 +114,14 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         except Exception as e:
             logger.error(f"Error generating fundamental analysis signals: {e}")
-            return pd.DataFrame()
+            return DataFrame()
 
         finally:
             # Update performance stats
             generation_time = time.time() - start_time
             self.update_performance_stats(success, generation_time)
 
-    def validate_data(self, data: Dict[str, pd.DataFrame]) -> bool:
+    def validate_data(self, data: Dict[str, DataFrame]) -> bool:
         """Validate that required data is available"""
         required_resources = ["stock_price", "revenue", "market_cap"]
 
@@ -134,7 +145,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return True
 
-    def _merge_fundamental_data(self, stock_data: pd.DataFrame, processed_data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def _merge_fundamental_data(self, stock_data: DataFrame, processed_data: Dict[str, DataFrame]) -> DataFrame:
         """Merge fundamental data with stock price data"""
         signals = stock_data.copy()
 
@@ -156,7 +167,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def _generate_valuation_signals(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _generate_valuation_signals(self, data: DataFrame) -> DataFrame:
         """Generate valuation-based signals"""
         signals = data.copy()
 
@@ -177,7 +188,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def _generate_growth_signals(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _generate_growth_signals(self, data: DataFrame) -> DataFrame:
         """Generate growth-based signals"""
         signals = data.copy()
 
@@ -199,7 +210,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def _generate_profitability_signals(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _generate_profitability_signals(self, data: DataFrame) -> DataFrame:
         """Generate profitability-based signals"""
         signals = data.copy()
 
@@ -221,7 +232,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def _calculate_fundamental_score(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _calculate_fundamental_score(self, data: DataFrame) -> DataFrame:
         """Calculate composite fundamental score"""
         signals = data.copy()
 
@@ -253,7 +264,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def _calculate_signal_metrics(self, signals: pd.DataFrame) -> pd.DataFrame:
+    def _calculate_signal_metrics(self, signals: DataFrame) -> DataFrame:
         """Calculate signal strength and confidence metrics"""
 
         # Calculate signal strength based on fundamental score
@@ -289,7 +300,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
         if confidence_factors:
             confidence = pd.concat(confidence_factors, axis=1).mean(axis=1)
         else:
-            confidence = pd.Series(0.5, index=signals.index)
+            confidence = Series(0.5, index=signals.index)
 
         signals["confidence"] = confidence
 
@@ -300,7 +311,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def get_strategy_signals(self, data: pd.DataFrame) -> Dict[str, pd.Series]:
+    def get_strategy_signals(self, data: DataFrame) -> Dict[str, Series]:
         """Get individual strategy signals"""
         signals = {}
 
@@ -328,7 +339,7 @@ class FundamentalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def get_signal_summary(self, signals: pd.DataFrame) -> Dict[str, Any]:
+    def get_signal_summary(self, signals: DataFrame) -> Dict[str, Any]:
         """Get summary of generated signals"""
         if signals.empty:
             return {

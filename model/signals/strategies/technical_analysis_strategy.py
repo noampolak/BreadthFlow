@@ -12,10 +12,14 @@ import numpy as np
 # Optional pandas import
 try:
     import pandas as pd
-
     PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
 except ImportError:
     PANDAS_AVAILABLE = False
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 import time
 
 from ..components.technical_indicators import TechnicalIndicators
@@ -76,7 +80,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
             if not processed_data:
                 logger.error("No valid data after preprocessing")
                 if PANDAS_AVAILABLE:
-                    return pd.DataFrame()
+                    return DataFrame()
                 else:
                     return {}
 
@@ -85,7 +89,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
             if stock_data is None or stock_data.empty:
                 logger.error("No stock price data available")
                 if PANDAS_AVAILABLE:
-                    return pd.DataFrame()
+                    return DataFrame()
                 else:
                     return {}
 
@@ -108,7 +112,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
         except Exception as e:
             logger.error(f"Error generating technical analysis signals: {e}")
             if PANDAS_AVAILABLE:
-                return pd.DataFrame()
+                return DataFrame()
             else:
                 return {}
 
@@ -117,7 +121,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
             generation_time = time.time() - start_time
             self.update_performance_stats(success, generation_time)
 
-    def validate_data(self, data: Dict[str, pd.DataFrame]) -> bool:
+    def validate_data(self, data: Dict[str, DataFrame]) -> bool:
         """Validate that required data is available"""
         if "stock_price" not in data:
             logger.error("Technical analysis strategy requires stock_price data")
@@ -138,7 +142,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
 
         return True
 
-    def _generate_trading_signals(self, data: pd.DataFrame) -> pd.DataFrame:
+    def _generate_trading_signals(self, data: DataFrame) -> DataFrame:
         """Generate trading signals based on technical indicators"""
         signals = data.copy()
 
@@ -180,15 +184,15 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def _calculate_signal_metrics(self, signals: pd.DataFrame) -> pd.DataFrame:
+    def _calculate_signal_metrics(self, signals: DataFrame) -> DataFrame:
         """Calculate signal strength and confidence metrics"""
 
         # Calculate composite signal strength
         buy_signals = [col for col in signals.columns if col.endswith("_buy")]
         sell_signals = [col for col in signals.columns if col.endswith("_sell")]
 
-        buy_strength = signals[buy_signals].sum(axis=1) if buy_signals else pd.Series(0, index=signals.index)
-        sell_strength = signals[sell_signals].sum(axis=1) if sell_signals else pd.Series(0, index=signals.index)
+        buy_strength = signals[buy_signals].sum(axis=1) if buy_signals else Series(0, index=signals.index)
+        sell_strength = signals[sell_signals].sum(axis=1) if sell_signals else Series(0, index=signals.index)
 
         # Calculate net signal strength (-1 to 1)
         total_signals = buy_strength + sell_strength
@@ -218,7 +222,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
         if confidence_factors:
             confidence = pd.concat(confidence_factors, axis=1).mean(axis=1)
         else:
-            confidence = pd.Series(0.5, index=signals.index)
+            confidence = Series(0.5, index=signals.index)
 
         signals["confidence"] = confidence
 
@@ -227,7 +231,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def get_strategy_signals(self, data: pd.DataFrame) -> Dict[str, pd.Series]:
+    def get_strategy_signals(self, data: DataFrame) -> Dict[str, Series]:
         """Get individual strategy signals"""
         signals = {}
 
@@ -254,7 +258,7 @@ class TechnicalAnalysisStrategy(BaseSignalStrategy):
 
         return signals
 
-    def get_signal_summary(self, signals: pd.DataFrame) -> Dict[str, Any]:
+    def get_signal_summary(self, signals: DataFrame) -> Dict[str, Any]:
         """Get summary of generated signals"""
         if signals.empty:
             return {

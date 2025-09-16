@@ -10,10 +10,14 @@ from typing import Any, Dict, List, Optional
 # Optional pandas import
 try:
     import pandas as pd
-
     PANDAS_AVAILABLE = True
+    DataFrame = DataFrame
+    Series = Series
 except ImportError:
     PANDAS_AVAILABLE = False
+    # Create dummy types for type hints when pandas is not available
+    DataFrame = Any
+    Series = Any
 # Import logging components directly to avoid PySpark dependency
 import logging
 import time
@@ -119,7 +123,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
             if not strategy_results:
                 logger.warning("No strategy results generated")
                 if PANDAS_AVAILABLE:
-                    return pd.DataFrame()
+                    return DataFrame()
                 else:
                     return {}
 
@@ -146,7 +150,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
         except Exception as e:
             logger.error(f"Error in composite signal generation: {e}")
             if PANDAS_AVAILABLE:
-                self._update_generation_stats(pd.DataFrame(), False)
+                self._update_generation_stats(DataFrame(), False)
             else:
                 self._update_generation_stats({}, False)
             raise
@@ -169,7 +173,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return True
 
-    def _validate_data(self, data: Dict[str, pd.DataFrame], config) -> bool:
+    def _validate_data(self, data: Dict[str, DataFrame], config) -> bool:
         """Validate data for composite signal generation"""
         if not data:
             return False
@@ -192,7 +196,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return True
 
-    def _generate_strategy_signals(self, config: SignalConfig, data: Dict[str, pd.DataFrame]) -> Dict[str, pd.DataFrame]:
+    def _generate_strategy_signals(self, config: SignalConfig, data: Dict[str, DataFrame]) -> Dict[str, DataFrame]:
         """Generate signals from each registered strategy"""
         strategy_results = {}
 
@@ -215,11 +219,11 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return strategy_results
 
-    def _combine_strategy_signals(self, strategy_results: Dict[str, pd.DataFrame], config: SignalConfig) -> pd.DataFrame:
+    def _combine_strategy_signals(self, strategy_results: Dict[str, DataFrame], config: SignalConfig) -> DataFrame:
         """Combine signals from multiple strategies"""
 
         if not strategy_results:
-            return pd.DataFrame()
+            return DataFrame()
 
         # Get combination method
         combination_method = self.config.get("combination_method", "weighted_average")
@@ -234,7 +238,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
             logger.warning(f"Unknown combination method: {combination_method}, using weighted average")
             return self._weighted_average_combination(strategy_results, config)
 
-    def _weighted_average_combination(self, strategy_results: Dict[str, pd.DataFrame], config: SignalConfig) -> pd.DataFrame:
+    def _weighted_average_combination(self, strategy_results: Dict[str, DataFrame], config: SignalConfig) -> DataFrame:
         """Combine signals using weighted average"""
 
         # Get strategy weights
@@ -275,7 +279,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return composite_signals
 
-    def _voting_combination(self, strategy_results: Dict[str, pd.DataFrame], config: SignalConfig) -> pd.DataFrame:
+    def _voting_combination(self, strategy_results: Dict[str, DataFrame], config: SignalConfig) -> DataFrame:
         """Combine signals using voting mechanism"""
 
         # Initialize composite signals
@@ -283,9 +287,9 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
         composite_signals = strategy_results[first_strategy].copy()
 
         # Count votes for each signal type
-        buy_votes = pd.Series(0, index=composite_signals.index)
-        sell_votes = pd.Series(0, index=composite_signals.index)
-        hold_votes = pd.Series(0, index=composite_signals.index)
+        buy_votes = Series(0, index=composite_signals.index)
+        sell_votes = Series(0, index=composite_signals.index)
+        hold_votes = Series(0, index=composite_signals.index)
 
         for strategy_name, signals in strategy_results.items():
             if "signal_type" in signals.columns:
@@ -311,7 +315,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return composite_signals
 
-    def _ensemble_combination(self, strategy_results: Dict[str, pd.DataFrame], config: SignalConfig) -> pd.DataFrame:
+    def _ensemble_combination(self, strategy_results: Dict[str, DataFrame], config: SignalConfig) -> DataFrame:
         """Combine signals using ensemble methods"""
 
         # Initialize composite signals
@@ -364,15 +368,15 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
         return composite_signals
 
     def _apply_consensus_filtering(
-        self, composite_signals: pd.DataFrame, strategy_results: Dict[str, pd.DataFrame]
-    ) -> pd.DataFrame:
+        self, composite_signals: DataFrame, strategy_results: Dict[str, DataFrame]
+    ) -> DataFrame:
         """Apply consensus filtering to remove conflicting signals"""
 
         min_strategies = self.config.get("min_strategies_required", 1)
         consensus_threshold = self.config.get("consensus_threshold", 0.7)
 
         # Count strategies that agree on signal direction
-        agreement_count = pd.Series(0, index=composite_signals.index)
+        agreement_count = Series(0, index=composite_signals.index)
         total_strategies = len(strategy_results)
 
         for strategy_name, signals in strategy_results.items():
@@ -392,8 +396,8 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
         return filtered_signals
 
     def _calculate_final_metrics(
-        self, composite_signals: pd.DataFrame, strategy_results: Dict[str, pd.DataFrame]
-    ) -> pd.DataFrame:
+        self, composite_signals: DataFrame, strategy_results: Dict[str, DataFrame]
+    ) -> DataFrame:
         """Calculate final metrics for composite signals"""
 
         if composite_signals.empty:
@@ -410,7 +414,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return composite_signals
 
-    def _update_generation_stats(self, signals: pd.DataFrame, success: bool):
+    def _update_generation_stats(self, signals: DataFrame, success: bool):
         """Update generation statistics"""
         self.generation_stats["total_generations"] += 1
 
@@ -438,7 +442,7 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
 
         return metrics
 
-    def get_signal_quality_metrics(self, signals: pd.DataFrame) -> Dict[str, Any]:
+    def get_signal_quality_metrics(self, signals: DataFrame) -> Dict[str, Any]:
         """Calculate signal quality metrics"""
         if signals.empty:
             return {

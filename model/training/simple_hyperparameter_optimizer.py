@@ -6,11 +6,29 @@ A basic hyperparameter optimizer that doesn't require Optuna.
 import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 
-import joblib
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+
+# ML dependencies - imported conditionally to avoid import errors
+try:
+    import joblib
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+    from sklearn.model_selection import TimeSeriesSplit, cross_val_score
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    # Create dummy classes for type hints when sklearn is not available
+    class DummySklearn:
+        def __getattr__(self, name):
+            raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
+    
+    joblib = DummySklearn()
+    accuracy_score = DummySklearn()
+    f1_score = DummySklearn()
+    precision_score = DummySklearn()
+    recall_score = DummySklearn()
+    TimeSeriesSplit = DummySklearn()
+    cross_val_score = DummySklearn()
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +47,9 @@ class SimpleHyperparameterOptimizer:
             cv_folds: Number of cross-validation folds
             scoring: Scoring metric for optimization
         """
+        if not SKLEARN_AVAILABLE:
+            raise ImportError("scikit-learn is not available. Install with: poetry install --with ml")
+            
         self.n_trials = n_trials
         self.cv_folds = cv_folds
         self.scoring = scoring
