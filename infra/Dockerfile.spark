@@ -1,4 +1,4 @@
-FROM bitnami/spark:latest
+    FROM bitnami/spark:latest
 
 # Switch to root for installations
 USER root
@@ -6,7 +6,7 @@ USER root
 # Install Python packages for UDFs and CLI
 # Install PySpark 4.0.0 first to prevent pip from installing 3.5.6
 RUN pip3 install pyspark==4.0.0
-RUN pip3 install yfinance pandas numpy click requests python-dotenv kafka-python delta-spark boto3 pyarrow psycopg2-binary scipy
+RUN pip3 install yfinance pandas numpy click requests python-dotenv kafka-python delta-spark boto3 pyarrow psycopg2-binary scipy pyyaml psutil scikit-learn joblib
 
 # Install cron for scheduling
 RUN apt-get update && apt-get install -y cron

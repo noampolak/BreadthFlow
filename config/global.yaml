@@ -1,0 +1,33 @@
+# Global BreadthFlow Configuration
+# This file contains system-wide configuration settings
+
+database:
+  host: localhost
+  port: 5432
+  name: breadthflow
+  user: pipeline
+  password: pipeline123
+
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: logs/breadthflow.log
+
+components:
+  data_fetcher:
+    default_timeout: 30
+    max_retries: 3
+  
+  signal_generator:
+    default_confidence_threshold: 0.6
+    max_signals_per_symbol: 10
+  
+  backtest_engine:
+    default_commission_rate: 0.001
+    default_slippage_rate: 0.0005
+
+# Migration settings
+migration:
+  enable_legacy_adapters: true
+  gradual_rollout: true
+  rollback_threshold: 0.05  # 5% error rate triggers rollback

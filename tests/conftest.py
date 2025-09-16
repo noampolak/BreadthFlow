@@ -1,0 +1,117 @@
+"""
+Test configuration and fixtures for BreadthFlow test suite.
+"""
+
+import asyncio
+import os
+
+# Test database configuration - use file-based SQLite for testing to persist across connections
+import tempfile
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from fastapi_app.apps.commands.models import CommandExecution
+from fastapi_app.apps.dashboard.models import DashboardStats
+from fastapi_app.apps.parameters.models import ParameterConfig, ParameterHistory
+
+# Import all models to ensure they're registered with Base.metadata
+from fastapi_app.apps.pipeline.models import PipelineRun
+from fastapi_app.apps.training.models import TrainedModel, TrainingSession
+from fastapi_app.core.database import Base, get_db
+from fastapi_app.main import app
+from tests.fixtures.test_data import TestDataFactory
+
+# Create a temporary database file
+temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
+temp_db.close()
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{temp_db.name}"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Create all tables once at module level
+Base.metadata.create_all(bind=engine)
+
+
+def override_get_db():
+    """Override database dependency for testing"""
+    try:
+        db = TestingSessionLocal()
+        yield db
+    finally:
+        db.close()
+
+
+# Override the database dependency
+app.dependency_overrides[get_db] = override_get_db
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for the test session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_test_db():
+    """Clean up the temporary test database file after all tests"""
+    yield
+    # Clean up the temporary database file
+    try:
+        os.unlink(temp_db.name)
+    except OSError:
+        pass  # File might already be deleted
+
+
+@pytest.fixture
+def client(db_session):
+    """Test client that uses the test database session"""
+    app.dependency_overrides[get_db] = lambda: db_session
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides = {}
+
+
+@pytest.fixture
+def db_session():
+    """Create test database session"""
+    session = TestingSessionLocal()
+    yield session
+    session.close()
+
+
+@pytest.fixture
+def test_data_factory():
+    """Create test data factory"""
+    return TestDataFactory()
+
+
+@pytest.fixture
+def sample_ohlcv_data(test_data_factory):
+    """Create sample OHLCV data for testing"""
+    return test_data_factory.create_ohlcv_data()
+
+
+@pytest.fixture
+def sample_signal_data(test_data_factory):
+    """Create sample signal data for testing"""
+    return test_data_factory.create_signal_data()
+
+
+@pytest.fixture
+def sample_user_data(test_data_factory):
+    """Create sample user data for testing"""
+    return test_data_factory.create_user_data()
+
+
+# Pytest configuration
+def pytest_configure(config):
+    """Configure pytest"""
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "e2e: mark test as end-to-end test")
+    config.addinivalue_line("markers", "slow: mark test as slow running")

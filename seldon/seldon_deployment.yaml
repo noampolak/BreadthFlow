@@ -1,0 +1,72 @@
+apiVersion: machinelearning.seldon.io/v1
+kind: SeldonDeployment
+metadata:
+  name: breadthflow-trading
+  namespace: seldon-system
+spec:
+  name: breadthflow-trading
+  predictors:
+  - name: default
+    replicas: 2
+    componentSpecs:
+    - spec:
+        containers:
+        - name: model
+          image: breadthflow-seldon:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8000
+            protocol: TCP
+          env:
+          - name: SELDON_MODEL_NAME
+            value: "breadthflow-model"
+          - name: MODEL_VERSION
+            value: "latest"
+          - name: MLFLOW_TRACKING_URI
+            value: "http://mlflow:5000"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+    traffic: 100
+  - name: canary
+    replicas: 1
+    componentSpecs:
+    - spec:
+        containers:
+        - name: model
+          image: breadthflow-seldon:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8000
+            protocol: TCP
+          env:
+          - name: SELDON_MODEL_NAME
+            value: "breadthflow-model"
+          - name: MODEL_VERSION
+            value: "canary"
+          - name: MLFLOW_TRACKING_URI
+            value: "http://mlflow:5000"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+    traffic: 0

@@ -251,31 +251,61 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # BreadthFlow Web Dashboard
-  dashboard:
+  # BreadthFlow FastAPI Backend
+  breadthflow-api:
     build:
-      context: ..
-      dockerfile: infra/Dockerfile.dashboard
-    container_name: breadthflow-dashboard
+      context: ../fastapi_app
+      dockerfile: Dockerfile
+    container_name: breadthflow-api
     environment:
+      - DATABASE_URL=postgresql://pipeline:pipeline123@postgres:5432/breadthflow
+      - REDIS_URL=redis://redis:6379
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - DATABASE_URL=postgresql://pipeline:pipeline123@postgres:5432/breadthflow
+      - SPARK_COMMAND_SERVER_URL=http://spark-master:8081
     ports:
-      - "8083:8080"  # Dashboard on port 8083
+      - "8005:8005"  # FastAPI on port 8005
     volumes:
       - ../cli:/app/cli:ro
     depends_on:
       - postgres
+      - redis
       - elasticsearch
       - minio
+      - spark-master
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    restart: unless-stopped
+
+  # BreadthFlow React Frontend
+  breadthflow-frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: breadthflow-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8005
+      - REACT_APP_WS_URL=ws://localhost:8005/ws
+    ports:
+      - "3005:3005"  # React on port 3005
+    depends_on:
+      - breadthflow-api
+    restart: unless-stopped
+
+
+  # Redis for caching and WebSocket
+  redis:
+    image: redis:7-alpine
+    container_name: breadthflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     restart: unless-stopped
 
   # Zookeeper (for Kafka)
@@ -301,8 +331,8 @@ volumes:
   minio-data:
   elasticsearch-data:
   zookeeper-data:
-  dashboard-data:
   postgres-data:
+  redis_data:
 
 networks:
   default:

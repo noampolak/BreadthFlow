@@ -6,11 +6,12 @@ authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
 packages = [
     {include = "ingestion"},
-    {include = "streaming"},
     {include = "features"},
     {include = "model"},
-    {include = "backtests"},
     {include = "cli"},
+    {include = "data_pipeline"},
+    {include = "fastapi_app"},
+    {include = "seldon"},
 ]
 keywords = ["trading", "signals", "pyspark", "kafka", "delta-lake", "elasticsearch"]
 classifiers = [
@@ -45,6 +46,20 @@ boto3 = "^1.40.10"
 click = "^8.1.7"
 python-dotenv = "^1.0.0"
 pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+
+# Web Framework
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+sqlalchemy = "^2.0.23"
+psycopg2-binary = "^2.9.9"
+alembic = "^1.12.1"
+httpx = "^0.25.2"
+python-multipart = "^0.0.6"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+redis = "^5.0.1"
+celery = "^5.3.4"
 
 # Data Fetching
 yfinance = "^0.2.28"
@@ -62,12 +77,21 @@ orjson = "^3.9.10"
 structlog = "^23.2.0"
 scipy = "<1.12"
 
+# System Monitoring & Configuration
+psutil = "^5.9.0"
+pyyaml = "^6.0.1"
+
+# Machine Learning dependencies moved to optional groups
+# See [tool.poetry.group.ml.dependencies] below
+
 [tool.poetry.group.dev.dependencies]
 # Testing
 pytest = "^7.4.0"
 pytest-asyncio = "^0.21.1"
 pytest-cov = "^4.1.0"
 pytest-mock = "^3.12.0"
+pytest-xdist = "^3.5.0"
+httpx = "^0.25.2"
 
 # Code Quality
 black = "^23.12.0"
@@ -83,6 +107,9 @@ sphinx-rtd-theme = "^2.0.0"
 pre-commit = "^3.6.0"
 jupyter = "^1.0.0"
 ipython = "^8.18.0"
+
+# ML dependencies moved to requirements-ci.txt for faster CI builds
+# Install with: pip install -r requirements-ci.txt
 
 [tool.poetry.scripts]
 bf = "cli.bf:cli"
@@ -122,6 +149,27 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
+
+[tool.flake8]
+max-line-length = 127
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv/",
+    "venv/",
+    "env/",
+    ".eggs/",
+    "*.egg",
+    "build/",
+    "dist/",
+    ".mypy_cache/",
+    ".pytest_cache/",
+    ".tox/",
+    "node_modules/",
+    "frontend/node_modules/",
+    "frontend/build/"
+]
 
 [tool.mypy]
 python_version = "3.9"

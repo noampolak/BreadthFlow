@@ -1,10 +1,8 @@
 """
-Backtesting module for Breadth/Thrust Signals POC.
+Backtesting module for BreadthFlow.
 
-Handles performance analysis, portfolio simulation, and risk metrics.
+This module contains backtesting functionality for testing trading strategies
+and analyzing historical performance.
 """
 
-from .engine import BacktestEngine
-from .metrics import calculate_metrics
-
-__all__ = ['BacktestEngine', 'calculate_metrics']
+__version__ = "0.1.0"

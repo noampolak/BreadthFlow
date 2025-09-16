@@ -1,10 +1,18 @@
 """
-Signal generation and ML module for Breadth/Thrust Signals POC.
+Model Training Module for BreadthFlow ML Pipeline
 
-Handles composite scoring, signal generation, and ML-ready interfaces.
+This module provides comprehensive model training capabilities
+including experiment tracking, hyperparameter optimization,
+and model validation.
 """
 
-from .scoring import SignalScoring
-from .signal_generator import SignalGenerator
+# ML training modules - imported conditionally to avoid import errors
+try:
+    from .training.experiment_manager import ExperimentManager
+    from .training.hyperparameter_optimizer import HyperparameterOptimizer
+    from .training.model_trainer import ModelTrainer
 
-__all__ = ['SignalScoring', 'SignalGenerator']
+    __all__ = ["ModelTrainer", "ExperimentManager", "HyperparameterOptimizer"]
+except ImportError:
+    # ML dependencies not available
+    __all__ = []

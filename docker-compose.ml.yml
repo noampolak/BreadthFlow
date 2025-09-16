@@ -1,0 +1,315 @@
+version: '3.8'
+
+services:
+  # Existing services (keep your current setup)
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: breadthflow
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  # New ML Services
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  spark-master:
+    image: bitnami/spark:3.5
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - "8080:8080"  # Spark UI
+      - "7077:7077"  # Master port
+    volumes:
+      - spark-data:/opt/bitnami/spark
+      - ./data:/data
+
+  spark-worker:
+    image: bitnami/spark:3.5
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+    depends_on:
+      - spark-master
+    volumes:
+      - spark-data:/opt/bitnami/spark
+      - ./data:/data
+
+  mlflow:
+    image: python:3.9-slim
+    ports:
+      - "5001:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://user:password@postgres:5432/mlflow
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=s3://mlflow-artifacts
+    volumes:
+      - ./mlflow:/mlflow
+    command: >
+      bash -c "
+        pip install mlflow psycopg2-binary boto3 &&
+        mlflow server --host 0.0.0.0 --port 5000
+      "
+    depends_on:
+      - postgres
+      - minio
+
+  jupyter:
+    image: jupyter/datascience-notebook:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=breadthflow123
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/data
+      - ./mlflow:/mlflow
+      - ./features:/home/jovyan/work/features
+      - ./experiments:/home/jovyan/work/experiments
+
+
+  data-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.data-pipeline
+    ports:
+      - "8001:8001"  # Data Pipeline API
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+    volumes:
+      - ./data_pipeline:/app/data_pipeline
+      - ./data:/data
+    depends_on:
+      - spark-master
+      - spark-worker
+      - minio
+      - postgres
+
+  airflow:
+    image: apache/airflow:2.7.0
+    ports:
+      - "8081:8080"  # Airflow UI
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql://user:password@postgres:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=your-fernet-key-here
+      - AIRFLOW__WEBSERVER__SECRET_KEY=your-secret-key-here
+      - AIRFLOW__CORE__DEFAULT_TIMEZONE=UTC
+      - AIRFLOW__CORE__DEFAULT_UI_TIMEZONE=UTC
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      - postgres
+      - minio
+      - data-pipeline
+
+  feature-engineering:
+    build:
+      context: .
+      dockerfile: Dockerfile.feature-engineering
+    ports:
+      - "8002:8002"  # Feature Engineering API
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+    volumes:
+      - ./features:/app/features
+      - ./data:/data
+    depends_on:
+      - spark-master
+      - spark-worker
+      - minio
+      - data-pipeline
+
+
+  model-training:
+    build:
+      context: .
+      dockerfile: Dockerfile.model-training
+    ports:
+      - "8003:8003"  # Model Training API
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+    volumes:
+      - ./model:/app/model
+      - ./data:/data
+      - ./mlflow:/mlflow
+    depends_on:
+      - spark-master
+      - spark-worker
+      - mlflow
+      - feature-engineering
+
+  automl:
+    build:
+      context: .
+      dockerfile: Dockerfile.automl
+    ports:
+      - "8004:8004"  # AutoML API
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+    volumes:
+      - ./model:/app/model
+      - ./data:/data
+      - ./mlflow:/mlflow
+    depends_on:
+      - spark-master
+      - spark-worker
+      - mlflow
+      - model-training
+
+  # Monitoring & Visualization Stack
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"  # Grafana UI
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"  # Prometheus UI
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    ports:
+      - "5601:5601"  # Kibana UI
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+  # Model Serving & A/B Testing Stack
+  seldon-core-operator:
+    image: seldonio/seldon-core-operator:1.18.0
+    ports:
+      - "8084:8080"  # Seldon Core API Gateway
+    environment:
+      - SELDON_CORE_NAMESPACE=seldon-system
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./seldon:/seldon
+    depends_on:
+      - mlflow
+      - postgres
+
+  seldon-deployment:
+    build:
+      context: .
+      dockerfile: Dockerfile.seldon
+    ports:
+      - "8005:9000"  # Model serving endpoint (Seldon runs on port 9000 internally)
+    environment:
+      - SELDON_MODEL_NAME=breadthflow-model
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_VERSION=latest
+    volumes:
+      - ./model:/app/model
+      - ./data:/data
+    depends_on:
+      - seldon-core-operator
+      - mlflow
+
+  # Model Registry & Versioning
+  model-registry:
+    build:
+      context: .
+      dockerfile: Dockerfile.model-registry
+    ports:
+      - "8006:8000"  # Model Registry API
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - POSTGRES_URL=postgresql://user:password@postgres:5432/breadthflow
+    volumes:
+      - ./model:/app/model
+      - ./mlflow:/mlflow
+    depends_on:
+      - mlflow
+      - postgres
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  spark-data:
+  grafana-data:
+  prometheus-data:
+  elasticsearch-data:

@@ -20,7 +20,7 @@ git clone <repository-url>
 cd BreadthFlow
 
 # Install dependencies
-poetry install
+poetry install --with ci
 
 # Setup environment
 cp env.example .env
