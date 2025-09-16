@@ -9,7 +9,8 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
-import talib
+
+# import talib  # Temporarily disabled for easier deployment
 
 
 class TechnicalIndicators:
@@ -20,18 +21,46 @@ class TechnicalIndicators:
         """Calculate Relative Strength Index (RSI)."""
         if isinstance(prices, np.ndarray):
             prices = pd.Series(prices)
-        return pd.Series(talib.RSI(prices.values, timeperiod=period), index=prices.index)
+
+        # Calculate price changes
+        delta = prices.diff()
+
+        # Separate gains and losses
+        gains = delta.where(delta > 0, 0)
+        losses = -delta.where(delta < 0, 0)
+
+        # Calculate average gains and losses
+        avg_gains = gains.rolling(window=period).mean()
+        avg_losses = losses.rolling(window=period).mean()
+
+        # Calculate RSI
+        rs = avg_gains / avg_losses
+        rsi = 100 - (100 / (1 + rs))
+
+        return rsi
 
     @staticmethod
     def calculate_macd(prices: Union[pd.Series, np.ndarray], fast: int = 12, slow: int = 26, signal: int = 9) -> dict:
         """Calculate MACD (Moving Average Convergence Divergence)."""
         if isinstance(prices, np.ndarray):
             prices = pd.Series(prices)
-        macd, signal_line, histogram = talib.MACD(prices.values, fastperiod=fast, slowperiod=slow, signalperiod=signal)
+        # Calculate EMAs
+        ema_fast = prices.ewm(span=fast).mean()
+        ema_slow = prices.ewm(span=slow).mean()
+
+        # Calculate MACD line
+        macd = ema_fast - ema_slow
+
+        # Calculate signal line (EMA of MACD)
+        signal_line = macd.ewm(span=signal).mean()
+
+        # Calculate histogram
+        histogram = macd - signal_line
+
         return {
-            "macd": pd.Series(macd, index=prices.index),
-            "signal": pd.Series(signal_line, index=prices.index),
-            "histogram": pd.Series(histogram, index=prices.index),
+            "macd": macd,
+            "signal": signal_line,
+            "histogram": histogram,
         }
 
     @staticmethod
@@ -39,11 +68,20 @@ class TechnicalIndicators:
         """Calculate Bollinger Bands."""
         if isinstance(prices, np.ndarray):
             prices = pd.Series(prices)
-        upper, middle, lower = talib.BBANDS(prices.values, timeperiod=period, nbdevup=std_dev, nbdevdn=std_dev)
+        # Calculate middle band (SMA)
+        middle = prices.rolling(window=period).mean()
+
+        # Calculate standard deviation
+        std = prices.rolling(window=period).std()
+
+        # Calculate upper and lower bands
+        upper = middle + (std * std_dev)
+        lower = middle - (std * std_dev)
+
         return {
-            "upper": pd.Series(upper, index=prices.index),
-            "middle": pd.Series(middle, index=prices.index),
-            "lower": pd.Series(lower, index=prices.index),
+            "upper": upper,
+            "middle": middle,
+            "lower": lower,
         }
 
     @staticmethod

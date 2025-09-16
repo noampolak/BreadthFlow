@@ -27,6 +27,8 @@ RUN pip install --no-cache-dir \
     pyarrow==12.0.1 \
     pydantic==2.5.0
 
+# TA-Lib replaced with pandas/numpy implementations
+
 # Copy feature engineering code
 COPY features/ /app/features/
 COPY data/ /data/

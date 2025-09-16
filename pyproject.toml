@@ -66,6 +66,9 @@ yfinance = "^0.2.28"
 requests = "^2.31.0"
 aiohttp = "^3.9.1"
 
+# Technical Analysis
+TA-Lib = "^0.4.28"
+
 # Date/Time Handling
 python-dateutil = "^2.8.2"
 pytz = "^2024.1"

@@ -1,0 +1,31 @@
+FROM jupyter/datascience-notebook:latest
+
+# Switch to root to install system dependencies
+USER root
+
+# Switch back to jovyan user
+USER jovyan
+
+# TA-Lib replaced with pandas/numpy implementations
+
+# Install additional project dependencies
+RUN pip install --no-cache-dir \
+    yfinance==0.2.28 \
+    requests==2.31.0 \
+    minio==7.2.0 \
+    pydantic==2.5.0
+
+# Set working directory
+WORKDIR /home/jovyan/work
+
+# Copy project files
+COPY --chown=jovyan:users notebooks/ /home/jovyan/work/
+COPY --chown=jovyan:users features/ /home/jovyan/work/features/
+COPY --chown=jovyan:users experiments/ /home/jovyan/work/experiments/
+COPY --chown=jovyan:users data/ /data/
+
+# Set Python path to include project modules
+ENV PYTHONPATH=/home/jovyan/work
+
+# Expose port
+EXPOSE 8888

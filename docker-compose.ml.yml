@@ -85,7 +85,9 @@ services:
       - minio
 
   jupyter:
-    image: jupyter/datascience-notebook:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
     ports:
       - "8888:8888"
     environment:
