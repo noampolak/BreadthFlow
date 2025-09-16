@@ -1,7 +1,7 @@
-from core.config import settings
-from core.database import get_db
+from fastapi_app.core.config import settings
+from fastapi_app.core.database import get_db
 from fastapi import Depends
-from shared.websocket import WebSocketManager
+from fastapi_app.shared.websocket import WebSocketManager
 from sqlalchemy.orm import Session
 
 

@@ -1,8 +1,8 @@
 from typing import List
 
-from apps.infrastructure.schemas import ServiceStatus, SystemHealth
-from apps.infrastructure.utils import InfrastructureService
-from core.dependencies import get_db_session
+from fastapi_app.apps.infrastructure.schemas import ServiceStatus, SystemHealth
+from fastapi_app.apps.infrastructure.utils import InfrastructureService
+from fastapi_app.core.dependencies import get_db_session
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 

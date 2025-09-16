@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List
 
-from apps.pipeline.models import PipelineRun
+from fastapi_app.apps.pipeline.models import PipelineRun
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 

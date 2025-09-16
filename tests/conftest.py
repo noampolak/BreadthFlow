@@ -13,9 +13,9 @@ from fastapi_app.core.database import Base, get_db
 from fastapi_app.main import app
 from tests.fixtures.test_data import TestDataFactory
 
-# Test database configuration
-SQLALCHEMY_DATABASE_URL = "postgresql://test_user:test_password@localhost:5433/breadthflow_test"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Test database configuration - use in-memory SQLite for testing
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -40,9 +40,9 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 def setup_test_db():
-    """Set up test database"""
+    """Set up test database for each test"""
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)

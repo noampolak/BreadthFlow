@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 import psutil
-from apps.infrastructure.schemas import DatabaseStatus, ServiceStatus, SystemHealth, SystemResources
+from fastapi_app.apps.infrastructure.schemas import DatabaseStatus, ServiceStatus, SystemHealth, SystemResources
 from sqlalchemy.orm import Session
 
 

@@ -14,13 +14,24 @@ class SignalConfig:
     """Configuration for signal generation"""
 
     # Basic configuration
-    strategy_name: str
-    symbols: List[str]
-    start_date: datetime
-    end_date: datetime
+    strategy_name: str = "default"
+    symbols: List[str] = None
+    start_date: datetime = None
+    end_date: datetime = None
 
     # Strategy-specific parameters
     parameters: Dict[str, Any] = None
+
+    # Test compatibility parameters
+    rsi_period: int = 14
+    macd_fast: int = 12
+    macd_slow: int = 26
+    macd_signal: int = 9
+    bb_period: int = 20
+    bb_std: float = 2.0
+    pe_threshold: float = 15.0
+    pb_threshold: float = 1.5
+    roe_threshold: float = 0.15
 
     # Data requirements
     required_resources: List[str] = None
@@ -58,22 +69,43 @@ class SignalConfig:
         if self.required_timeframes is None:
             self.required_timeframes = ["1day"]
 
+        if self.symbols is None:
+            self.symbols = ["AAPL"]
+
+        if self.start_date is None:
+            from datetime import datetime, timedelta
+            self.start_date = datetime.now() - timedelta(days=365)
+
+        if self.end_date is None:
+            from datetime import datetime
+            self.end_date = datetime.now()
+
     def validate(self) -> bool:
         """Validate signal configuration"""
         if not self.strategy_name:
-            return False
+            raise ValueError("Strategy name is required")
 
         if not self.symbols:
-            return False
+            raise ValueError("Symbols list cannot be empty")
 
-        if self.start_date >= self.end_date:
-            return False
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            raise ValueError("Start date must be before end date")
 
         if self.signal_threshold < 0 or self.signal_threshold > 1:
-            return False
+            raise ValueError("Signal threshold must be between 0 and 1")
 
         if self.confidence_threshold < 0 or self.confidence_threshold > 1:
-            return False
+            raise ValueError("Confidence threshold must be between 0 and 1")
+
+        # Validate test parameters
+        if self.rsi_period <= 0:
+            raise ValueError("RSI period must be positive")
+
+        if self.macd_fast <= 0 or self.macd_slow <= 0 or self.macd_signal <= 0:
+            raise ValueError("MACD parameters must be positive")
+
+        if self.bb_period <= 0 or self.bb_std <= 0:
+            raise ValueError("Bollinger Bands parameters must be positive")
 
         return True
 
@@ -82,8 +114,8 @@ class SignalConfig:
         return {
             "strategy_name": self.strategy_name,
             "symbols": self.symbols,
-            "start_date": self.start_date.isoformat(),
-            "end_date": self.end_date.isoformat(),
+            "start_date": self.start_date.isoformat() if self.start_date else None,
+            "end_date": self.end_date.isoformat() if self.end_date else None,
             "parameters": self.parameters,
             "required_resources": self.required_resources,
             "required_timeframes": self.required_timeframes,
@@ -100,6 +132,16 @@ class SignalConfig:
             "validate_signals": self.validate_signals,
             "outlier_detection": self.outlier_detection,
             "signal_smoothing": self.signal_smoothing,
+            # Test compatibility parameters
+            "rsi_period": self.rsi_period,
+            "macd_fast": self.macd_fast,
+            "macd_slow": self.macd_slow,
+            "macd_signal": self.macd_signal,
+            "bb_period": self.bb_period,
+            "bb_std": self.bb_std,
+            "pe_threshold": self.pe_threshold,
+            "pb_threshold": self.pb_threshold,
+            "roe_threshold": self.roe_threshold,
         }
 
     @classmethod

@@ -2,8 +2,8 @@ import asyncio
 from datetime import datetime
 
 import httpx
-from core.database import get_db
-from shared.websocket import WebSocketManager
+from fastapi_app.core.database import get_db
+from fastapi_app.shared.websocket import WebSocketManager
 from sqlalchemy.orm import Session
 
 from .models import PipelineRun

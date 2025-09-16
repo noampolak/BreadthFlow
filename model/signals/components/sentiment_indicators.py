@@ -365,3 +365,56 @@ class SentimentIndicators:
         signals["sentiment_score"] = sentiment_score
 
         return signals
+
+    # Test compatibility methods
+    def calculate_news_sentiment(self, news_data: List[Dict[str, Any]]) -> float:
+        """Calculate news sentiment - test compatibility method"""
+        return self.analyze_news_sentiment(news_data)
+
+    def calculate_social_sentiment(self, social_data: List[Dict[str, Any]]) -> float:
+        """Calculate social sentiment - test compatibility method"""
+        return self.analyze_social_sentiment(social_data)
+
+    def analyze_news_sentiment(self, news_data: List[Dict[str, Any]]) -> float:
+        """Analyze news sentiment"""
+        if not news_data:
+            return 0.0
+        
+        # Simple sentiment analysis based on news data
+        total_sentiment = 0.0
+        count = 0
+        
+        for news_item in news_data:
+            if 'sentiment' in news_item:
+                sentiment_value = news_item['sentiment']
+                # Handle both numeric and string sentiment values
+                if isinstance(sentiment_value, str):
+                    # Convert string sentiment to numeric
+                    sentiment_map = {'positive': 1.0, 'negative': -1.0, 'neutral': 0.0}
+                    sentiment_value = sentiment_map.get(sentiment_value.lower(), 0.0)
+                total_sentiment += sentiment_value
+                count += 1
+        
+        return total_sentiment / count if count > 0 else 0.0
+
+    def analyze_social_sentiment(self, social_data: List[Dict[str, Any]]) -> float:
+        """Analyze social media sentiment"""
+        if not social_data:
+            return 0.0
+        
+        # Simple sentiment analysis based on social data
+        total_sentiment = 0.0
+        count = 0
+        
+        for social_item in social_data:
+            if 'sentiment' in social_item:
+                sentiment_value = social_item['sentiment']
+                # Handle both numeric and string sentiment values
+                if isinstance(sentiment_value, str):
+                    # Convert string sentiment to numeric
+                    sentiment_map = {'positive': 1.0, 'negative': -1.0, 'neutral': 0.0}
+                    sentiment_value = sentiment_map.get(sentiment_value.lower(), 0.0)
+                total_sentiment += sentiment_value
+                count += 1
+        
+        return total_sentiment / count if count > 0 else 0.0

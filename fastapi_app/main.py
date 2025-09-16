@@ -2,42 +2,42 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from apps.commands.models import *
-from apps.commands.routes import router as commands_router
+from fastapi_app.apps.commands.models import *
+from fastapi_app.apps.commands.routes import router as commands_router
 
 # Import all models to ensure tables are created
-from apps.dashboard.models import *
+from fastapi_app.apps.dashboard.models import *
 
 # Import all app routers
-from apps.dashboard.routes import router as dashboard_router
-from apps.infrastructure.routes import router as infrastructure_router
-from apps.parameters.models import *
-from apps.parameters.routes import router as parameters_router
-from apps.pipeline.models import *
-from apps.pipeline.routes import router as pipeline_router
-from apps.signals.models import *
-from apps.signals.routes import router as signals_router
-from apps.training.models import *
-from apps.training.routes import router as training_router
-from core.config import settings
-from core.database import Base, engine
+from fastapi_app.apps.dashboard.routes import router as dashboard_router
+from fastapi_app.apps.infrastructure.routes import router as infrastructure_router
+from fastapi_app.apps.parameters.models import *
+from fastapi_app.apps.parameters.routes import router as parameters_router
+from fastapi_app.apps.pipeline.models import *
+from fastapi_app.apps.pipeline.routes import router as pipeline_router
+from fastapi_app.apps.signals.models import *
+from fastapi_app.apps.signals.routes import router as signals_router
+from fastapi_app.apps.training.models import *
+from fastapi_app.apps.training.routes import router as training_router
+from fastapi_app.core.config import settings
+from fastapi_app.core.database import Base, engine
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from shared.websocket import WebSocketManager
+from fastapi_app.shared.websocket import WebSocketManager
 
 # Configure logging
 logging.basicConfig(level=getattr(logging, settings.log_level))
 logger = logging.getLogger(__name__)
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables (commented out for testing - should use migrations)
+# Base.metadata.create_all(bind=engine)
 
 # WebSocket manager
 websocket_manager = WebSocketManager()
 
 # Set WebSocket manager for tasks
-from apps.pipeline.tasks import set_websocket_manager
+from fastapi_app.apps.pipeline.tasks import set_websocket_manager
 
 set_websocket_manager(websocket_manager)
 

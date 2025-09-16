@@ -49,7 +49,21 @@ class BaseSignalStrategy(ABC):
         """Validate that required data is available"""
         if not PANDAS_AVAILABLE:
             return False
-        pass
+        
+        if not data:
+            return False
+        
+        # Check if all required data resources are available
+        for required_resource in self.required_data:
+            if required_resource not in data:
+                logger.error(f"Required resource {required_resource} not found in data")
+                return False
+            
+            if data[required_resource].empty:
+                logger.error(f"Resource {required_resource} data is empty")
+                return False
+        
+        return True
 
     def get_name(self) -> str:
         """Get strategy name"""
@@ -70,15 +84,17 @@ class BaseSignalStrategy(ABC):
     def validate_config(self, config: SignalConfig) -> bool:
         """Validate strategy configuration"""
         # Check if required data is available
-        for required_resource in self.required_data:
-            if required_resource not in config.required_resources:
-                logger.error(f"Strategy {self.name} requires {required_resource} but it's not in config")
-                return False
+        if hasattr(config, 'required_resources') and config.required_resources and isinstance(config.required_resources, (list, tuple)):
+            for required_resource in self.required_data:
+                if required_resource not in config.required_resources:
+                    logger.error(f"Strategy {self.name} requires {required_resource} but it's not in config")
+                    return False
 
         # Check if timeframe is supported
-        for timeframe in config.required_timeframes:
-            if timeframe not in self.supported_timeframes:
-                logger.warning(f"Strategy {self.name} may not support timeframe {timeframe}")
+        if hasattr(config, 'required_timeframes') and config.required_timeframes and isinstance(config.required_timeframes, (list, tuple)):
+            for timeframe in config.required_timeframes:
+                if timeframe not in self.supported_timeframes:
+                    logger.warning(f"Strategy {self.name} may not support timeframe {timeframe}")
 
         return True
 
@@ -95,9 +111,10 @@ class BaseSignalStrategy(ABC):
                 continue
 
             # Ensure data has minimum required points
-            if len(resource_data) < config.min_data_points:
+            min_points = getattr(config, 'min_data_points', 1)
+            if len(resource_data) < min_points:
                 logger.warning(
-                    f"Insufficient data points for {resource_name}: {len(resource_data)} < {config.min_data_points}"
+                    f"Insufficient data points for {resource_name}: {len(resource_data)} < {min_points}"
                 )
                 continue
 

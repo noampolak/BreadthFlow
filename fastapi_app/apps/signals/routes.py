@@ -3,9 +3,9 @@ import os
 from datetime import datetime, timedelta
 from typing import List
 
-from apps.signals.schemas import SignalExportResponse, SignalStats, TradingSignal
-from apps.signals.utils import SignalService
-from core.dependencies import get_db_session
+from fastapi_app.apps.signals.schemas import SignalExportResponse, SignalStats, TradingSignal
+from fastapi_app.apps.signals.utils import SignalService
+from fastapi_app.core.dependencies import get_db_session
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 

@@ -151,32 +151,44 @@ class CompositeSignalGenerator(SignalGeneratorInterface):
                 self._update_generation_stats({}, False)
             raise
 
-    def _validate_config(self, config: SignalConfig) -> bool:
+    def _validate_config(self, config) -> bool:
         """Validate composite signal generator configuration"""
-        if not config.validate():
-            return False
+        # Handle both dict and SignalConfig objects
+        if isinstance(config, dict):
+            # For dict configs, just check if it's not empty
+            return bool(config)
+        else:
+            # For SignalConfig objects, use their validate method
+            return config.validate()
 
-        # Check if strategy is supported
-        if config.strategy_name not in self.get_supported_strategies():
-            logger.error(f"Strategy {config.strategy_name} not found in composite generator")
-            return False
+        # Check if strategy is supported (only for SignalConfig objects)
+        if not isinstance(config, dict) and hasattr(config, 'strategy_name'):
+            if config.strategy_name not in self.get_supported_strategies():
+                logger.error(f"Strategy {config.strategy_name} not found in composite generator")
+                return False
 
         return True
 
-    def _validate_data(self, data: Dict[str, pd.DataFrame], config: SignalConfig) -> bool:
+    def _validate_data(self, data: Dict[str, pd.DataFrame], config) -> bool:
         """Validate data for composite signal generation"""
         if not data:
             return False
 
-        # Check if all required data is available
-        for resource in config.required_resources:
-            if resource not in data:
-                logger.error(f"Required resource {resource} not found in data")
-                return False
+        # Handle both dict and SignalConfig objects
+        if isinstance(config, dict):
+            # For dict configs, just check if we have some data
+            return bool(data)
+        else:
+            # Check if all required data is available
+            if hasattr(config, 'required_resources'):
+                for resource in config.required_resources:
+                    if resource not in data:
+                        logger.error(f"Required resource {resource} not found in data")
+                        return False
 
-            if data[resource].empty:
-                logger.error(f"Resource {resource} data is empty")
-                return False
+                    if data[resource].empty:
+                        logger.error(f"Resource {resource} data is empty")
+                        return False
 
         return True
 

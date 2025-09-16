@@ -1,4 +1,4 @@
-from core.dependencies import get_db
+from fastapi_app.core.dependencies import get_db
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

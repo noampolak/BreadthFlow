@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from core.dependencies import get_db
+from fastapi_app.core.dependencies import get_db
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 

@@ -1,4 +1,4 @@
-from shared.models import Base
+from fastapi_app.shared.models import Base
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String
 from sqlalchemy.sql import func
 

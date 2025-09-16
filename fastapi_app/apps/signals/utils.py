@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Tuple
 
-from apps.signals.schemas import SignalExportResponse, SignalStats, TradingSignal
+from fastapi_app.apps.signals.schemas import SignalExportResponse, SignalStats, TradingSignal
 from sqlalchemy.orm import Session
 
 
