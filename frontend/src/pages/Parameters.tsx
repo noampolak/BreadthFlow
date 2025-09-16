@@ -18,7 +18,6 @@ import {
   Alert,
   CircularProgress,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Accordion,
@@ -92,7 +91,7 @@ const Parameters: React.FC = () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [groupToReset, setGroupToReset] = useState<string | null>(null);
   
-  const { connected, data: wsData } = useWebSocket();
+  const { connected } = useWebSocket();
 
   useEffect(() => {
     fetchParameterGroups();

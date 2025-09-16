@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -19,7 +19,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  Grid,
   Card,
   CardContent,
 } from '@mui/material';
@@ -124,27 +123,27 @@ const Pipeline: React.FC = () => {
     }
   };
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     try {
       await Promise.all([fetchStatus(), fetchRuns()]);
     } catch (err) {
       console.error('Error refreshing pipeline data:', err);
       setError('Failed to refresh pipeline data');
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshData();
     const interval = setInterval(refreshData, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshData]);
 
   // Handle WebSocket updates
   useEffect(() => {
     if (wsData?.type === 'pipeline_status_update') {
       refreshData();
     }
-  }, [wsData]);
+  }, [wsData, refreshData]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

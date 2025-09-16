@@ -21,18 +21,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Autocomplete,
-  LinearProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import HistoryIcon from '@mui/icons-material/History';
 import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -50,13 +44,6 @@ interface TrainingRequest {
   test_split: number;
 }
 
-interface TrainingResponse {
-  training_id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
-  message: string;
-  start_time: string;
-  estimated_duration?: number;
-}
 
 interface TrainingHistory {
   training_id: string;
@@ -117,7 +104,7 @@ const Training: React.FC = () => {
   const [modelType, setModelType] = useState('random_forest');
   const [testSplit, setTestSplit] = useState(0.2);
   
-  const { connected, data: wsData } = useWebSocket();
+  const { connected } = useWebSocket();
 
   useEffect(() => {
     fetchTrainingConfig();

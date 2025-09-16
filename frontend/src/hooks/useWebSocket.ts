@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { WebSocketMessage } from '../services/types';
 
 const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8005/ws';
@@ -12,7 +12,7 @@ export const useWebSocket = () => {
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
-  const connect = () => {
+  const connect = useCallback(() => {
     try {
       const ws = new WebSocket(WS_URL);
       
@@ -62,16 +62,16 @@ export const useWebSocket = () => {
       console.error('❌ Error creating WebSocket:', err);
       setError('Failed to create WebSocket connection');
     }
-  };
+  }, []);
 
-  const disconnect = () => {
+  const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
     }
     if (socket) {
       socket.close();
     }
-  };
+  }, [socket]);
 
   useEffect(() => {
     connect();
@@ -79,7 +79,7 @@ export const useWebSocket = () => {
     return () => {
       disconnect();
     };
-  }, []);
+  }, [connect, disconnect]);
 
   return { 
     socket, 

@@ -23,8 +23,7 @@ import {
   MenuItem,
   Accordion,
   AccordionSummary,
-  AccordionDetails,
-  Divider
+  AccordionDetails
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -64,7 +63,7 @@ interface CommandTemplate {
 
 const Commands: React.FC = () => {
   const [command, setCommand] = useState('');
-  const [parameters, setParameters] = useState<Record<string, string>>({});
+  const [parameters] = useState<Record<string, string>>({});
   const [background, setBackground] = useState('false');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +72,7 @@ const Commands: React.FC = () => {
   const [quickFlows, setQuickFlows] = useState<QuickFlow[]>([]);
   const [commandTemplates, setCommandTemplates] = useState<Record<string, CommandTemplate[]>>({});
   const [selectedFlow, setSelectedFlow] = useState<string>('');
-  const { connected, data: wsData } = useWebSocket();
+  const { connected } = useWebSocket();
 
   useEffect(() => {
     fetchQuickFlows();
