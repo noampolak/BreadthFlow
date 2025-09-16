@@ -15,7 +15,10 @@ COPY pyproject.toml poetry.lock ./
 # Install Python dependencies
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --with ci --no-dev
+    poetry install --no-dev
+
+# Install ML dependencies separately for faster CI
+RUN pip install -r requirements-ci.txt
 
 # Install test dependencies
 RUN pip install pytest pytest-cov pytest-asyncio pytest-mock \

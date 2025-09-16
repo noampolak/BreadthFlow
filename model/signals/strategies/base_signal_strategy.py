@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Optional
 try:
     import pandas as pd
     PANDAS_AVAILABLE = True
-    DataFrame = DataFrame
-    Series = Series
+    DataFrame = pd.DataFrame
+    Series = pd.Series
 except ImportError:
     PANDAS_AVAILABLE = False
     # Create dummy types for type hints when pandas is not available

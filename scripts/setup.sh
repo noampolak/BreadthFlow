@@ -45,7 +45,11 @@ fi
 
 # Install dependencies
 echo "📦 Installing Python dependencies with Poetry..."
-poetry install --with ci
+poetry install
+
+# Install ML dependencies separately for faster CI
+echo "📦 Installing ML dependencies for testing..."
+pip install -r requirements-ci.txt
 
 # Setup environment
 echo "⚙️  Setting up environment..."

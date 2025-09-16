@@ -1,0 +1,17 @@
+# CI-specific ML dependencies
+# This file is used for CI testing to avoid Poetry's slow dependency resolution
+
+# Core ML packages
+scikit-learn==1.3.2
+mlflow==2.8.1
+lightgbm==4.0.0
+xgboost==2.0.3
+scipy==1.11.4
+joblib==1.3.2
+
+# Additional testing dependencies
+pytest==7.4.0
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0
