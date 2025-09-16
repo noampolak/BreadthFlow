@@ -13,6 +13,13 @@ from fastapi_app.core.database import Base, get_db
 from fastapi_app.main import app
 from tests.fixtures.test_data import TestDataFactory
 
+# Import all models to ensure they're registered with Base.metadata
+from fastapi_app.apps.pipeline.models import PipelineRun
+from fastapi_app.apps.commands.models import CommandExecution
+from fastapi_app.apps.parameters.models import ParameterConfig, ParameterHistory
+from fastapi_app.apps.dashboard.models import DashboardStats
+from fastapi_app.apps.training.models import TrainingSession, TrainedModel
+
 # Test database configuration - use in-memory SQLite for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
