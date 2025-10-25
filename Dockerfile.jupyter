@@ -8,12 +8,38 @@ USER jovyan
 
 # TA-Lib replaced with pandas/numpy implementations
 
+# Force downgrade NumPy to 1.x and rebuild dependent packages
+# First uninstall numpy and packages that depend on it
+RUN pip uninstall -y numpy pandas matplotlib scikit-learn scipy
+
+# Install NumPy 1.x
+RUN pip install --no-cache-dir "numpy<2.0"
+
+# Reinstall the packages (they'll be compiled against NumPy 1.x)
+RUN pip install --no-cache-dir \
+    pandas \
+    matplotlib \
+    scikit-learn \
+    scipy \
+    seaborn
+
 # Install additional project dependencies
 RUN pip install --no-cache-dir \
-    yfinance==0.2.28 \
-    requests==2.31.0 \
+    yfinance \
+    yahooquery \
+    requests[socks] \
+    urllib3 \
     minio==7.2.0 \
-    pydantic==2.5.0
+    pydantic==2.5.0 \
+    tensorflow \
+    keras \
+    xgboost
+
+# Set environment variables for better network handling in Docker
+ENV PYTHONHTTPSVERIFY=0
+ENV CURL_CA_BUNDLE=""
+ENV REQUESTS_CA_BUNDLE=""
+ENV SSL_VERIFY=False
 
 # Set working directory
 WORKDIR /home/jovyan/work

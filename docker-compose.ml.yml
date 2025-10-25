@@ -93,12 +93,17 @@ services:
     environment:
       - JUPYTER_ENABLE_LAB=yes
       - JUPYTER_TOKEN=breadthflow123
+      - PYTHONHTTPSVERIFY=0
+      - CURL_CA_BUNDLE=""
     volumes:
       - ./notebooks:/home/jovyan/work
       - ./data:/data
       - ./mlflow:/mlflow
       - ./features:/home/jovyan/work/features
       - ./experiments:/home/jovyan/work/experiments
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 
 
   data-pipeline:
