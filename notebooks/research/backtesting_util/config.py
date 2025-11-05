@@ -21,3 +21,4 @@ DEFAULT_TOP_PERCENT = 0.2
 DEFAULT_MAX_POSITIONS = 20
 DEFAULT_CASH_BUFFER = 0.05
 DEFAULT_TEST_SPLIT = 0.6  # 60% for training, 40% for testing
+DEFAULT_STOP_LOSS = 0.15  # 15% stop-loss (based on analysis showing optimal balance)

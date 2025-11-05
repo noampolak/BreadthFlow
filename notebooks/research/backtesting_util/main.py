@@ -12,7 +12,7 @@ from .data_loader import (
     get_test_period
 )
 from .batch_processor import run_all_models
-from .config import DEFAULT_TEST_SPLIT
+from .config import DEFAULT_TEST_SPLIT, DEFAULT_STOP_LOSS
 
 
 def run_ultra_optimized_backtesting(
@@ -27,7 +27,8 @@ def run_ultra_optimized_backtesting(
     include_randomforest=True,
     include_xgboost=True,
     model_suffix=None,
-    results_dir=None
+    results_dir=None,
+    stop_loss=DEFAULT_STOP_LOSS
 ):
     """
     Run the complete ultra-optimized backtesting pipeline.
@@ -59,6 +60,9 @@ def run_ultra_optimized_backtesting(
         directly from models directory if not in training log.
     results_dir : str, optional
         Custom results directory. If None, uses default from config.
+    stop_loss : float or None
+        Stop-loss percentage (e.g., 0.15 for 15%). If None, no stop-loss is applied.
+        Default is 15% based on analysis showing optimal balance of protection vs returns.
         
     Returns:
     --------
@@ -68,6 +72,10 @@ def run_ultra_optimized_backtesting(
     print("🚀 ULTRA-OPTIMIZED BACKTESTING: ALL RANDOMFOREST & XGBOOST MODELS")
     print("="*70)
     print("⚠️  TIMING FIX: Using previous TRADING DAY (not calendar day)")
+    if stop_loss is not None and stop_loss > 0:
+        print(f"🛡️  STOP-LOSS: {stop_loss*100:.0f}% enabled")
+    else:
+        print("🛡️  STOP-LOSS: Disabled")
     print("="*70)
     
     # Step 1: Load models
@@ -137,7 +145,8 @@ def run_ultra_optimized_backtesting(
         max_positions=max_positions,
         verbose=verbose,
         resume=resume,
-        trade_when_positions_zero=trade_when_positions_zero
+        trade_when_positions_zero=trade_when_positions_zero,
+        stop_loss=stop_loss
     )
     
     print(f"\n✅ ALL MODELS PROCESSING COMPLETE!")

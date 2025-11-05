@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from .backtest_engine import backtest_model_ultra_optimized
 from .data_loader import parse_model_key
-from .config import RESULTS_DIR, DEFAULT_INITIAL_CAPITAL
+from .config import RESULTS_DIR, DEFAULT_INITIAL_CAPITAL, DEFAULT_STOP_LOSS
 
 
 def run_all_models(
@@ -22,7 +22,8 @@ def run_all_models(
     max_positions=20,
     verbose=True,
     resume=True,
-    trade_when_positions_zero=True
+    trade_when_positions_zero=True,
+    stop_loss=DEFAULT_STOP_LOSS
 ):
     """
     Run backtesting on all models.
@@ -51,6 +52,9 @@ def run_all_models(
         Whether to skip already-completed models
     trade_when_positions_zero : bool
         If True, only trade when positions == 0
+    stop_loss : float or None
+        Stop-loss percentage (e.g., 0.15 for 15%). If None, no stop-loss is applied.
+        Default is 15% based on analysis showing optimal balance.
         
     Returns:
     --------
@@ -129,7 +133,8 @@ def run_all_models(
                     max_positions=max_positions,
                     verbose=verbose,
                     model_name=model_key,
-                    trade_when_positions_zero=trade_when_positions_zero
+                    trade_when_positions_zero=trade_when_positions_zero,
+                    stop_loss=stop_loss
                 )
                 
                 # Calculate final metrics
@@ -164,6 +169,8 @@ def run_all_models(
                     'reversal_trades': decision_stats['total_reversal_trades'],
                     'do_nothing_days': decision_stats['total_do_nothing_days'],
                     'momentum_reversal_ratio': decision_stats['momentum_reversal_ratio'],
+                    'stop_loss_triggered': decision_stats.get('stop_loss_triggered', 0),
+                    'stop_loss_pct': decision_stats.get('stop_loss_pct', 0),
                     'efficiency_gain': decision_stats['efficiency_gain']
                 })
                 

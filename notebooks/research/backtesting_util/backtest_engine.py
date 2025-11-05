@@ -16,16 +16,19 @@ from .helpers import (
     get_next_trading_day,
     get_price_fast,
     get_price_open,
+    get_price_low,
     get_top_momentum_stocks_fast,
     get_bottom_momentum_stocks_fast,
-    create_momentum_matrix
+    create_momentum_matrix,
+    check_stop_loss_triggered
 )
 from .config import (
     DEFAULT_INITIAL_CAPITAL,
     DEFAULT_TRANSACTION_COST,
     DEFAULT_TOP_PERCENT,
     DEFAULT_MAX_POSITIONS,
-    DEFAULT_CASH_BUFFER
+    DEFAULT_CASH_BUFFER,
+    DEFAULT_STOP_LOSS
 )
 
 
@@ -43,7 +46,8 @@ def backtest_model_ultra_optimized(
     cash_buffer=DEFAULT_CASH_BUFFER,
     verbose=False,
     model_name="Model",
-    trade_when_positions_zero=True
+    trade_when_positions_zero=True,
+    stop_loss=DEFAULT_STOP_LOSS
 ):
     """
     ULTRA-OPTIMIZED backtesting: Trade daily with configurable stock limit
@@ -54,6 +58,7 @@ def backtest_model_ultra_optimized(
     - Momentum calculation uses previous trading day (from actual data)
     - Entry prices use current day's OPEN price
     - Exit dates use trading days (k trading days ahead)
+    - Stop-loss: Checks if low price hits stop-loss threshold during holding period
     
     Parameters:
     -----------
@@ -85,6 +90,9 @@ def backtest_model_ultra_optimized(
         Model name for progress display
     trade_when_positions_zero : bool
         If True, only trade when positions == 0 (else trade when positions < max_positions)
+    stop_loss : float or None
+        Stop-loss percentage (e.g., 0.15 for 15%). If None, no stop-loss is applied.
+        Based on analysis, 15% (0.15) provides optimal balance of protection vs returns.
         
     Returns:
     --------
@@ -95,7 +103,8 @@ def backtest_model_ultra_optimized(
     trades_df : pd.DataFrame
         All executed trades with columns ['symbol', 'entry_date', 'exit_date', 
         'entry_price', 'exit_price', 'shares', 'gross_pnl', 'entry_cost', 
-        'exit_cost', 'total_costs', 'net_pnl', 'return_pct', 'strategy_used']
+        'exit_cost', 'total_costs', 'net_pnl', 'return_pct', 'strategy_used', 
+        'stop_loss_triggered']
     decision_stats : dict
         Statistics about trading decisions
     """
@@ -117,6 +126,9 @@ def backtest_model_ultra_optimized(
     momentum_trades = 0
     reversal_trades = 0
     do_nothing_days = 0
+    
+    # Track stop-loss statistics
+    stop_loss_triggered_count = 0
     
     # Track optimization stats
     skipped_calculations = 0
@@ -146,41 +158,68 @@ def backtest_model_ultra_optimized(
     # Walk through each day
     for current_date in iterator:
         
-        # STEP 1: CHECK FOR POSITION EXITS
+        # STEP 1: CHECK FOR POSITION EXITS (including stop-loss)
         positions_to_close = []
         for symbol, pos in positions.items():
-            if current_date >= pos['exit_date']:
+            exit_reason = None
+            exit_price = None
+            exit_date = None
+            
+            # Check stop-loss first (if enabled and not already triggered)
+            if stop_loss is not None and stop_loss > 0 and not pos.get('stop_loss_triggered', False):
+                # Get today's low price to check if stop-loss triggers today
+                today_low = get_price_low(stock_data, symbol, current_date)
+                if today_low is not None:
+                    stop_loss_price = pos['entry_price'] * (1 - stop_loss)
+                    if today_low <= stop_loss_price:
+                        # Stop-loss triggered today
+                        exit_reason = 'stop_loss'
+                        exit_date = current_date
+                        # Use close price on trigger date
+                        exit_price = get_price_fast(stock_data, symbol, current_date)
+                        if exit_price is None:
+                            # Fallback to low price if close not available
+                            exit_price = today_low
+                        stop_loss_triggered_count += 1
+                        pos['stop_loss_triggered'] = True
+            
+            # Check regular exit date (if stop-loss not triggered)
+            if exit_reason is None and current_date >= pos['exit_date']:
+                exit_reason = 'target_date'
+                exit_date = current_date
                 exit_price = get_price_fast(stock_data, symbol, current_date)
+            
+            # Execute exit if any condition met
+            if exit_price is not None and exit_price > 0:
+                shares = pos['shares']
+                entry_value = pos['entry_price'] * shares
+                exit_value = exit_price * shares
+                pnl = exit_value - entry_value
+                exit_cost = exit_value * transaction_cost
+                net_pnl = pnl - exit_cost
                 
-                if exit_price is not None:
-                    shares = pos['shares']
-                    entry_value = pos['entry_price'] * shares
-                    exit_value = exit_price * shares
-                    pnl = exit_value - entry_value
-                    exit_cost = exit_value * transaction_cost
-                    net_pnl = pnl - exit_cost
-                    
-                    capital += exit_value - exit_cost
-                    
-                    trades_log.append({
-                        'symbol': symbol,
-                        'entry_date': pos['entry_date'],
-                        'exit_date': current_date,
-                        'entry_price': pos['entry_price'],
-                        'exit_price': exit_price,
-                        'shares': shares,
-                        'entry_value': entry_value,
-                        'exit_value': exit_value,
-                        'gross_pnl': pnl,
-                        'entry_cost': pos['entry_cost'],
-                        'exit_cost': exit_cost,
-                        'total_costs': pos['entry_cost'] + exit_cost,
-                        'net_pnl': net_pnl,
-                        'return_pct': (exit_price - pos['entry_price']) / pos['entry_price'],
-                        'strategy_used': pos.get('strategy_used', 'unknown')
-                    })
-                    
-                    positions_to_close.append(symbol)
+                capital += exit_value - exit_cost
+                
+                trades_log.append({
+                    'symbol': symbol,
+                    'entry_date': pos['entry_date'],
+                    'exit_date': exit_date,
+                    'entry_price': pos['entry_price'],
+                    'exit_price': exit_price,
+                    'shares': shares,
+                    'entry_value': entry_value,
+                    'exit_value': exit_value,
+                    'gross_pnl': pnl,
+                    'entry_cost': pos['entry_cost'],
+                    'exit_cost': exit_cost,
+                    'total_costs': pos['entry_cost'] + exit_cost,
+                    'net_pnl': net_pnl,
+                    'return_pct': (exit_price - pos['entry_price']) / pos['entry_price'],
+                    'strategy_used': pos.get('strategy_used', 'unknown'),
+                    'stop_loss_triggered': (exit_reason == 'stop_loss')
+                })
+                
+                positions_to_close.append(symbol)
         
         for symbol in positions_to_close:
             del positions[symbol]
@@ -367,6 +406,8 @@ def backtest_model_ultra_optimized(
         'total_reversal_trades': reversal_trades,
         'total_do_nothing_days': do_nothing_days,
         'momentum_reversal_ratio': momentum_trades / max(1, reversal_trades),
+        'stop_loss_triggered': stop_loss_triggered_count,
+        'stop_loss_pct': (stop_loss_triggered_count / len(trades_log) * 100) if len(trades_log) > 0 else 0,
         'skipped_calculations': skipped_calculations,
         'total_calculations': total_calculations,
         'efficiency_gain': skipped_calculations/total_calculations*100 if total_calculations > 0 else 0

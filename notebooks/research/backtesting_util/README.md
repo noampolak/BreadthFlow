@@ -93,6 +93,10 @@ portfolio_df, trades_df, stats = backtest_model_ultra_optimized(
 - **Position Sizing**: Equal allocation across selected stocks
 - **Transaction Costs**: Applied on both entry and exit
 - **Cash Buffer**: Maintains configurable cash buffer
+- **Stop-Loss**: Optional stop-loss protection (default: 15%)
+  - Checks daily if low price hits stop-loss threshold
+  - Exits immediately using close price on trigger day
+  - Tracks stop-loss statistics in results
 
 ### Model Support
 
@@ -111,6 +115,7 @@ DEFAULT_TOP_PERCENT = 0.2  # Top/bottom 20%
 DEFAULT_MAX_POSITIONS = 20
 DEFAULT_CASH_BUFFER = 0.05  # 5%
 DEFAULT_TEST_SPLIT = 0.6  # 60% train, 40% test
+DEFAULT_STOP_LOSS = 0.15  # 15% stop-loss (based on analysis)
 ```
 
 ## Output Files

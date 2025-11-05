@@ -125,6 +125,90 @@ def get_price_open(stock_data, symbol, date):
         return None
 
 
+def get_price_low(stock_data, symbol, date):
+    """
+    Get low price for a symbol on a given date.
+    
+    Parameters:
+    -----------
+    stock_data : pd.DataFrame
+        Stock data with columns ['symbol', 'date', 'low']
+    symbol : str
+        Stock symbol
+    date : datetime
+        Trading date
+        
+    Returns:
+    --------
+    float or None
+        Low price at the given date, or None if not found
+    """
+    try:
+        price = stock_data[(stock_data['symbol'] == symbol) & 
+                          (stock_data['date'] == date)]['low'].values[0]
+        return price
+    except (KeyError, IndexError):
+        return None
+
+
+def check_stop_loss_triggered(stock_data, symbol, entry_date, current_date, entry_price, stop_loss_pct):
+    """
+    Check if stop-loss was triggered during the holding period.
+    
+    Parameters:
+    -----------
+    stock_data : pd.DataFrame
+        Stock data with columns ['symbol', 'date', 'low', 'close']
+    symbol : str
+        Stock symbol
+    entry_date : datetime
+        Entry date for the position
+    current_date : datetime
+        Current date to check up to
+    entry_price : float
+        Entry price for the position
+    stop_loss_pct : float
+        Stop-loss percentage (e.g., 0.15 for 15%)
+        
+    Returns:
+    --------
+    tuple (bool, datetime, float) or (False, None, None)
+        (triggered, trigger_date, exit_price) if triggered, else (False, None, None)
+    """
+    if stop_loss_pct is None or stop_loss_pct <= 0:
+        return False, None, None
+    
+    # Get stock data for the holding period
+    period_data = stock_data[
+        (stock_data['symbol'] == symbol) & 
+        (stock_data['date'] >= entry_date) & 
+        (stock_data['date'] <= current_date)
+    ].sort_values('date')
+    
+    if len(period_data) == 0:
+        return False, None, None
+    
+    # Calculate stop-loss price
+    stop_loss_price = entry_price * (1 - stop_loss_pct)
+    
+    # Check if low price hit stop-loss
+    min_price = period_data['low'].min()
+    if min_price <= stop_loss_price:
+        # Stop-loss triggered - find the date it happened
+        trigger_row = period_data.loc[period_data['low'].idxmin()]
+        trigger_date = trigger_row['date']
+        
+        # Use close price on trigger date for exit
+        exit_price = trigger_row['close']
+        if pd.isna(exit_price):
+            # Fallback to low price if close is missing
+            exit_price = min_price
+        
+        return True, trigger_date, exit_price
+    
+    return False, None, None
+
+
 def get_top_momentum_stocks_fast(date, window, top_percent, momentum_matrices, symbols=None):
     """
     Ultra-fast top momentum stocks selection.
