@@ -183,11 +183,29 @@ def calculate_momentum_features(df, window):
         features['mom_cir_cap_std'] = cir_cap_ratio.groupby(df['symbol']).transform(lambda x: x.rolling(window).std())
     
     # Add fundamental ratios with momentum trends (ratios don't need shifting, but use shifted close if needed)
-    for ratio in ['pe', 'pb', 'ps', 'pcf']:
-        if ratio in df.columns:
-            ratio_pct = df.groupby('symbol')[ratio].pct_change(window)
-            features[f'mom_{ratio}'] = ratio_pct
-            features[f'mom_{ratio}_std'] = df.groupby('symbol')[ratio].transform(lambda x: x.rolling(window).std())
+    # Check for TTM versions first (pe_ttm, ps_ttm, pcf_ttm), then fallback to simple versions
+    ratio_mapping = [
+        ('pe_ttm', 'pe_q', 'pe'),  # Try pe_ttm, then pe_q, then pe
+        ('ps_ttm', 'ps', None),
+        ('pcf_ttm', 'pcf', None),
+        ('pb', None, None)  # pb doesn't have TTM version
+    ]
+    
+    for preferred, fallback1, fallback2 in ratio_mapping:
+        ratio_col = None
+        if preferred in df.columns:
+            ratio_col = preferred
+        elif fallback1 and fallback1 in df.columns:
+            ratio_col = fallback1
+        elif fallback2 and fallback2 in df.columns:
+            ratio_col = fallback2
+        
+        if ratio_col:
+            # Use base name (without _ttm or _q) for feature name
+            base_name = ratio_col.replace('_ttm', '').replace('_q', '')
+            ratio_pct = df.groupby('symbol')[ratio_col].pct_change(window)
+            features[f'mom_{base_name}'] = ratio_pct
+            features[f'mom_{base_name}_std'] = df.groupby('symbol')[ratio_col].transform(lambda x: x.rolling(window).std())
     
     print(f"    ✅ Generated {len(features)} momentum features")
     return features
@@ -250,11 +268,29 @@ def calculate_reversal_features(df, window):
         features['rev_cir_cap_std'] = cir_cap_pct.groupby(df['symbol']).transform(lambda x: x.rolling(window).std())
     
     # Add fundamental ratios with reversal trends
-    for ratio in ['pe', 'pb', 'ps', 'pcf']:
-        if ratio in df.columns:
-            ratio_pct = -df.groupby('symbol')[ratio].pct_change(window)
-            features[f'rev_{ratio}'] = ratio_pct
-            features[f'rev_{ratio}_std'] = df.groupby('symbol')[ratio].transform(lambda x: x.rolling(window).std())
+    # Check for TTM versions first (pe_ttm, ps_ttm, pcf_ttm), then fallback to simple versions
+    ratio_mapping = [
+        ('pe_ttm', 'pe_q', 'pe'),  # Try pe_ttm, then pe_q, then pe
+        ('ps_ttm', 'ps', None),
+        ('pcf_ttm', 'pcf', None),
+        ('pb', None, None)  # pb doesn't have TTM version
+    ]
+    
+    for preferred, fallback1, fallback2 in ratio_mapping:
+        ratio_col = None
+        if preferred in df.columns:
+            ratio_col = preferred
+        elif fallback1 and fallback1 in df.columns:
+            ratio_col = fallback1
+        elif fallback2 and fallback2 in df.columns:
+            ratio_col = fallback2
+        
+        if ratio_col:
+            # Use base name (without _ttm or _q) for feature name
+            base_name = ratio_col.replace('_ttm', '').replace('_q', '')
+            ratio_pct = -df.groupby('symbol')[ratio_col].pct_change(window)
+            features[f'rev_{base_name}'] = ratio_pct
+            features[f'rev_{base_name}_std'] = df.groupby('symbol')[ratio_col].transform(lambda x: x.rolling(window).std())
     
     print(f"    ✅ Generated {len(features)} reversal features")
     return features
@@ -291,7 +327,215 @@ def calculate_volume_features(df, window):
     return features
 
 
-def create_features_for_window(df, feature_window):
+def calculate_base_features(df, window):
+    """
+    Calculate base features (non-momentum, non-reversal) for a specific window.
+    These are the base indicators from the paper.
+    
+    ⚠️  TIMING FIX: Features for date T use data only up to T-1 (shifted by 1 trading day)
+    """
+    features = {}
+    
+    print(f"    📊 Calculating base features for {window}-day window...")
+    print(f"       ⚠️  Using prices shifted by 1 trading day (T uses data ≤ T-1)")
+    
+    # Shift prices by 1 trading day for timing fix
+    df_sorted = df.sort_values(['symbol', 'date']).copy()
+    shifted_close = df_sorted.groupby('symbol')['close'].shift(1)
+    shifted_high = df_sorted.groupby('symbol')['high'].shift(1)
+    shifted_low = df_sorted.groupby('symbol')['low'].shift(1)
+    
+    df_with_shifted = df_sorted.copy()
+    df_with_shifted['close_shifted'] = shifted_close
+    df_with_shifted['high_shifted'] = shifted_high
+    df_with_shifted['low_shifted'] = shifted_low
+    df_with_shifted = df_with_shifted.set_index(df.index)
+    
+    # 1. amplitude - price amplitude (high-low)/close
+    amplitude = (df_with_shifted['high_shifted'] - df_with_shifted['low_shifted']) / df_with_shifted['close_shifted']
+    features['amplitude'] = amplitude
+    features['amplitude_std'] = amplitude.groupby(df['symbol']).transform(lambda x: x.rolling(window).std())
+    
+    # 2. change - price change
+    features['change'] = df_with_shifted.groupby('symbol')['close_shifted'].pct_change(1)
+    
+    # 3. current_rtn - current period return
+    features['current_rtn'] = df_with_shifted.groupby('symbol')['close_shifted'].pct_change(1)
+    features['current_rtn_std'] = features['current_rtn'].groupby(df['symbol']).transform(lambda x: x.rolling(window).std())
+    
+    # 4. roc - Rate of Change
+    roc = df_with_shifted.groupby('symbol')['close_shifted'].transform(lambda x: (x - x.shift(window)) / x.shift(window) * 100)
+    features['roc'] = roc
+    features['roc_std'] = roc.groupby(df['symbol']).transform(lambda x: x.rolling(window).std())
+    
+    # 5. lb - Lower Band (Bollinger lower band: SMA - 2*std)
+    rolling_mean = df_with_shifted.groupby('symbol')['close_shifted'].transform(lambda x: x.rolling(window).mean())
+    rolling_std = df_with_shifted.groupby('symbol')['close_shifted'].transform(lambda x: x.rolling(window).std())
+    lb = rolling_mean - 2 * rolling_std
+    features['lb'] = lb
+    features['lb_std'] = lb.groupby(df['symbol']).transform(lambda x: x.rolling(window).std())
+    
+    print(f"    ✅ Generated {len(features)} base features")
+    return features
+
+
+def calculate_fundamental_std_features(df, window):
+    """
+    Calculate standard deviation features for fundamental indicators.
+    Only calculates if the base fundamental column exists.
+    """
+    features = {}
+    
+    print(f"    📊 Calculating fundamental std features for {window}-day window...")
+    
+    # DEBUG: Check what fundamental columns are actually available
+    # Use exact matches or specific patterns to avoid false positives
+    fundamental_patterns = ['pe_ttm', 'pe_q', 'pe', 'ps_ttm', 'ps', 'pcf_ttm', 'pcf', 'pb', 'market_cap', 'cir_cap']
+    available_fundamental_cols = [col for col in df.columns if col in fundamental_patterns or 
+                                  any(col.startswith(pat) or col == pat for pat in ['pe_', 'ps_', 'pcf_', 'pb', 'market_cap', 'cir_cap'])]
+    if available_fundamental_cols:
+        print(f"       🔍 Found fundamental columns: {available_fundamental_cols}")
+    else:
+        print(f"       ⚠️  No fundamental columns found in DataFrame")
+        print(f"       📋 Available columns: {list(df.columns)[:30]}{'...' if len(df.columns) > 30 else ''}")
+        print(f"       🔍 Looking for: {fundamental_patterns}")
+    
+    # Check for TTM versions first (preferred), then fallback to quarterly/simple versions
+    fundamental_cols = [
+        ('pe_ttm', 'pe_q', 'pe'),  # Try pe_ttm, then pe_q, then pe
+        ('ps_ttm', 'ps', None),
+        ('pcf_ttm', 'pcf', None),
+        ('pb', None, None),  # pb doesn't have TTM version
+        ('market_cap', None, None),
+        ('cir_cap', None, None)
+    ]
+    
+    for preferred_col, fallback1_col, fallback2_col in fundamental_cols:
+        # Try preferred column first, then fallbacks
+        col_to_use = None
+        if preferred_col in df.columns:
+            col_to_use = preferred_col
+        elif fallback1_col and fallback1_col in df.columns:
+            col_to_use = fallback1_col
+        elif fallback2_col and fallback2_col in df.columns:
+            col_to_use = fallback2_col
+        
+        if col_to_use:
+            # Calculate rolling std of the fundamental metric
+            # Use the base name without _ttm suffix for the std feature name
+            feature_name = col_to_use.replace('_ttm', '').replace('_q', '') + '_std'
+            features[feature_name] = df.groupby('symbol')[col_to_use].transform(lambda x: x.rolling(window).std())
+            print(f"       ✅ Created {feature_name} from {col_to_use}")
+    
+    print(f"    ✅ Generated {len(features)} fundamental std features")
+    if len(features) > 0:
+        print(f"       Features: {list(features.keys())}")
+    return features
+
+
+def calculate_hurst_exponent(series, max_lag=None):
+    """
+    Calculate Hurst exponent using R/S (Rescaled Range) method.
+    
+    Parameters:
+    -----------
+    series : pd.Series or np.ndarray
+        Time series data
+    max_lag : int, optional
+        Maximum lag to use. If None, uses len(series) // 2
+    
+    Returns:
+    --------
+    float
+        Hurst exponent (0 < H < 1)
+        - H = 0.5: Random walk
+        - H > 0.5: Trending (persistent)
+        - H < 0.5: Mean reverting (anti-persistent)
+    """
+    if len(series) < 10:
+        return 0.5  # Default to random walk for short series
+    
+    series = pd.Series(series) if not isinstance(series, pd.Series) else series
+    series = series.dropna()
+    
+    if len(series) < 10:
+        return 0.5
+    
+    if max_lag is None:
+        max_lag = len(series) // 2
+    
+    max_lag = min(max_lag, len(series) // 2)
+    if max_lag < 2:
+        return 0.5
+    
+    lags = range(2, max_lag + 1)
+    rs_values = []
+    
+    for lag in lags:
+        # Split series into chunks of size lag
+        n_chunks = len(series) // lag
+        if n_chunks < 1:
+            continue
+        
+        rs_list = []
+        for i in range(n_chunks):
+            chunk = series.iloc[i*lag:(i+1)*lag]
+            if len(chunk) < 2:
+                continue
+            
+            # Calculate mean
+            mean_chunk = chunk.mean()
+            
+            # Calculate deviations from mean
+            deviations = chunk - mean_chunk
+            
+            # Calculate cumulative deviations
+            cumsum_deviations = deviations.cumsum()
+            
+            # Calculate range
+            R = cumsum_deviations.max() - cumsum_deviations.min()
+            
+            # Calculate standard deviation
+            S = chunk.std()
+            
+            # Avoid division by zero
+            if S == 0 or pd.isna(S) or S < 1e-10:
+                continue
+            
+            # Calculate R/S
+            rs = R / S
+            if rs > 0 and not (pd.isna(rs) or np.isinf(rs)):
+                rs_list.append(rs)
+        
+        if rs_list:
+            rs_values.append(np.mean(rs_list))
+    
+    if len(rs_values) < 2:
+        return 0.5
+    
+    # Fit log(R/S) vs log(lag) to get Hurst exponent
+    log_lags = np.log(lags[:len(rs_values)])
+    log_rs = np.log(rs_values)
+    
+    # Remove any NaN or inf values
+    valid_mask = np.isfinite(log_lags) & np.isfinite(log_rs)
+    if np.sum(valid_mask) < 2:
+        return 0.5
+    
+    log_lags = log_lags[valid_mask]
+    log_rs = log_rs[valid_mask]
+    
+    # Linear regression: log(R/S) = H * log(lag) + c
+    if len(log_lags) > 1:
+        H = np.polyfit(log_lags, log_rs, 1)[0]
+        # Clamp H to reasonable range
+        H = np.clip(H, 0.01, 0.99)
+        return H
+    
+    return 0.5
+
+
+def create_features_for_window(df, feature_window, verbose=True):
     """
     Create features based on a specific window size using paper's approach.
     All ~80-100 features are calculated using the SAME window.
@@ -299,9 +543,11 @@ def create_features_for_window(df, feature_window):
     Parameters:
     -----------
     df : DataFrame
-        Stock data
+        Stock data (should already have fundamental data merged if available)
     feature_window : int
         Feature calculation window in days (5, 10, 15, 20, 25, 30)
+    verbose : bool
+        Whether to print detailed information
     
     Returns:
     --------
@@ -310,20 +556,36 @@ def create_features_for_window(df, feature_window):
     """
     print(f"\n  📊 Creating comprehensive features for {feature_window}-day window...")
     
-    # Start with basic columns
-    feature_df = df[['symbol', 'date', 'open', 'high', 'low', 'close', 'volume']].copy()
+    # Start with ALL columns from df (including fundamentals if already merged)
+    # This ensures fundamental data is included if it was merged with stock data
+    required_cols = ['symbol', 'date', 'open', 'high', 'low', 'close', 'volume']
     
-    # Add fundamental data if available
-    fundamental_cols = ['pe', 'pb', 'ps', 'pcf', 'market_cap', 'cir_cap']
-    for col in fundamental_cols:
-        if col in df.columns:
-            feature_df[col] = df[col]
+    # Check which required columns exist
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing required columns in df: {missing_cols}")
     
-    # Add sector (categorical)
-    if 'sector' in df.columns:
-        feature_df['sector'] = df['sector']
+    # Start with required columns, then add all other columns (fundamentals, sector, etc.)
+    feature_df = df[required_cols].copy()
+    
+    # Add all other columns from df (fundamentals, sector, metadata, etc.)
+    # This includes: pe_ttm, pb, ps_ttm, pcf_ttm, market_cap, cir_cap, sector, etc.
+    other_cols = [col for col in df.columns if col not in required_cols]
+    for col in other_cols:
+        feature_df[col] = df[col]
+    
+    if verbose:
+        fundamental_cols_found = [col for col in feature_df.columns 
+                                  if any(x in col.lower() for x in ['pe', 'pb', 'ps', 'pcf', 'market_cap', 'cir_cap', 'revenue', 'equity'])]
+        if fundamental_cols_found:
+            print(f"    ✅ Included {len(fundamental_cols_found)} fundamental columns: {fundamental_cols_found[:5]}{'...' if len(fundamental_cols_found) > 5 else ''}")
+        else:
+            print(f"    ⚠️  No fundamental columns found in input DataFrame")
     
     # Calculate ALL features using the SAME window
+    print(f"    🔧 Calculating base features...")
+    base_feats = calculate_base_features(df, feature_window)
+    
     print(f"    🔧 Calculating momentum features...")
     momentum_feats = calculate_momentum_features(df, feature_window)
     
@@ -332,6 +594,10 @@ def create_features_for_window(df, feature_window):
     
     print(f"    🔧 Calculating volume features...")
     volume_feats = calculate_volume_features(df, feature_window)
+    
+    print(f"    🔧 Calculating fundamental std features...")
+    # Use feature_df instead of df - it has the fundamental columns copied if they exist
+    fundamental_std_feats = calculate_fundamental_std_features(feature_df, feature_window)
     
     # Technical indicators (using window parameter)
     print(f"    🔧 Calculating technical indicators...")
@@ -380,8 +646,12 @@ def create_features_for_window(df, feature_window):
     tech_feats['ema'] = df.groupby('symbol')['close'].transform(lambda x: x.ewm(span=feature_window, adjust=False).mean())
     tech_feats['sma'] = df.groupby('symbol')['close'].transform(lambda x: x.rolling(feature_window).mean())
     
+    # Note: Hurst exponent removed for performance - it was computationally expensive
+    # (calculating for every data point for every symbol). If needed later, can be
+    # added back with optimizations (e.g., calculate every N days instead of daily)
+    
     # Combine all features
-    all_features = {**momentum_feats, **reversal_feats, **volume_feats, **tech_feats}
+    all_features = {**base_feats, **momentum_feats, **reversal_feats, **volume_feats, **fundamental_std_feats, **tech_feats}
     
     print(f"    📊 Total features calculated: {len(all_features)}")
     

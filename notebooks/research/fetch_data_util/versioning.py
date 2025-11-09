@@ -152,11 +152,15 @@ def save_with_versioning(data, filepath, prefix, start_year, end_year, download_
         
         # Also save as CSV if requested
         if save_csv:
-            csv_path = filepath.replace('.pkl', '.csv')
-            csv_backup = backup_existing_file(csv_path)
-            data.to_csv(csv_path, index=False)
-            if csv_backup:
-                print(f"   📦 Backed up CSV to: {os.path.basename(csv_backup)}")
+            try:
+                csv_path = filepath.replace('.pkl', '.csv')
+                csv_backup = backup_existing_file(csv_path)
+                data.to_csv(csv_path, index=False)
+                if csv_backup:
+                    print(f"   📦 Backed up CSV to: {os.path.basename(csv_backup)}")
+                print(f"   ✅ Saved CSV to: {os.path.basename(csv_path)}")
+            except Exception as e:
+                print(f"   ⚠️  Failed to save CSV: {str(e)}")
     elif isinstance(data, dict):
         # Dictionary - save as JSON
         import json

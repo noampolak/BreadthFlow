@@ -6,7 +6,7 @@ automatic versioning and file management.
 """
 
 from .stock_prices import fetch_stock_prices
-from .sec_data import fetch_sec_fundamentals
+from .sec_data import fetch_sec_fundamentals, merge_fundamentals_with_prices
 from .sp500_index import fetch_sp500_index
 from .versioning import (
     get_versioned_filename,
@@ -18,6 +18,7 @@ from .versioning import (
 __all__ = [
     'fetch_stock_prices',
     'fetch_sec_fundamentals',
+    'merge_fundamentals_with_prices',
     'fetch_sp500_index',
     'get_versioned_filename',
     'backup_existing_file',

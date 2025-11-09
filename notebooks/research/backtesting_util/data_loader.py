@@ -145,11 +145,12 @@ def load_stock_data(data_file=None):
         Stock data DataFrame, or None if file not found
     """
     if data_file is None:
-        data_file = os.path.join(DATA_DIR, 'sp500_stock_data_latest.pkl')
+        data_file = os.path.join(DATA_DIR, 'stock_data_latest', 'sp500_stock_data_latest.pkl')
     
     if os.path.exists(data_file):
         stock_data = pd.read_pickle(data_file)
         print(f"✅ Loaded stock data: {stock_data.shape}")
+        print(f"   From: {data_file}")
         return stock_data
     else:
         print(f"❌ Stock data file not found: {data_file}")

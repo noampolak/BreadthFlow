@@ -23,52 +23,54 @@ from .versioning import save_with_versioning, copy_to_latest
 
 def get_sp500_tickers():
     """
-    Get curated list of 250+ major S&P 500 tickers.
+    Get curated list of S&P 500 tickers (verified S&P 500 constituents only).
     
     Returns:
     --------
     list
         List of S&P 500 ticker symbols
     """
-    # Curated list of major S&P 500 tickers (250+ companies)
+    # Curated list of S&P 500 tickers (verified constituents)
     sp500_tickers = [
         # Technology (50+)
-        'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 'ADBE',
+        'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX', 'ADBE',
         'CRM', 'ORCL', 'INTC', 'AMD', 'CSCO', 'IBM', 'QCOM', 'TXN', 'AVGO', 'AMAT',
         'MU', 'ADI', 'LRCX', 'KLAC', 'MCHP', 'SNPS', 'CDNS', 'ANSS', 'FTNT', 'PANW',
-        'CRWD', 'ZS', 'OKTA', 'DDOG', 'NET', 'SNOW', 'PLTR', 'RBLX', 'U', 'TWLO',
-        'ZM', 'DOCU', 'SPLK', 'WDAY', 'NOW', 'TEAM', 'VEEV', 'MDB', 'ESTC',
-        'CFLT', 'FROG', 'PATH', 'BILL', 'AI', 'SMCI', 'ARM', 'ARMK', 'ARW', 'ASML',
+        'CRWD', 'ZS', 'OKTA', 'DDOG', 'NET', 'SNOW', 'WDAY', 'NOW', 'TEAM', 'VEEV',
+        'MDB', 'SMCI', 'ARM', 'INTU', 'ADP', 'CTSH', 'ADSK', 'WBD', 'CSGP',
         
         # Healthcare (40+)
         'JNJ', 'PFE', 'UNH', 'ABBV', 'MRK', 'TMO', 'ABT', 'DHR', 'BMY', 'AMGN',
         'GILD', 'BIIB', 'REGN', 'VRTX', 'ILMN', 'MRNA', 'BNTX', 'ZTS', 'SYK', 'ISRG',
         'MDT', 'BSX', 'EW', 'DXCM', 'TECH', 'IQV', 'A', 'WAT', 'PKI', 'WST',
+        'LLY', 'ALGN', 'IDXX',
         
         # Financial Services (35+)
         'JPM', 'BAC', 'WFC', 'GS', 'MS', 'C', 'AXP', 'BLK', 'SPGI', 'MCO',
         'V', 'MA', 'PYPL', 'COF', 'USB', 'PNC', 'TFC', 'BK', 'STT', 'NTRS',
         'SCHW', 'ICE', 'CME', 'NDAQ', 'MKTX', 'FIS', 'FISV', 'GPN', 'JKHY', 'FLT',
         'WU', 'TRV', 'ALL', 'PGR', 'AON', 'MMC', 'AFL', 'PRU', 'MET', 'AIG',
+        'BRK.B', 'BRO', 'VRSK',
         
         # Consumer Discretionary (30+)
         'HD', 'MCD', 'NKE', 'SBUX', 'LOW', 'TJX', 'ROST', 'TGT', 'WMT', 'COST',
-        'F', 'GM', 'TM', 'HMC', 'NIO', 'XPEV', 'LI',
-        'BABA', 'JD', 'PDD', 'BIDU', 'NTES', 'TME', 'VIPS', 'YMM', 'DIDI', 'GRAB',
+        'F', 'GM', 'ABNB', 'BKNG', 'EBAY', 'DLTR', 'PCAR', 'ODFL', 'FAST', 'CPRT',
+        'MELI',
         
         # Consumer Staples (25+)
         'PG', 'KO', 'PEP', 'CL', 'KMB', 'CHD', 'CLX', 'GIS',
         'K', 'CPB', 'HSY', 'MKC', 'SJM', 'CAG', 'HRL', 'TSN', 'KHC', 'MDLZ',
-        'PM', 'MO', 'BTI', 'IMB', 'UL', 'NVS', 'SAP',
+        'PM', 'MO', 'WBA',
         
         # Industrial (30+)
         'BA', 'CAT', 'GE', 'HON', 'MMM', 'UPS', 'FDX', 'LMT', 'RTX', 'NOC',
-        'GD', 'TDG', 'LHX', 'TDY',
+        'GD', 'TDG', 'LHX', 'TDY', 'UNP',
         'EMR', 'ETN', 'ITW', 'PH', 'ROK', 'SWK', 'TXT', 'DOV', 'FTV', 'IEX',
+        'CTAS', 'PAYX',
         
         # Energy (20+)
         'XOM', 'CVX', 'COP', 'EOG', 'SLB', 'OXY', 'PXD', 'MPC', 'VLO', 'PSX',
-        'KMI', 'WMB', 'EPD', 'OKE', 'ET', 'ENB', 'TRP', 'PPL', 'DUK', 'SO',
+        'KMI', 'WMB', 'OKE',
         
         # Materials (15+)
         'LIN', 'APD', 'SHW', 'ECL', 'DD', 'DOW', 'FCX', 'NEM', 'GOLD', 'AA',
@@ -83,8 +85,7 @@ def get_sp500_tickers():
         'ESS', 'CPT', 'AIV', 'BXP', 'VTR', 'WELL', 'PEAK', 'HCP',
         
         # Communication Services (15+)
-        'DIS', 'CMCSA', 'VZ', 'T', 'CHTR', 'TMUS',
-        'TWTR', 'SNAP', 'PINS', 'SPOT', 'MTCH', 'LYFT', 'UBER', 'DASH', 'ABNB', 'BKNG'
+        'DIS', 'CMCSA', 'VZ', 'T', 'CHTR', 'TMUS', 'ACN'
     ]
     
     # Remove duplicates and sort

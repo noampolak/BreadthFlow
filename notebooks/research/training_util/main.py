@@ -40,6 +40,8 @@ def train_all_models_optimized(
     results_dir=None,
     log_file=None,
     data_file=None,
+    train_start_date=None,
+    train_end_date=None,
     verbose=True
 ):
     """
@@ -75,6 +77,12 @@ def train_all_models_optimized(
         Custom results directory. If None, uses RESULTS_DIR from config.
     log_file : str, optional
         Custom log file path. If None, uses LOG_FILE from config.
+    train_start_date : str or datetime, optional
+        Explicit training start date. If provided, filters data to this date and ignores train_split.
+        Example: '2012-01-01'
+    train_end_date : str or datetime, optional
+        Explicit training end date. If provided, filters data to this date and ignores train_split.
+        Example: '2017-12-31'
     verbose : bool
         Whether to print progress
     
@@ -197,19 +205,53 @@ def train_all_models_optimized(
             combined = feature_df.copy()
             combined['target'] = target
             combined = combined.dropna(subset=['target'])
+            # Filter by training date range if provided
+            if train_start_date is not None or train_end_date is not None:
+                if 'date' in combined.columns:
+                    if train_start_date is not None:
+                        combined = combined[combined['date'] >= pd.to_datetime(train_start_date)]
+                    if train_end_date is not None:
+                        combined = combined[combined['date'] <= pd.to_datetime(train_end_date)]
+                    # When using explicit dates, use train_split parameter (or default to 0.9)
+                    # This ensures we still have test data for evaluation
+                    effective_train_split = train_split if train_split is not None else 0.9
+                    if verbose:
+                        print(f"     📅 Training date range: {train_start_date} to {train_end_date}")
+                        print(f"     📊 Using {effective_train_split*100:.0f}% train / {100-effective_train_split*100:.0f}% validation split")
+                else:
+                    effective_train_split = train_split
+            else:
+                effective_train_split = train_split
+            
+            # CRITICAL FIX: Sort by date to ensure chronological order for time-based split
+            # This fixes the issue where data was sorted by symbol, then date, causing
+            # train/test split to be by symbol groups instead of chronologically
+            if 'date' in combined.columns:
+                combined = combined.sort_values('date').reset_index(drop=True)
+                if verbose:
+                    print(f"     📅 Sorted data chronologically: {combined['date'].min()} to {combined['date'].max()}")
             
             # Filter out non-feature columns
             exclude_cols = NON_FEATURE_COLS + ['target']
             valid_cols = [col for col in combined.columns if col not in exclude_cols]
+            
+            # DIAGNOSTIC: Log feature counts at each stage
+            if verbose:
+                print(f"     📊 Features after creation: {len(combined.columns)} columns")
+                excluded_found = [col for col in combined.columns if col in NON_FEATURE_COLS]
+                if excluded_found:
+                    print(f"     🔧 Excluded non-feature columns: {excluded_found}")
+                print(f"     📊 Features after excluding non-feature cols: {len(valid_cols)}")
             
             # Select only numeric columns
             X = combined[valid_cols].select_dtypes(include=['number'])
             y = combined['target']
             
             if verbose:
-                excluded_found = [col for col in combined.columns if col in NON_FEATURE_COLS]
-                if excluded_found:
-                    print(f"     🔧 Excluded columns: {excluded_found}")
+                non_numeric = [col for col in valid_cols if col not in X.columns]
+                if non_numeric:
+                    print(f"     🔧 Excluded non-numeric columns: {non_numeric}")
+                print(f"     📊 Features after selecting numeric: {len(X.columns)}")
                 print(f"     📊 Training data: {len(X):,} samples, {len(X.columns)} features")
             
             for model_name in model_types:
@@ -234,7 +276,7 @@ def train_all_models_optimized(
                     # Train the model
                     model, metrics = train_single_model_optimized(
                         X, y, model_name, feature_window, target_window,
-                        train_split=train_split
+                        train_split=effective_train_split
                     )
                     
                     # Save model

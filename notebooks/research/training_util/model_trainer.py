@@ -86,17 +86,34 @@ def train_single_model_optimized(X, y, model_name, feature_window, target_window
     # STEP 2: 5-LAYER DATA CLEANING
     # ============================================================
     
+    # DIAGNOSTIC: Log initial feature count and NaN statistics
+    initial_feature_count = X_train.shape[1]
+    nan_stats = X_train.isna().mean().sort_values(ascending=False)
+    high_nan_features = nan_stats[nan_stats > 0.9]  # Updated to match threshold
+    
+    print(f"        📊 Initial features: {initial_feature_count}")
+    if len(high_nan_features) > 0:
+        print(f"        ⚠️  Features with >90% NaN: {len(high_nan_features)}")
+        if len(high_nan_features) <= 10:
+            for feat, pct in high_nan_features.items():
+                print(f"           - {feat}: {pct*100:.1f}% NaN")
+        else:
+            print(f"           (showing top 10)")
+            for feat, pct in high_nan_features.head(10).items():
+                print(f"           - {feat}: {pct*100:.1f}% NaN")
+    
     # Layer 1: Remove all-NaN columns
     all_nan_cols = X_train.columns[X_train.isna().all()].tolist()
     if all_nan_cols:
-        print(f"        🧹 Removing {len(all_nan_cols)} all-NaN columns")
+        print(f"        🧹 Removing {len(all_nan_cols)} all-NaN columns: {all_nan_cols[:10]}{'...' if len(all_nan_cols) > 10 else ''}")
         X_train = X_train.drop(columns=all_nan_cols)
         X_test = X_test.drop(columns=all_nan_cols)
     
-    # Layer 2: Remove high-NaN columns (>80%)
-    high_nan_cols = X_train.columns[X_train.isna().mean() > 0.8].tolist()
+    # Layer 2: Remove high-NaN columns (>90% - adjusted from 80% to keep more features)
+    # Only remove features with >90% NaN to preserve more information
+    high_nan_cols = X_train.columns[X_train.isna().mean() > 0.9].tolist()
     if high_nan_cols:
-        print(f"        🧹 Removing {len(high_nan_cols)} high-NaN columns (>80%)")
+        print(f"        🧹 Removing {len(high_nan_cols)} high-NaN columns (>90%): {high_nan_cols[:10]}{'...' if len(high_nan_cols) > 10 else ''}")
         X_train = X_train.drop(columns=high_nan_cols)
         X_test = X_test.drop(columns=high_nan_cols)
     
